@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, RefreshCw, Settings } from "lucide-react";
 
 import {
@@ -25,6 +25,9 @@ export default function WReddit() {
   const [showSettings, setShowSettings] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [subreddit, setSubreddit] = useState(() => getSubreddit());
   const [sort, setSort] = useState(() => getSort());
@@ -42,8 +45,9 @@ export default function WReddit() {
     saveSort(sort);
   }, [sort]);
 
+  // Remove 'after' from the dependency array to prevent infinite loops
   const fetchPosts = useCallback(
-    async (reset = false) => {
+    async (reset = false, afterToken?: string) => {
       try {
         setLoading(true);
         setError(null);
@@ -52,8 +56,11 @@ export default function WReddit() {
         url.searchParams.append("subreddit", subreddit);
         url.searchParams.append("sort", sort);
         url.searchParams.append("limit", "25");
-        if (!reset && after) {
-          url.searchParams.append("after", after);
+
+        // Use the passed afterToken or current after state
+        const currentAfter = afterToken !== undefined ? afterToken : after;
+        if (!reset && currentAfter) {
+          url.searchParams.append("after", currentAfter);
         }
 
         const response = await fetch(url.toString(), {
@@ -83,12 +90,36 @@ export default function WReddit() {
         setLoading(false);
       }
     },
-    [subreddit, sort, after, filters]
+    [subreddit, sort, filters] // Removed 'after' from dependencies
   );
 
+  // Separate effect for initial load and when core parameters change
   useEffect(() => {
     fetchPosts(true);
-  }, [subreddit, sort, filters, fetchPosts]);
+    setAfter(null); // Reset pagination when core parameters change
+  }, [subreddit, sort, filters]);
+
+  // Function to load more posts
+  const loadMorePosts = useCallback(() => {
+    if (after && !loading) {
+      fetchPosts(false, after);
+    }
+  }, [after, loading, fetchPosts]);
+
+  // Function to handle post selection and save scroll position
+  const handlePostClick = useCallback((post: RedditPost) => {
+    setScrollPosition(window.scrollY);
+    setSelectedPost(post);
+  }, []);
+
+  // Function to handle going back and restore scroll position
+  const handleBackFromPost = useCallback(() => {
+    setSelectedPost(null);
+    // Restore scroll position after the component re-renders
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
+  }, [scrollPosition]);
 
   const filteredPosts = posts.filter((post) => {
     if (!searchTerm) return true;
@@ -100,13 +131,11 @@ export default function WReddit() {
 
   // If a post is selected, show the detail view
   if (selectedPost) {
-    return (
-      <PostDetail post={selectedPost} onBack={() => setSelectedPost(null)} />
-    );
+    return <PostDetail post={selectedPost} onBack={handleBackFromPost} />;
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white" ref={scrollContainerRef}>
       {/* Header */}
       <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
         <div className="flex items-center justify-between p-3">
@@ -190,13 +219,13 @@ export default function WReddit() {
           </div>
         )}
 
-        <PostFeed posts={filteredPosts} onPostClick={setSelectedPost} />
+        <PostFeed posts={filteredPosts} onPostClick={handlePostClick} />
 
         {/* Load More Button */}
         {after && !loading && (
           <div className="p-4">
             <button
-              onClick={() => fetchPosts(false)}
+              onClick={loadMorePosts}
               className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-medium"
             >
               Load More Posts
