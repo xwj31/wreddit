@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ea580c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow512" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="256" cy="256" r="230" fill="url(#bgGradient512)" filter="url(#shadow512)"/>
+  
+  <!-- Reddit-style alien mascot -->
+  <g transform="translate(256, 256)">
+    <!-- Main head -->
+    <ellipse cx="0" cy="-25" rx="90" ry="75" fill="#ffffff" filter="url(#innerShadow)"/>
+    
+    <!-- Left antenna -->
+    <circle cx="-65" cy="-90" r="20" fill="#ffffff" filter="url(#innerShadow)"/>
+    <rect x="-70" y="-90" width="10" height="40" fill="#ffffff" transform="rotate(-15)" filter="url(#innerShadow)"/>
+    
+    <!-- Right antenna -->
+    <circle cx="65" cy="-90" r="20" fill="#ffffff" filter="url(#innerShadow)"/>
+    <rect x="60" y="-90" width="10" height="40" fill="#ffffff" transform="rotate(15)" filter="url(#innerShadow)"/>
+    
+    <!-- Eyes -->
+    <circle cx="-30" cy="-35" r="15" fill="#ea580c"/>
+    <circle cx="30" cy="-35" r="15" fill="#ea580c"/>
+    
+    <!-- Inner eye highlights -->
+    <circle cx="-25" cy="-40" r="5" fill="#ffffff"/>
+    <circle cx="35" cy="-40" r="5" fill="#ffffff"/>
+    
+    <!-- Eye pupils -->
+    <circle cx="-28" cy="-37" r="3" fill="#000000"/>
+    <circle cx="32" cy="-37" r="3" fill="#000000"/>
+    
+    <!-- Nose/snout -->
+    <ellipse cx="0" cy="-10" rx="20" ry="15" fill="#ffffff" filter="url(#innerShadow)"/>
+    <ellipse cx="0" cy="-10" rx="10" ry="8" fill="#ea580c"/>
+    
+    <!-- Nostrils -->
+    <ellipse cx="-4" cy="-12" rx="2" ry="3" fill="#dc2626"/>
+    <ellipse cx="4" cy="-12" rx="2" ry="3" fill="#dc2626"/>
+    
+    <!-- Smile -->
+    <path d="M -40 15 Q 0 35 40 15" stroke="#ea580c" stroke-width="8" fill="none" stroke-linecap="round"/>
+    
+    <!-- Body/chest -->
+    <ellipse cx="0" cy="85" rx="65" ry="50" fill="#ffffff" filter="url(#innerShadow)"/>
+    
+    <!-- Arms -->
+    <ellipse cx="-100" cy="60" rx="30" ry="20" fill="#ffffff" transform="rotate(-25)" filter="url(#innerShadow)"/>
+    <ellipse cx="100" cy="60" rx="30" ry="20" fill="#ffffff" transform="rotate(25)" filter="url(#innerShadow)"/>
+    
+    <!-- Hands/paws -->
+    <circle cx="-115" cy="85" r="18" fill="#ffffff" filter="url(#innerShadow)"/>
+    <circle cx="115" cy="85" r="18" fill="#ffffff" filter="url(#innerShadow)"/>
+    
+    <!-- W for WReddit -->
+    <text x="0" y="95" font-family="Arial Black, sans-serif" font-size="42" font-weight="bold" text-anchor="middle" fill="#ea580c">W</text>
+    
+    <!-- Reddit text -->
+    <text x="0" y="130" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#ea580c">REDDIT</text>
+  </g>
+</svg>

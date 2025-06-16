@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="88" fill="#4a5568"/>
+  
+  <!-- Phone/tablet frame -->
+  <rect x="56" y="36" width="80" height="120" rx="8" ry="8" fill="none" stroke="#ffffff" stroke-width="3"/>
+  
+  <!-- Feed lines with dots -->
+  <g fill="#ffffff">
+    <!-- First post -->
+    <circle cx="68" cy="60" r="2"/>
+    <rect x="76" y="56" width="48" height="3" rx="1.5"/>
+    <rect x="76" y="62" width="32" height="2" rx="1"/>
+    
+    <!-- Second post -->
+    <circle cx="68" cy="80" r="2"/>
+    <rect x="76" y="76" width="52" height="3" rx="1.5"/>
+    <rect x="76" y="82" width="28" height="2" rx="1"/>
+    
+    <!-- Third post -->
+    <circle cx="68" cy="100" r="2"/>
+    <rect x="76" y="96" width="46" height="3" rx="1.5"/>
+    <rect x="76" y="102" width="36" height="2" rx="1"/>
+    
+    <!-- Fourth post -->
+    <circle cx="68" cy="120" r="2"/>
+    <rect x="76" y="116" width="50" height="3" rx="1.5"/>
+    <rect x="76" y="122" width="30" height="2" rx="1"/>
+    
+    <!-- Fifth post -->
+    <circle cx="68" cy="140" r="2"/>
+    <rect x="76" y="136" width="44" height="3" rx="1.5"/>
+    <rect x="76" y="142" width="34" height="2" rx="1"/>
+  </g>
+</svg>

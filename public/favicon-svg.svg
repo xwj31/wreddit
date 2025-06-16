@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#4a5568"/>
+  
+  <!-- Simple list icon -->
+  <g fill="#ffffff">
+    <!-- Three lines representing posts -->
+    <rect x="8" y="10" width="16" height="2" rx="1"/>
+    <rect x="8" y="15" width="12" height="2" rx="1"/>
+    <rect x="8" y="20" width="14" height="2" rx="1"/>
+  </g>
+</svg>

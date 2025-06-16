@@ -40,6 +40,8 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+dev-dist/
+  registerSW.js
 public/
   vite.svg
 src/
@@ -60,16 +62,6 @@ src/
   vite-env.d.ts
 workers/
   reddit-api/
-    .wrangler/
-      tmp/
-        bundle-sQPtvw/
-          checked-fetch.js
-          middleware-insertion-facade.js
-          middleware-loader.entry.ts
-          strip-cf-connecting-ip-header.js
-        dev-Z3v03r/
-          index.js
-          index.js.map
     src/
       index.ts
     package.json
@@ -89,6 +81,10 @@ vite.config.ts
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="dev-dist/registerSW.js">
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/dev-sw.js?dev-sw', { scope: '/', type: 'classic' })
+</file>
 
 <file path="public/vite.svg">
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
@@ -322,123 +318,6 @@ export default function PostDetail({ post, onBack }: PostDetailProps) {
           )}
         </div>
       </div>
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/PostFeed.tsx">
-import { ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
-import { formatTimeAgo, formatScore } from "../utils";
-import type { RedditPost } from "../types";
-
-interface PostFeedProps {
-  posts: RedditPost[];
-  onPostClick: (post: RedditPost) => void;
-}
-
-export default function PostFeed({ posts, onPostClick }: PostFeedProps) {
-  return (
-    <div className="space-y-0">
-      {posts.map((post) => (
-        <article
-          key={post.id}
-          className="bg-black border-b border-gray-900 cursor-pointer"
-          onClick={() => onPostClick(post)}
-        >
-          {/* Post Header */}
-          <div className="flex items-center justify-between p-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {post.subreddit.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <div className="text-white font-medium text-sm">
-                  r/{post.subreddit}
-                </div>
-                <div className="text-gray-500 text-xs">
-                  u/{post.author} • {formatTimeAgo(post.created_utc)}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <ArrowUp size={16} className="text-gray-500" />
-              <span className="text-xs font-medium ml-1">
-                {formatScore(post.score)}
-              </span>
-            </div>
-          </div>
-
-          {/* Post Content */}
-          <div className="px-0">
-            {/* Title */}
-            <div className="px-3 mb-2">
-              <h2 className="text-white font-medium leading-tight text-sm">
-                {post.title}
-              </h2>
-            </div>
-
-            {/* Image/Media */}
-            {post.thumbnail && (
-              <div className="w-full">
-                <img
-                  src={post.thumbnail}
-                  alt="Post content"
-                  className="w-full object-cover max-h-96"
-                  style={{
-                    aspectRatio: "auto",
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Self text */}
-            {post.selftext && (
-              <div className="px-3 mt-2">
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  {post.selftext.length > 200
-                    ? `${post.selftext.slice(0, 200)}...`
-                    : post.selftext}
-                </p>
-              </div>
-            )}
-
-            {/* Action Bar */}
-            <div className="flex items-center justify-between px-3 py-3">
-              <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-                  <MessageCircle size={20} />
-                  <span className="text-sm">{post.num_comments}</span>
-                </button>
-                <a
-                  href={`https://reddit.com${post.permalink}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink size={20} />
-                  <span className="text-sm">Reddit</span>
-                </a>
-                {post.url !== `https://reddit.com${post.permalink}` && (
-                  <a
-                    href={post.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink size={20} />
-                    <span className="text-sm">Link</span>
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </article>
-      ))}
     </div>
   );
 }
@@ -897,574 +776,6 @@ export interface PostsApiResponse {
 /// <reference types="vite/client" />
 </file>
 
-<file path="workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/checked-fetch.js">
-const urls = new Set();
-
-function checkURL(request, init) {
-	const url =
-		request instanceof URL
-			? request
-			: new URL(
-					(typeof request === "string"
-						? new Request(request, init)
-						: request
-					).url
-				);
-	if (url.port && url.port !== "443" && url.protocol === "https:") {
-		if (!urls.has(url.toString())) {
-			urls.add(url.toString());
-			console.warn(
-				`WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:\n` +
-					` - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.\n`
-			);
-		}
-	}
-}
-
-globalThis.fetch = new Proxy(globalThis.fetch, {
-	apply(target, thisArg, argArray) {
-		const [request, init] = argArray;
-		checkURL(request, init);
-		return Reflect.apply(target, thisArg, argArray);
-	},
-});
-</file>
-
-<file path="workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js">
-import worker, * as OTHER_EXPORTS from "/Users/willjones/projects/wreddit/workers/reddit-api/src/index.ts";
-				import * as __MIDDLEWARE_0__ from "/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts";
-import * as __MIDDLEWARE_1__ from "/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts";
-
-				export * from "/Users/willjones/projects/wreddit/workers/reddit-api/src/index.ts";
-
-				export const __INTERNAL_WRANGLER_MIDDLEWARE__ = [
-					
-					__MIDDLEWARE_0__.default,__MIDDLEWARE_1__.default
-				]
-				export default worker;
-</file>
-
-<file path="workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-loader.entry.ts">
-// This loads all middlewares exposed on the middleware object and then starts
-// the invocation chain. The big idea is that we can add these to the middleware
-// export dynamically through wrangler, or we can potentially let users directly
-// add them as a sort of "plugin" system.
-
-import ENTRY, { __INTERNAL_WRANGLER_MIDDLEWARE__ } from "/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js";
-import { __facade_invoke__, __facade_register__, Dispatcher } from "/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/common.ts";
-import type { WorkerEntrypointConstructor } from "/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js";
-
-// Preserve all the exports from the worker
-export * from "/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js";
-
-class __Facade_ScheduledController__ implements ScheduledController {
-	readonly #noRetry: ScheduledController["noRetry"];
-
-	constructor(
-		readonly scheduledTime: number,
-		readonly cron: string,
-		noRetry: ScheduledController["noRetry"]
-	) {
-		this.#noRetry = noRetry;
-	}
-
-	noRetry() {
-		if (!(this instanceof __Facade_ScheduledController__)) {
-			throw new TypeError("Illegal invocation");
-		}
-		// Need to call native method immediately in case uncaught error thrown
-		this.#noRetry();
-	}
-}
-
-function wrapExportedHandler(worker: ExportedHandler): ExportedHandler {
-	// If we don't have any middleware defined, just return the handler as is
-	if (
-		__INTERNAL_WRANGLER_MIDDLEWARE__ === undefined ||
-		__INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
-	) {
-		return worker;
-	}
-	// Otherwise, register all middleware once
-	for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-		__facade_register__(middleware);
-	}
-
-	const fetchDispatcher: ExportedHandlerFetchHandler = function (
-		request,
-		env,
-		ctx
-	) {
-		if (worker.fetch === undefined) {
-			throw new Error("Handler does not export a fetch() function.");
-		}
-		return worker.fetch(request, env, ctx);
-	};
-
-	return {
-		...worker,
-		fetch(request, env, ctx) {
-			const dispatcher: Dispatcher = function (type, init) {
-				if (type === "scheduled" && worker.scheduled !== undefined) {
-					const controller = new __Facade_ScheduledController__(
-						Date.now(),
-						init.cron ?? "",
-						() => {}
-					);
-					return worker.scheduled(controller, env, ctx);
-				}
-			};
-			return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-		},
-	};
-}
-
-function wrapWorkerEntrypoint(
-	klass: WorkerEntrypointConstructor
-): WorkerEntrypointConstructor {
-	// If we don't have any middleware defined, just return the handler as is
-	if (
-		__INTERNAL_WRANGLER_MIDDLEWARE__ === undefined ||
-		__INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
-	) {
-		return klass;
-	}
-	// Otherwise, register all middleware once
-	for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-		__facade_register__(middleware);
-	}
-
-	// `extend`ing `klass` here so other RPC methods remain callable
-	return class extends klass {
-		#fetchDispatcher: ExportedHandlerFetchHandler<Record<string, unknown>> = (
-			request,
-			env,
-			ctx
-		) => {
-			this.env = env;
-			this.ctx = ctx;
-			if (super.fetch === undefined) {
-				throw new Error("Entrypoint class does not define a fetch() function.");
-			}
-			return super.fetch(request);
-		};
-
-		#dispatcher: Dispatcher = (type, init) => {
-			if (type === "scheduled" && super.scheduled !== undefined) {
-				const controller = new __Facade_ScheduledController__(
-					Date.now(),
-					init.cron ?? "",
-					() => {}
-				);
-				return super.scheduled(controller);
-			}
-		};
-
-		fetch(request: Request<unknown, IncomingRequestCfProperties>) {
-			return __facade_invoke__(
-				request,
-				this.env,
-				this.ctx,
-				this.#dispatcher,
-				this.#fetchDispatcher
-			);
-		}
-	};
-}
-
-let WRAPPED_ENTRY: ExportedHandler | WorkerEntrypointConstructor | undefined;
-if (typeof ENTRY === "object") {
-	WRAPPED_ENTRY = wrapExportedHandler(ENTRY);
-} else if (typeof ENTRY === "function") {
-	WRAPPED_ENTRY = wrapWorkerEntrypoint(ENTRY);
-}
-export default WRAPPED_ENTRY;
-</file>
-
-<file path="workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/strip-cf-connecting-ip-header.js">
-function stripCfConnectingIPHeader(input, init) {
-	const request = new Request(input, init);
-	request.headers.delete("CF-Connecting-IP");
-	return request;
-}
-
-globalThis.fetch = new Proxy(globalThis.fetch, {
-	apply(target, thisArg, argArray) {
-		return Reflect.apply(target, thisArg, [
-			stripCfConnectingIPHeader.apply(null, argArray),
-		]);
-	},
-});
-</file>
-
-<file path="workers/reddit-api/.wrangler/tmp/dev-Z3v03r/index.js">
-var __defProp = Object.defineProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-
-// .wrangler/tmp/bundle-sQPtvw/checked-fetch.js
-var urls = /* @__PURE__ */ new Set();
-function checkURL(request, init) {
-  const url = request instanceof URL ? request : new URL(
-    (typeof request === "string" ? new Request(request, init) : request).url
-  );
-  if (url.port && url.port !== "443" && url.protocol === "https:") {
-    if (!urls.has(url.toString())) {
-      urls.add(url.toString());
-      console.warn(
-        `WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:
- - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.
-`
-      );
-    }
-  }
-}
-__name(checkURL, "checkURL");
-globalThis.fetch = new Proxy(globalThis.fetch, {
-  apply(target, thisArg, argArray) {
-    const [request, init] = argArray;
-    checkURL(request, init);
-    return Reflect.apply(target, thisArg, argArray);
-  }
-});
-
-// .wrangler/tmp/bundle-sQPtvw/strip-cf-connecting-ip-header.js
-function stripCfConnectingIPHeader(input, init) {
-  const request = new Request(input, init);
-  request.headers.delete("CF-Connecting-IP");
-  return request;
-}
-__name(stripCfConnectingIPHeader, "stripCfConnectingIPHeader");
-globalThis.fetch = new Proxy(globalThis.fetch, {
-  apply(target, thisArg, argArray) {
-    return Reflect.apply(target, thisArg, [
-      stripCfConnectingIPHeader.apply(null, argArray)
-    ]);
-  }
-});
-
-// src/index.ts
-var src_default = {
-  async fetch(request) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    };
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
-    }
-    const url = new URL(request.url);
-    const path = url.pathname;
-    try {
-      if (path === "/api/posts") {
-        return await handleGetPosts(request, corsHeaders);
-      } else if (path === "/api/subreddit") {
-        return await handleGetSubreddit(request, corsHeaders);
-      }
-      return new Response("Not found", { status: 404, headers: corsHeaders });
-    } catch (error) {
-      console.error("Worker error:", error);
-      return new Response("Internal server error", {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-  }
-};
-async function handleGetPosts(request, corsHeaders) {
-  const url = new URL(request.url);
-  const subreddit = url.searchParams.get("subreddit") || "all";
-  const sort = url.searchParams.get("sort") || "hot";
-  const limit = url.searchParams.get("limit") || "25";
-  const after = url.searchParams.get("after") || "";
-  let filterOptions = {};
-  if (request.method === "POST") {
-    try {
-      const body = await request.json();
-      filterOptions = body;
-    } catch (error) {
-      console.error("Error parsing request body:", error);
-    }
-  }
-  let redditUrl = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
-  if (after) {
-    redditUrl += `&after=${after}`;
-  }
-  const response = await fetch(redditUrl, {
-    headers: {
-      "User-Agent": "WReddit/1.0.0"
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Reddit API error: ${response.status}`);
-  }
-  const data = await response.json();
-  const filteredPosts = filterPosts(
-    data.data.children.map((child) => child.data),
-    filterOptions
-  );
-  const result = {
-    posts: filteredPosts,
-    after: data.data.after
-  };
-  return new Response(JSON.stringify(result), {
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders
-    }
-  });
-}
-__name(handleGetPosts, "handleGetPosts");
-async function handleGetSubreddit(request, corsHeaders) {
-  const url = new URL(request.url);
-  const subredditName = url.searchParams.get("name");
-  if (!subredditName) {
-    return new Response("Subreddit name is required", {
-      status: 400,
-      headers: corsHeaders
-    });
-  }
-  const response = await fetch(
-    `https://www.reddit.com/r/${subredditName}/about.json`,
-    {
-      headers: {
-        "User-Agent": "WReddit/1.0.0"
-      }
-    }
-  );
-  if (!response.ok) {
-    return new Response("Subreddit not found", {
-      status: 404,
-      headers: corsHeaders
-    });
-  }
-  const data = await response.json();
-  return new Response(JSON.stringify(data.data), {
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders
-    }
-  });
-}
-__name(handleGetSubreddit, "handleGetSubreddit");
-function filterPosts(posts, options) {
-  return posts.filter((post) => {
-    if (options.blockedSubreddits?.includes(post.subreddit.toLowerCase())) {
-      return false;
-    }
-    if (options.favoriteSubreddits && options.favoriteSubreddits.length > 0) {
-      if (!options.favoriteSubreddits.includes(post.subreddit.toLowerCase())) {
-        return false;
-      }
-    }
-    if (options.blockedKeywords && options.blockedKeywords.length > 0) {
-      const postText = `${post.title} ${post.selftext || ""}`.toLowerCase();
-      const hasBlockedKeyword = options.blockedKeywords.some(
-        (keyword) => postText.includes(keyword.toLowerCase())
-      );
-      if (hasBlockedKeyword) {
-        return false;
-      }
-    }
-    if (options.keywords && options.keywords.length > 0) {
-      const postText = `${post.title} ${post.selftext || ""}`.toLowerCase();
-      const hasKeyword = options.keywords.some(
-        (keyword) => postText.includes(keyword.toLowerCase())
-      );
-      if (!hasKeyword) {
-        return false;
-      }
-    }
-    return true;
-  });
-}
-__name(filterPosts, "filterPosts");
-
-// node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } finally {
-    try {
-      if (request.body !== null && !request.bodyUsed) {
-        const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
-        }
-      }
-    } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
-    }
-  }
-}, "drainBody");
-var middleware_ensure_req_body_drained_default = drainBody;
-
-// node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
-function reduceError(e) {
-  return {
-    name: e?.name,
-    message: e?.message ?? String(e),
-    stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
-  };
-}
-__name(reduceError, "reduceError");
-var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } catch (e) {
-    const error = reduceError(e);
-    return Response.json(error, {
-      status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
-    });
-  }
-}, "jsonError");
-var middleware_miniflare3_json_error_default = jsonError;
-
-// .wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js
-var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
-  middleware_ensure_req_body_drained_default,
-  middleware_miniflare3_json_error_default
-];
-var middleware_insertion_facade_default = src_default;
-
-// node_modules/wrangler/templates/middleware/common.ts
-var __facade_middleware__ = [];
-function __facade_register__(...args) {
-  __facade_middleware__.push(...args.flat());
-}
-__name(__facade_register__, "__facade_register__");
-function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
-  const [head, ...tail] = middlewareChain;
-  const middlewareCtx = {
-    dispatch,
-    next(newRequest, newEnv) {
-      return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
-    }
-  };
-  return head(request, env, ctx, middlewareCtx);
-}
-__name(__facade_invokeChain__, "__facade_invokeChain__");
-function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
-  return __facade_invokeChain__(request, env, ctx, dispatch, [
-    ...__facade_middleware__,
-    finalMiddleware
-  ]);
-}
-__name(__facade_invoke__, "__facade_invoke__");
-
-// .wrangler/tmp/bundle-sQPtvw/middleware-loader.entry.ts
-var __Facade_ScheduledController__ = class {
-  constructor(scheduledTime, cron, noRetry) {
-    this.scheduledTime = scheduledTime;
-    this.cron = cron;
-    this.#noRetry = noRetry;
-  }
-  #noRetry;
-  noRetry() {
-    if (!(this instanceof __Facade_ScheduledController__)) {
-      throw new TypeError("Illegal invocation");
-    }
-    this.#noRetry();
-  }
-};
-__name(__Facade_ScheduledController__, "__Facade_ScheduledController__");
-function wrapExportedHandler(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return worker;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
-    if (worker.fetch === void 0) {
-      throw new Error("Handler does not export a fetch() function.");
-    }
-    return worker.fetch(request, env, ctx);
-  }, "fetchDispatcher");
-  return {
-    ...worker,
-    fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
-        if (type === "scheduled" && worker.scheduled !== void 0) {
-          const controller = new __Facade_ScheduledController__(
-            Date.now(),
-            init.cron ?? "",
-            () => {
-            }
-          );
-          return worker.scheduled(controller, env, ctx);
-        }
-      }, "dispatcher");
-      return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-    }
-  };
-}
-__name(wrapExportedHandler, "wrapExportedHandler");
-function wrapWorkerEntrypoint(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return klass;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  return class extends klass {
-    #fetchDispatcher = (request, env, ctx) => {
-      this.env = env;
-      this.ctx = ctx;
-      if (super.fetch === void 0) {
-        throw new Error("Entrypoint class does not define a fetch() function.");
-      }
-      return super.fetch(request);
-    };
-    #dispatcher = (type, init) => {
-      if (type === "scheduled" && super.scheduled !== void 0) {
-        const controller = new __Facade_ScheduledController__(
-          Date.now(),
-          init.cron ?? "",
-          () => {
-          }
-        );
-        return super.scheduled(controller);
-      }
-    };
-    fetch(request) {
-      return __facade_invoke__(
-        request,
-        this.env,
-        this.ctx,
-        this.#dispatcher,
-        this.#fetchDispatcher
-      );
-    }
-  };
-}
-__name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
-var WRAPPED_ENTRY;
-if (typeof middleware_insertion_facade_default === "object") {
-  WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
-} else if (typeof middleware_insertion_facade_default === "function") {
-  WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
-}
-var middleware_loader_entry_default = WRAPPED_ENTRY;
-export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default as default
-};
-//# sourceMappingURL=index.js.map
-</file>
-
-<file path="workers/reddit-api/.wrangler/tmp/dev-Z3v03r/index.js.map">
-{
-  "version": 3,
-  "sources": ["../bundle-sQPtvw/checked-fetch.js", "../bundle-sQPtvw/strip-cf-connecting-ip-header.js", "../../../src/index.ts", "../../../node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts", "../../../node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts", "../bundle-sQPtvw/middleware-insertion-facade.js", "../../../node_modules/wrangler/templates/middleware/common.ts", "../bundle-sQPtvw/middleware-loader.entry.ts"],
-  "sourceRoot": "/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/dev-Z3v03r",
-  "sourcesContent": ["const urls = new Set();\n\nfunction checkURL(request, init) {\n\tconst url =\n\t\trequest instanceof URL\n\t\t\t? request\n\t\t\t: new URL(\n\t\t\t\t\t(typeof request === \"string\"\n\t\t\t\t\t\t? new Request(request, init)\n\t\t\t\t\t\t: request\n\t\t\t\t\t).url\n\t\t\t\t);\n\tif (url.port && url.port !== \"443\" && url.protocol === \"https:\") {\n\t\tif (!urls.has(url.toString())) {\n\t\t\turls.add(url.toString());\n\t\t\tconsole.warn(\n\t\t\t\t`WARNING: known issue with \\`fetch()\\` requests to custom HTTPS ports in published Workers:\\n` +\n\t\t\t\t\t` - ${url.toString()} - the custom port will be ignored when the Worker is published using the \\`wrangler deploy\\` command.\\n`\n\t\t\t);\n\t\t}\n\t}\n}\n\nglobalThis.fetch = new Proxy(globalThis.fetch, {\n\tapply(target, thisArg, argArray) {\n\t\tconst [request, init] = argArray;\n\t\tcheckURL(request, init);\n\t\treturn Reflect.apply(target, thisArg, argArray);\n\t},\n});\n", "function stripCfConnectingIPHeader(input, init) {\n\tconst request = new Request(input, init);\n\trequest.headers.delete(\"CF-Connecting-IP\");\n\treturn request;\n}\n\nglobalThis.fetch = new Proxy(globalThis.fetch, {\n\tapply(target, thisArg, argArray) {\n\t\treturn Reflect.apply(target, thisArg, [\n\t\t\tstripCfConnectingIPHeader.apply(null, argArray),\n\t\t]);\n\t},\n});\n", "interface RedditPost {\n  id: string;\n  title: string;\n  author: string;\n  subreddit: string;\n  url: string;\n  permalink: string;\n  score: number;\n  num_comments: number;\n  created_utc: number;\n  thumbnail?: string;\n  preview?: {\n    images?: Array<{\n      source: { url: string; width: number; height: number };\n    }>;\n  };\n  selftext?: string;\n  is_video: boolean;\n}\n\ninterface RedditResponse {\n  data: {\n    children: Array<{\n      data: RedditPost;\n    }>;\n    after?: string;\n  };\n}\n\ninterface FilterOptions {\n  blockedSubreddits?: string[];\n  favoriteSubreddits?: string[];\n  keywords?: string[];\n  blockedKeywords?: string[];\n}\n\nexport default {\n  async fetch(request: Request): Promise<Response> {\n    // Handle CORS\n    const corsHeaders = {\n      \"Access-Control-Allow-Origin\": \"*\",\n      \"Access-Control-Allow-Methods\": \"GET, POST, OPTIONS\",\n      \"Access-Control-Allow-Headers\": \"Content-Type\",\n    };\n\n    if (request.method === \"OPTIONS\") {\n      return new Response(null, { headers: corsHeaders });\n    }\n\n    const url = new URL(request.url);\n    const path = url.pathname;\n\n    try {\n      if (path === \"/api/posts\") {\n        return await handleGetPosts(request, corsHeaders);\n      } else if (path === \"/api/subreddit\") {\n        return await handleGetSubreddit(request, corsHeaders);\n      }\n\n      return new Response(\"Not found\", { status: 404, headers: corsHeaders });\n    } catch (error) {\n      console.error(\"Worker error:\", error);\n      return new Response(\"Internal server error\", {\n        status: 500,\n        headers: corsHeaders,\n      });\n    }\n  },\n};\n\nasync function handleGetPosts(\n  request: Request,\n  corsHeaders: Record<string, string>\n): Promise<Response> {\n  const url = new URL(request.url);\n  const subreddit = url.searchParams.get(\"subreddit\") || \"all\";\n  const sort = url.searchParams.get(\"sort\") || \"hot\";\n  const limit = url.searchParams.get(\"limit\") || \"25\";\n  const after = url.searchParams.get(\"after\") || \"\";\n\n  // Get filter options from request body or query params\n  let filterOptions: FilterOptions = {};\n  if (request.method === \"POST\") {\n    try {\n      const body = (await request.json()) as FilterOptions;\n      filterOptions = body;\n    } catch (error) {\n      // Fallback to query params if body parsing fails\n      console.error(\"Error parsing request body:\", error);\n    }\n  }\n\n  // Build Reddit API URL\n  let redditUrl = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;\n  if (after) {\n    redditUrl += `&after=${after}`;\n  }\n\n  // Fetch from Reddit API\n  const response = await fetch(redditUrl, {\n    headers: {\n      \"User-Agent\": \"WReddit/1.0.0\",\n    },\n  });\n\n  if (!response.ok) {\n    throw new Error(`Reddit API error: ${response.status}`);\n  }\n\n  const data: RedditResponse = await response.json();\n\n  // Filter posts based on user preferences\n  const filteredPosts = filterPosts(\n    data.data.children.map((child) => child.data),\n    filterOptions\n  );\n\n  const result = {\n    posts: filteredPosts,\n    after: data.data.after,\n  };\n\n  return new Response(JSON.stringify(result), {\n    headers: {\n      \"Content-Type\": \"application/json\",\n      ...corsHeaders,\n    },\n  });\n}\n\nasync function handleGetSubreddit(\n  request: Request,\n  corsHeaders: Record<string, string>\n): Promise<Response> {\n  const url = new URL(request.url);\n  const subredditName = url.searchParams.get(\"name\");\n\n  if (!subredditName) {\n    return new Response(\"Subreddit name is required\", {\n      status: 400,\n      headers: corsHeaders,\n    });\n  }\n\n  // Fetch subreddit info\n  const response = await fetch(\n    `https://www.reddit.com/r/${subredditName}/about.json`,\n    {\n      headers: {\n        \"User-Agent\": \"WReddit/1.0.0\",\n      },\n    }\n  );\n\n  if (!response.ok) {\n    return new Response(\"Subreddit not found\", {\n      status: 404,\n      headers: corsHeaders,\n    });\n  }\n\n  const data = await response.json<\n    RedditResponse & { data: { children: Array<{ data: RedditPost }> } }\n  >();\n\n  return new Response(JSON.stringify(data.data), {\n    headers: {\n      \"Content-Type\": \"application/json\",\n      ...corsHeaders,\n    },\n  });\n}\n\nfunction filterPosts(\n  posts: RedditPost[],\n  options: FilterOptions\n): RedditPost[] {\n  return posts.filter((post) => {\n    // Filter out blocked subreddits\n    if (options.blockedSubreddits?.includes(post.subreddit.toLowerCase())) {\n      return false;\n    }\n\n    // If favorite subreddits are specified, only show those\n    if (options.favoriteSubreddits && options.favoriteSubreddits.length > 0) {\n      if (!options.favoriteSubreddits.includes(post.subreddit.toLowerCase())) {\n        return false;\n      }\n    }\n\n    // Filter out posts with blocked keywords\n    if (options.blockedKeywords && options.blockedKeywords.length > 0) {\n      const postText = `${post.title} ${post.selftext || \"\"}`.toLowerCase();\n      const hasBlockedKeyword = options.blockedKeywords.some((keyword) =>\n        postText.includes(keyword.toLowerCase())\n      );\n      if (hasBlockedKeyword) {\n        return false;\n      }\n    }\n\n    // Filter for specific keywords (if specified)\n    if (options.keywords && options.keywords.length > 0) {\n      const postText = `${post.title} ${post.selftext || \"\"}`.toLowerCase();\n      const hasKeyword = options.keywords.some((keyword) =>\n        postText.includes(keyword.toLowerCase())\n      );\n      if (!hasKeyword) {\n        return false;\n      }\n    }\n\n    return true;\n  });\n}\n", "import type { Middleware } from \"./common\";\n\nconst drainBody: Middleware = async (request, env, _ctx, middlewareCtx) => {\n\ttry {\n\t\treturn await middlewareCtx.next(request, env);\n\t} finally {\n\t\ttry {\n\t\t\tif (request.body !== null && !request.bodyUsed) {\n\t\t\t\tconst reader = request.body.getReader();\n\t\t\t\twhile (!(await reader.read()).done) {}\n\t\t\t}\n\t\t} catch (e) {\n\t\t\tconsole.error(\"Failed to drain the unused request body.\", e);\n\t\t}\n\t}\n};\n\nexport default drainBody;\n", "import type { Middleware } from \"./common\";\n\ninterface JsonError {\n\tmessage?: string;\n\tname?: string;\n\tstack?: string;\n\tcause?: JsonError;\n}\n\nfunction reduceError(e: any): JsonError {\n\treturn {\n\t\tname: e?.name,\n\t\tmessage: e?.message ?? String(e),\n\t\tstack: e?.stack,\n\t\tcause: e?.cause === undefined ? undefined : reduceError(e.cause),\n\t};\n}\n\n// See comment in `bundle.ts` for details on why this is needed\nconst jsonError: Middleware = async (request, env, _ctx, middlewareCtx) => {\n\ttry {\n\t\treturn await middlewareCtx.next(request, env);\n\t} catch (e: any) {\n\t\tconst error = reduceError(e);\n\t\treturn Response.json(error, {\n\t\t\tstatus: 500,\n\t\t\theaders: { \"MF-Experimental-Error-Stack\": \"true\" },\n\t\t});\n\t}\n};\n\nexport default jsonError;\n", "\t\t\t\timport worker, * as OTHER_EXPORTS from \"/Users/willjones/projects/wreddit/workers/reddit-api/src/index.ts\";\n\t\t\t\timport * as __MIDDLEWARE_0__ from \"/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts\";\nimport * as __MIDDLEWARE_1__ from \"/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts\";\n\n\t\t\t\texport * from \"/Users/willjones/projects/wreddit/workers/reddit-api/src/index.ts\";\n\n\t\t\t\texport const __INTERNAL_WRANGLER_MIDDLEWARE__ = [\n\t\t\t\t\t\n\t\t\t\t\t__MIDDLEWARE_0__.default,__MIDDLEWARE_1__.default\n\t\t\t\t]\n\t\t\t\texport default worker;", "export type Awaitable<T> = T | Promise<T>;\n// TODO: allow dispatching more events?\nexport type Dispatcher = (\n\ttype: \"scheduled\",\n\tinit: { cron?: string }\n) => Awaitable<void>;\n\nexport type IncomingRequest = Request<\n\tunknown,\n\tIncomingRequestCfProperties<unknown>\n>;\n\nexport interface MiddlewareContext {\n\tdispatch: Dispatcher;\n\tnext(request: IncomingRequest, env: any): Awaitable<Response>;\n}\n\nexport type Middleware = (\n\trequest: IncomingRequest,\n\tenv: any,\n\tctx: ExecutionContext,\n\tmiddlewareCtx: MiddlewareContext\n) => Awaitable<Response>;\n\nconst __facade_middleware__: Middleware[] = [];\n\n// The register functions allow for the insertion of one or many middleware,\n// We register internal middleware first in the stack, but have no way of controlling\n// the order that addMiddleware is run in service workers so need an internal function.\nexport function __facade_register__(...args: (Middleware | Middleware[])[]) {\n\t__facade_middleware__.push(...args.flat());\n}\nexport function __facade_registerInternal__(\n\t...args: (Middleware | Middleware[])[]\n) {\n\t__facade_middleware__.unshift(...args.flat());\n}\n\nfunction __facade_invokeChain__(\n\trequest: IncomingRequest,\n\tenv: any,\n\tctx: ExecutionContext,\n\tdispatch: Dispatcher,\n\tmiddlewareChain: Middleware[]\n): Awaitable<Response> {\n\tconst [head, ...tail] = middlewareChain;\n\tconst middlewareCtx: MiddlewareContext = {\n\t\tdispatch,\n\t\tnext(newRequest, newEnv) {\n\t\t\treturn __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);\n\t\t},\n\t};\n\treturn head(request, env, ctx, middlewareCtx);\n}\n\nexport function __facade_invoke__(\n\trequest: IncomingRequest,\n\tenv: any,\n\tctx: ExecutionContext,\n\tdispatch: Dispatcher,\n\tfinalMiddleware: Middleware\n): Awaitable<Response> {\n\treturn __facade_invokeChain__(request, env, ctx, dispatch, [\n\t\t...__facade_middleware__,\n\t\tfinalMiddleware,\n\t]);\n}\n", "// This loads all middlewares exposed on the middleware object and then starts\n// the invocation chain. The big idea is that we can add these to the middleware\n// export dynamically through wrangler, or we can potentially let users directly\n// add them as a sort of \"plugin\" system.\n\nimport ENTRY, { __INTERNAL_WRANGLER_MIDDLEWARE__ } from \"/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js\";\nimport { __facade_invoke__, __facade_register__, Dispatcher } from \"/Users/willjones/projects/wreddit/workers/reddit-api/node_modules/wrangler/templates/middleware/common.ts\";\nimport type { WorkerEntrypointConstructor } from \"/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js\";\n\n// Preserve all the exports from the worker\nexport * from \"/Users/willjones/projects/wreddit/workers/reddit-api/.wrangler/tmp/bundle-sQPtvw/middleware-insertion-facade.js\";\n\nclass __Facade_ScheduledController__ implements ScheduledController {\n\treadonly #noRetry: ScheduledController[\"noRetry\"];\n\n\tconstructor(\n\t\treadonly scheduledTime: number,\n\t\treadonly cron: string,\n\t\tnoRetry: ScheduledController[\"noRetry\"]\n\t) {\n\t\tthis.#noRetry = noRetry;\n\t}\n\n\tnoRetry() {\n\t\tif (!(this instanceof __Facade_ScheduledController__)) {\n\t\t\tthrow new TypeError(\"Illegal invocation\");\n\t\t}\n\t\t// Need to call native method immediately in case uncaught error thrown\n\t\tthis.#noRetry();\n\t}\n}\n\nfunction wrapExportedHandler(worker: ExportedHandler): ExportedHandler {\n\t// If we don't have any middleware defined, just return the handler as is\n\tif (\n\t\t__INTERNAL_WRANGLER_MIDDLEWARE__ === undefined ||\n\t\t__INTERNAL_WRANGLER_MIDDLEWARE__.length === 0\n\t) {\n\t\treturn worker;\n\t}\n\t// Otherwise, register all middleware once\n\tfor (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {\n\t\t__facade_register__(middleware);\n\t}\n\n\tconst fetchDispatcher: ExportedHandlerFetchHandler = function (\n\t\trequest,\n\t\tenv,\n\t\tctx\n\t) {\n\t\tif (worker.fetch === undefined) {\n\t\t\tthrow new Error(\"Handler does not export a fetch() function.\");\n\t\t}\n\t\treturn worker.fetch(request, env, ctx);\n\t};\n\n\treturn {\n\t\t...worker,\n\t\tfetch(request, env, ctx) {\n\t\t\tconst dispatcher: Dispatcher = function (type, init) {\n\t\t\t\tif (type === \"scheduled\" && worker.scheduled !== undefined) {\n\t\t\t\t\tconst controller = new __Facade_ScheduledController__(\n\t\t\t\t\t\tDate.now(),\n\t\t\t\t\t\tinit.cron ?? \"\",\n\t\t\t\t\t\t() => {}\n\t\t\t\t\t);\n\t\t\t\t\treturn worker.scheduled(controller, env, ctx);\n\t\t\t\t}\n\t\t\t};\n\t\t\treturn __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);\n\t\t},\n\t};\n}\n\nfunction wrapWorkerEntrypoint(\n\tklass: WorkerEntrypointConstructor\n): WorkerEntrypointConstructor {\n\t// If we don't have any middleware defined, just return the handler as is\n\tif (\n\t\t__INTERNAL_WRANGLER_MIDDLEWARE__ === undefined ||\n\t\t__INTERNAL_WRANGLER_MIDDLEWARE__.length === 0\n\t) {\n\t\treturn klass;\n\t}\n\t// Otherwise, register all middleware once\n\tfor (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {\n\t\t__facade_register__(middleware);\n\t}\n\n\t// `extend`ing `klass` here so other RPC methods remain callable\n\treturn class extends klass {\n\t\t#fetchDispatcher: ExportedHandlerFetchHandler<Record<string, unknown>> = (\n\t\t\trequest,\n\t\t\tenv,\n\t\t\tctx\n\t\t) => {\n\t\t\tthis.env = env;\n\t\t\tthis.ctx = ctx;\n\t\t\tif (super.fetch === undefined) {\n\t\t\t\tthrow new Error(\"Entrypoint class does not define a fetch() function.\");\n\t\t\t}\n\t\t\treturn super.fetch(request);\n\t\t};\n\n\t\t#dispatcher: Dispatcher = (type, init) => {\n\t\t\tif (type === \"scheduled\" && super.scheduled !== undefined) {\n\t\t\t\tconst controller = new __Facade_ScheduledController__(\n\t\t\t\t\tDate.now(),\n\t\t\t\t\tinit.cron ?? \"\",\n\t\t\t\t\t() => {}\n\t\t\t\t);\n\t\t\t\treturn super.scheduled(controller);\n\t\t\t}\n\t\t};\n\n\t\tfetch(request: Request<unknown, IncomingRequestCfProperties>) {\n\t\t\treturn __facade_invoke__(\n\t\t\t\trequest,\n\t\t\t\tthis.env,\n\t\t\t\tthis.ctx,\n\t\t\t\tthis.#dispatcher,\n\t\t\t\tthis.#fetchDispatcher\n\t\t\t);\n\t\t}\n\t};\n}\n\nlet WRAPPED_ENTRY: ExportedHandler | WorkerEntrypointConstructor | undefined;\nif (typeof ENTRY === \"object\") {\n\tWRAPPED_ENTRY = wrapExportedHandler(ENTRY);\n} else if (typeof ENTRY === \"function\") {\n\tWRAPPED_ENTRY = wrapWorkerEntrypoint(ENTRY);\n}\nexport default WRAPPED_ENTRY;\n"],
-  "mappings": "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",
-  "names": []
-}
-</file>
-
 <file path="workers/reddit-api/src/index.ts">
 interface RedditPost {
   id: string;
@@ -1734,6 +1045,13 @@ name = "reddit-api-worker"
 
 [env.staging]
 name = "reddit-api-worker-staging"
+
+[observability]
+enabled = true
+head_sampling_rate = 1 # optional. default = 1.
+
+[limits]
+cpu_ms = 10000
 </file>
 
 <file path=".env.example">
@@ -1912,6 +1230,128 @@ export default tseslint.config({
 }
 </file>
 
+<file path="src/components/PostFeed.tsx">
+import { ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
+import { formatTimeAgo, formatScore, getHighQualityImage } from "../utils";
+import type { RedditPost } from "../types";
+
+interface PostFeedProps {
+  posts: RedditPost[];
+  onPostClick: (post: RedditPost) => void;
+}
+
+export default function PostFeed({ posts, onPostClick }: PostFeedProps) {
+  return (
+    <div className="space-y-0">
+      {posts.map((post) => {
+        // Use the same image logic as PostDetail
+        const imageUrl = getHighQualityImage(post);
+
+        return (
+          <article
+            key={post.id}
+            className="bg-black border-b border-gray-900 cursor-pointer"
+            onClick={() => onPostClick(post)}
+          >
+            {/* Post Header */}
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {post.subreddit.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-white font-medium text-sm">
+                    r/{post.subreddit}
+                  </div>
+                  <div className="text-gray-500 text-xs">
+                    u/{post.author} • {formatTimeAgo(post.created_utc)}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center text-gray-400">
+                <ArrowUp size={16} className="text-gray-500" />
+                <span className="text-xs font-medium ml-1">
+                  {formatScore(post.score)}
+                </span>
+              </div>
+            </div>
+
+            {/* Post Content */}
+            <div className="px-0">
+              {/* Title */}
+              <div className="px-3 mb-2">
+                <h2 className="text-white font-medium leading-tight text-sm">
+                  {post.title}
+                </h2>
+              </div>
+
+              {/* Image/Media - Fixed to use getHighQualityImage */}
+              {imageUrl && (
+                <div className="w-full">
+                  <img
+                    src={imageUrl}
+                    alt="Post content"
+                    className="w-full object-cover max-h-96"
+                    style={{
+                      aspectRatio: "auto",
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Self text */}
+              {post.selftext && (
+                <div className="px-3 mt-2">
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {post.selftext.length > 200
+                      ? `${post.selftext.slice(0, 200)}...`
+                      : post.selftext}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Bar */}
+              <div className="flex items-center justify-between px-3 py-3">
+                <div className="flex items-center gap-4">
+                  <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                    <MessageCircle size={20} />
+                    <span className="text-sm">{post.num_comments}</span>
+                  </button>
+                  <a
+                    href={`https://reddit.com${post.permalink}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink size={20} />
+                    <span className="text-sm">Reddit</span>
+                  </a>
+                  {post.url !== `https://reddit.com${post.permalink}` && (
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink size={20} />
+                      <span className="text-sm">Link</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+</file>
+
 <file path="src/App.tsx">
 import WReddit from "./components/WReddit";
 
@@ -1952,6 +1392,18 @@ dist-ssr
 *.sln
 *.sw?
 .env
+workers/reddit-api/.wrangler
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
 </file>
 
 <file path="package.json">
@@ -1964,7 +1416,8 @@ dist-ssr
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
@@ -1984,24 +1437,14 @@ dist-ssr
     "globals": "^16.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.0"
   }
 }
 </file>
 
-<file path="vite.config.ts">
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-});
-</file>
-
 <file path="src/components/WReddit.tsx">
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, RefreshCw, Settings } from "lucide-react";
 
 import {
@@ -2028,6 +1471,9 @@ export default function WReddit() {
   const [showSettings, setShowSettings] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [subreddit, setSubreddit] = useState(() => getSubreddit());
   const [sort, setSort] = useState(() => getSort());
@@ -2045,8 +1491,9 @@ export default function WReddit() {
     saveSort(sort);
   }, [sort]);
 
+  // Remove 'after' from the dependency array to prevent infinite loops
   const fetchPosts = useCallback(
-    async (reset = false) => {
+    async (reset = false, afterToken?: string) => {
       try {
         setLoading(true);
         setError(null);
@@ -2055,8 +1502,11 @@ export default function WReddit() {
         url.searchParams.append("subreddit", subreddit);
         url.searchParams.append("sort", sort);
         url.searchParams.append("limit", "25");
-        if (!reset && after) {
-          url.searchParams.append("after", after);
+
+        // Use the passed afterToken or current after state
+        const currentAfter = afterToken !== undefined ? afterToken : after;
+        if (!reset && currentAfter) {
+          url.searchParams.append("after", currentAfter);
         }
 
         const response = await fetch(url.toString(), {
@@ -2086,12 +1536,36 @@ export default function WReddit() {
         setLoading(false);
       }
     },
-    [subreddit, sort, after, filters]
+    [subreddit, sort, filters] // Removed 'after' from dependencies
   );
 
+  // Separate effect for initial load and when core parameters change
   useEffect(() => {
     fetchPosts(true);
-  }, [subreddit, sort, filters, fetchPosts]);
+    setAfter(null); // Reset pagination when core parameters change
+  }, [subreddit, sort, filters]);
+
+  // Function to load more posts
+  const loadMorePosts = useCallback(() => {
+    if (after && !loading) {
+      fetchPosts(false, after);
+    }
+  }, [after, loading, fetchPosts]);
+
+  // Function to handle post selection and save scroll position
+  const handlePostClick = useCallback((post: RedditPost) => {
+    setScrollPosition(window.scrollY);
+    setSelectedPost(post);
+  }, []);
+
+  // Function to handle going back and restore scroll position
+  const handleBackFromPost = useCallback(() => {
+    setSelectedPost(null);
+    // Restore scroll position after the component re-renders
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
+  }, [scrollPosition]);
 
   const filteredPosts = posts.filter((post) => {
     if (!searchTerm) return true;
@@ -2103,13 +1577,11 @@ export default function WReddit() {
 
   // If a post is selected, show the detail view
   if (selectedPost) {
-    return (
-      <PostDetail post={selectedPost} onBack={() => setSelectedPost(null)} />
-    );
+    return <PostDetail post={selectedPost} onBack={handleBackFromPost} />;
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white" ref={scrollContainerRef}>
       {/* Header */}
       <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
         <div className="flex items-center justify-between p-3">
@@ -2193,13 +1665,13 @@ export default function WReddit() {
           </div>
         )}
 
-        <PostFeed posts={filteredPosts} onPostClick={setSelectedPost} />
+        <PostFeed posts={filteredPosts} onPostClick={handlePostClick} />
 
         {/* Load More Button */}
         {after && !loading && (
           <div className="p-4">
             <button
-              onClick={() => fetchPosts(false)}
+              onClick={loadMorePosts}
               className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-medium"
             >
               Load More Posts

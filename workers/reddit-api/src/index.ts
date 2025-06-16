@@ -97,6 +97,8 @@ async function handleGetPosts(
   }
 
   // Fetch from Reddit API
+  console.log(redditUrl);
+
   const response = await fetch(redditUrl, {
     headers: {
       "User-Agent": "WReddit/1.0.0",
