@@ -1,0 +1,13 @@
+name = "reddit-api-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-16"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+REDDIT_USER_AGENT = "WReddit/1.0.0"
+
+[env.production]
+name = "reddit-api-worker"
+
+[env.staging]
+name = "reddit-api-worker-staging"
