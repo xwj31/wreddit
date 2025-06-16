@@ -1,23 +1,28 @@
-import { ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
+import { ArrowUp, MessageCircle, ExternalLink, Bookmark } from "lucide-react";
 import { formatTimeAgo, formatScore, getHighQualityImage } from "../utils";
-import type { RedditPost } from "../types";
+import { isBookmarked } from "../utils/storage";
+import type { RedditPost, BookmarkedPost } from "../types";
 
 interface PostFeedProps {
   posts: RedditPost[];
   onPostClick: (post: RedditPost) => void;
   onSubredditClick?: (subreddit: string) => void;
+  onBookmarkToggle?: (post: RedditPost) => void;
+  bookmarks?: BookmarkedPost[];
 }
 
 export default function PostFeed({
   posts,
   onPostClick,
   onSubredditClick,
+  onBookmarkToggle,
 }: PostFeedProps) {
   return (
     <div className="space-y-0">
       {posts.map((post) => {
         // Use the same image logic as PostDetail
         const imageUrl = getHighQualityImage(post);
+        const postIsBookmarked = isBookmarked(post.id);
 
         return (
           <article key={post.id} className="bg-black border-b border-gray-900">
@@ -33,7 +38,7 @@ export default function PostFeed({
                   </span>
                 </div>
                 <div className="text-left">
-                  <div className="text-white font-medium text-sm">
+                  <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
                     r/{post.subreddit}
                   </div>
                   <div className="text-gray-500 text-xs">
@@ -41,11 +46,34 @@ export default function PostFeed({
                   </div>
                 </div>
               </button>
-              <div className="flex items-center text-gray-400">
-                <ArrowUp size={16} className="text-gray-500" />
-                <span className="text-xs font-medium ml-1">
-                  {formatScore(post.score)}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center text-gray-400">
+                  <ArrowUp size={16} className="text-gray-500" />
+                  <span className="text-xs font-medium ml-1">
+                    {formatScore(post.score)}
+                  </span>
+                </div>
+                {onBookmarkToggle && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBookmarkToggle(post);
+                    }}
+                    className={`p-1.5 rounded-full transition-colors ${
+                      postIsBookmarked
+                        ? "text-orange-500 hover:text-orange-400"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                    title={
+                      postIsBookmarked ? "Remove bookmark" : "Add bookmark"
+                    }
+                  >
+                    <Bookmark
+                      size={16}
+                      fill={postIsBookmarked ? "currentColor" : "none"}
+                    />
+                  </button>
+                )}
               </div>
             </div>
 

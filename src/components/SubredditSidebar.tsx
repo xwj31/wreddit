@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Clock,
   BarChart3,
+  Bookmark,
 } from "lucide-react";
 import type { FilterOptions } from "../types";
 
@@ -17,6 +18,7 @@ interface SubredditSidebarProps {
   onSubredditSelect: (subreddit: string) => void;
   filters: FilterOptions;
   onFiltersChange: (filters: FilterOptions) => void;
+  onNavigateToBookmarks?: () => void;
 }
 
 export default function SubredditSidebar({
@@ -26,6 +28,7 @@ export default function SubredditSidebar({
   onSubredditSelect,
   filters,
   onFiltersChange,
+  onNavigateToBookmarks,
 }: SubredditSidebarProps) {
   const [newSubreddit, setNewSubreddit] = useState("");
 
@@ -75,6 +78,11 @@ export default function SubredditSidebar({
     onClose();
   };
 
+  const handleBookmarksClick = () => {
+    onNavigateToBookmarks?.();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -85,9 +93,7 @@ export default function SubredditSidebar({
       {/* Sidebar */}
       <div className="fixed left-0 top-0 bottom-0 w-80 bg-gray-900 z-50 overflow-y-auto">
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
-            Browse Subreddits
-          </h2>
+          <h2 className="text-lg font-semibold text-white">Browse</h2>
           <button
             onClick={onClose}
             className="p-1 rounded-full hover:bg-gray-800 transition-colors"
@@ -97,6 +103,22 @@ export default function SubredditSidebar({
         </div>
 
         <div className="p-4 space-y-6">
+          {/* Quick Actions */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-3">
+              Quick Access
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={handleBookmarksClick}
+                className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors hover:bg-gray-800 text-gray-300"
+              >
+                <Bookmark size={18} className="text-orange-500" />
+                <span>Bookmarks</span>
+              </button>
+            </div>
+          </div>
+
           {/* Default/Popular Subreddits */}
           <div>
             <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
@@ -174,11 +196,16 @@ export default function SubredditSidebar({
                     >
                       <button
                         onClick={() => handleSubredditClick(sub)}
-                        className={`flex-1 text-left ${
+                        className={`flex-1 text-left flex items-center gap-2 ${
                           isActive ? "text-orange-400" : "text-gray-300"
                         }`}
                       >
-                        r/{sub}
+                        <Heart
+                          size={14}
+                          className="text-red-500 flex-shrink-0"
+                          fill="currentColor"
+                        />
+                        <span>r/{sub}</span>
                       </button>
                       <button
                         onClick={() => handleRemoveFavorite(sub)}

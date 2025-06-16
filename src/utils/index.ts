@@ -167,7 +167,7 @@ export const breakLongWords = (
     .join(" ");
 };
 
-// Share functionality
+// Enhanced share functionality
 export const sharePost = async (post: {
   title: string;
   permalink: string;
@@ -175,31 +175,53 @@ export const sharePost = async (post: {
   const url = `https://reddit.com${post.permalink}`;
   const shareData = {
     title: post.title,
+    text: post.title,
     url: url,
   };
 
   try {
+    // Check if Web Share API is supported and can share this data
     if (navigator.share && navigator.canShare?.(shareData)) {
       await navigator.share(shareData);
       return true;
-    } else {
-      // Fallback to clipboard
+    } else if (navigator.clipboard) {
+      // Fallback to clipboard API
       await navigator.clipboard.writeText(url);
       return true;
+    } else {
+      // Final fallback: manual clipboard copy
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const result = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      return result;
     }
   } catch (error) {
     console.error("Share failed:", error);
-    // Final fallback: copy to clipboard without async
+
+    // Emergency fallback
     try {
       const textArea = document.createElement("textarea");
       textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
       document.body.appendChild(textArea);
+      textArea.focus();
       textArea.select();
-      document.execCommand("copy");
+
+      const result = document.execCommand("copy");
       document.body.removeChild(textArea);
-      return true;
+      return result;
     } catch (fallbackError) {
-      console.error("Clipboard fallback failed:", fallbackError);
+      console.error("All share methods failed:", fallbackError);
       return false;
     }
   }

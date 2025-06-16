@@ -10,7 +10,11 @@ export default function NavigationManager({
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       event.preventDefault();
-      onNavigateBack();
+
+      // Add a small delay to prevent zoom issues in PWA mode
+      setTimeout(() => {
+        onNavigateBack();
+      }, 10);
     };
 
     // Add a dummy state to enable back button functionality
@@ -27,11 +31,42 @@ export default function NavigationManager({
 
   // Push state when navigating forward
   useEffect(() => {
-    window.history.pushState({ page: "current" }, "", window.location.href);
+    // Prevent zoom issues by setting viewport meta tag for PWA
+    const setViewportMeta = () => {
+      let viewport = document.querySelector("meta[name=viewport]");
+      if (!viewport) {
+        viewport = document.createElement("meta");
+        viewport.setAttribute("name", "viewport");
+        document.head.appendChild(viewport);
+      }
+      viewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      );
+    };
 
-    // This component doesn't directly trigger navigation,
-    // but we can expose this functionality if needed
-    return () => {};
+    // Apply viewport settings for PWA
+    setViewportMeta();
+
+    // Handle orientation changes to prevent zoom issues
+    const handleOrientationChange = () => {
+      setTimeout(() => {
+        setViewportMeta();
+        // Force a repaint to fix any zoom issues
+        document.body.style.zoom = "1";
+        setTimeout(() => {
+          document.body.style.zoom = "";
+        }, 50);
+      }, 100);
+    };
+
+    window.addEventListener("orientationchange", handleOrientationChange);
+    window.addEventListener("resize", handleOrientationChange);
+
+    return () => {
+      window.removeEventListener("orientationchange", handleOrientationChange);
+      window.removeEventListener("resize", handleOrientationChange);
+    };
   }, []);
 
   return null; // This component doesn't render anything

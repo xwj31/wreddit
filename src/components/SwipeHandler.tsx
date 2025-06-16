@@ -6,6 +6,7 @@ interface SwipeHandlerProps {
   onSwipeLeft?: () => void;
   disabled?: boolean;
   threshold?: number;
+  velocityThreshold?: number;
 }
 
 export default function SwipeHandler({
@@ -13,10 +14,12 @@ export default function SwipeHandler({
   onSwipeRight,
   onSwipeLeft,
   disabled = false,
-  threshold = 100,
+  threshold = 80,
+  velocityThreshold = 0.3,
 }: SwipeHandlerProps) {
   const startX = useRef<number>(0);
   const startY = useRef<number>(0);
+  const startTime = useRef<number>(0);
   const currentX = useRef<number>(0);
   const currentY = useRef<number>(0);
   const isSwipeInProgress = useRef<boolean>(false);
@@ -32,6 +35,7 @@ export default function SwipeHandler({
       startY.current = touch.clientY;
       currentX.current = touch.clientX;
       currentY.current = touch.clientY;
+      startTime.current = Date.now();
       isSwipeInProgress.current = true;
     };
 
@@ -41,6 +45,14 @@ export default function SwipeHandler({
       const touch = e.touches[0];
       currentX.current = touch.clientX;
       currentY.current = touch.clientY;
+
+      // Prevent default scrolling if horizontal movement is significant
+      const deltaX = Math.abs(currentX.current - startX.current);
+      const deltaY = Math.abs(currentY.current - startY.current);
+
+      if (deltaX > deltaY && deltaX > 20) {
+        e.preventDefault();
+      }
     };
 
     const handleTouchEnd = () => {
@@ -50,9 +62,18 @@ export default function SwipeHandler({
       const deltaY = currentY.current - startY.current;
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
+      const deltaTime = Date.now() - startTime.current;
+      const velocity = absDeltaX / deltaTime;
 
-      // Only trigger swipe if horizontal movement is greater than vertical
-      if (absDeltaX > absDeltaY && absDeltaX > threshold) {
+      // Only trigger swipe if:
+      // 1. Horizontal movement is greater than vertical
+      // 2. Distance exceeds threshold OR velocity is high enough
+      // 3. Time is reasonable (not too slow)
+      if (
+        absDeltaX > absDeltaY &&
+        deltaTime < 500 &&
+        (absDeltaX > threshold || velocity > velocityThreshold)
+      ) {
         if (deltaX > 0 && onSwipeRight) {
           onSwipeRight();
         } else if (deltaX < 0 && onSwipeLeft) {
@@ -63,16 +84,19 @@ export default function SwipeHandler({
       isSwipeInProgress.current = false;
     };
 
-    document.addEventListener("touchstart", handleTouchStart);
-    document.addEventListener("touchmove", handleTouchMove);
-    document.addEventListener("touchend", handleTouchEnd);
+    // Add passive: false to prevent default when needed
+    document.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       document.removeEventListener("touchstart", handleTouchStart);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [disabled, onSwipeRight, onSwipeLeft, threshold]);
+  }, [disabled, onSwipeRight, onSwipeLeft, threshold, velocityThreshold]);
 
   return <>{children}</>;
 }

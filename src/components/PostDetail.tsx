@@ -8,23 +8,33 @@ import {
   ExternalLink,
   RefreshCw,
 } from "lucide-react";
-import { formatTimeAgo, formatScore, getHighQualityImage } from "../utils";
+import {
+  formatTimeAgo,
+  formatScore,
+  getHighQualityImage,
+  sharePost,
+} from "../utils";
 import type { Child, RedditComment, RedditPost } from "../types";
 
 interface PostDetailProps {
   post: RedditPost;
   onBack: () => void;
   onSubredditClick?: (subreddit: string) => void;
+  onBookmarkToggle?: (post: RedditPost) => void;
+  isBookmarked?: boolean;
 }
 
 export default function PostDetail({
   post,
   onBack,
   onSubredditClick,
+  onBookmarkToggle,
+  isBookmarked = false,
 }: PostDetailProps) {
   const [comments, setComments] = useState<RedditComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [showFullText, setShowFullText] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   // Fetch comments from Reddit API
   useEffect(() => {
@@ -53,6 +63,18 @@ export default function PostDetail({
     fetchComments();
   }, [post.permalink]);
 
+  const handleShare = async () => {
+    try {
+      const success = await sharePost(post);
+      if (success) {
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
+  };
+
   const imageUrl = getHighQualityImage(post);
 
   return (
@@ -73,12 +95,33 @@ export default function PostDetail({
             r/{post.subreddit}
           </button>
           <div className="flex items-center gap-1">
-            <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800">
+            <button
+              onClick={handleShare}
+              className={`p-2 transition-colors rounded-full hover:bg-gray-800 ${
+                shareSuccess
+                  ? "text-green-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+              title="Share post"
+            >
               <Share size={20} />
             </button>
-            <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800">
-              <Bookmark size={20} />
-            </button>
+            {onBookmarkToggle && (
+              <button
+                onClick={() => onBookmarkToggle(post)}
+                className={`p-2 transition-colors rounded-full hover:bg-gray-800 ${
+                  isBookmarked
+                    ? "text-orange-500 hover:text-orange-400"
+                    : "text-gray-400 hover:text-white"
+                }`}
+                title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+              >
+                <Bookmark
+                  size={20}
+                  fill={isBookmarked ? "currentColor" : "none"}
+                />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -96,7 +139,9 @@ export default function PostDetail({
               </span>
             </div>
             <div className="text-left">
-              <div className="text-white font-medium">r/{post.subreddit}</div>
+              <div className="text-white font-medium hover:text-orange-400 transition-colors">
+                r/{post.subreddit}
+              </div>
               <div className="text-gray-500 text-sm">
                 u/{post.author} • {formatTimeAgo(post.created_utc)}
               </div>

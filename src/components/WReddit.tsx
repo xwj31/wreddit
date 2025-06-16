@@ -6,7 +6,8 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Menu,
+  Bookmark,
+  Heart,
 } from "lucide-react";
 
 import {
@@ -16,13 +17,23 @@ import {
   saveSubreddit,
   getSort,
   saveSort,
+  getBookmarks,
+  addBookmark,
+  removeBookmark,
+  isBookmarked,
 } from "../utils/storage";
 
 // Import the new components
 import PostDetail from "./PostDetail";
 import SettingsModal from "./SettingsModal";
 import PostFeed from "./PostFeed";
-import type { FilterOptions, PostsApiResponse, RedditPost } from "../types";
+import BookmarksModal from "./BookmarksModal";
+import type {
+  FilterOptions,
+  PostsApiResponse,
+  RedditPost,
+  BookmarkedPost,
+} from "../types";
 import SwipeHandler from "./SwipeHandler";
 import SubredditSidebar from "./SubredditSidebar";
 import NavigationManager from "./NavigationManager";
@@ -42,8 +53,9 @@ interface ApiDebugInfo {
 
 // Navigation history type
 interface NavigationState {
-  page: "feed" | "post";
+  page: "feed" | "post" | "bookmarks";
   scrollPosition?: number;
+  data?: RedditPost; // Only posts can be navigated to with data
 }
 
 export default function WReddit() {
@@ -53,8 +65,10 @@ export default function WReddit() {
   const [after, setAfter] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
 
   // Navigation state
   const [navigationHistory, setNavigationHistory] = useState<NavigationState[]>(
@@ -74,6 +88,11 @@ export default function WReddit() {
   const [sort, setSort] = useState(() => getSort());
   const [filters, setFilters] = useState<FilterOptions>(() => getFilters());
 
+  // Load bookmarks on mount
+  useEffect(() => {
+    setBookmarks(getBookmarks());
+  }, []);
+
   // Navigation functions
   const navigateToPost = useCallback((post: RedditPost) => {
     const currentScrollPosition = window.scrollY;
@@ -86,6 +105,7 @@ export default function WReddit() {
       },
     ]);
     setSelectedPost(post);
+    setShowBookmarks(false);
 
     // Push browser history state for back button support
     window.history.pushState(
@@ -98,11 +118,25 @@ export default function WReddit() {
   const navigateToSubreddit = useCallback((subredditName: string) => {
     setSubreddit(subredditName);
     setShowSidebar(false);
+    setShowBookmarks(false);
     // Reset posts when changing subreddit
     setPosts([]);
     setAfter(null);
     // Scroll to top when changing subreddit
     window.scrollTo(0, 0);
+  }, []);
+
+  const navigateToBookmarks = useCallback(() => {
+    const currentScrollPosition = window.scrollY;
+    setNavigationHistory((prev) => [
+      ...prev,
+      {
+        page: "bookmarks",
+        scrollPosition: currentScrollPosition,
+      },
+    ]);
+    setShowBookmarks(true);
+    setShowSidebar(false);
   }, []);
 
   const navigateBack = useCallback(() => {
@@ -114,17 +148,83 @@ export default function WReddit() {
 
       if (previousState.page === "feed") {
         setSelectedPost(null);
-        // Restore scroll position
+        setShowBookmarks(false);
+        // Restore scroll position with a small delay to prevent zoom issues
         setTimeout(() => {
           if (previousState.scrollPosition !== undefined) {
-            window.scrollTo(0, previousState.scrollPosition);
+            // Use requestAnimationFrame for smoother scrolling
+            requestAnimationFrame(() => {
+              window.scrollTo({
+                top: previousState.scrollPosition,
+                behavior: "auto",
+              });
+            });
           }
-        }, 0);
+        }, 50);
+      } else if (previousState.page === "bookmarks") {
+        setSelectedPost(null);
+        setShowBookmarks(true);
       }
 
       return newHistory;
     });
   }, []);
+
+  // Handle bookmark post click - need to convert BookmarkedPost to RedditPost format
+  const handleBookmarkPostClick = useCallback(
+    (bookmark: BookmarkedPost) => {
+      // Create a minimal RedditPost object from the bookmark
+      const post: RedditPost = {
+        id: bookmark.id,
+        title: bookmark.title,
+        subreddit: bookmark.subreddit,
+        permalink: bookmark.permalink,
+        author: "unknown", // Not stored in bookmark
+        url: `https://reddit.com${bookmark.permalink}`,
+        score: 0, // Not stored in bookmark
+        num_comments: 0, // Not stored in bookmark
+        created_utc: Math.floor(bookmark.bookmarkedAt / 1000),
+        is_video: false,
+      };
+      navigateToPost(post);
+    },
+    [navigateToPost]
+  );
+  const handleBookmarkToggle = useCallback((post: RedditPost) => {
+    if (isBookmarked(post.id)) {
+      removeBookmark(post.id);
+    } else {
+      addBookmark(post);
+    }
+    setBookmarks(getBookmarks());
+  }, []);
+
+  // Favorite subreddit management
+  const handleFavoriteToggle = useCallback(
+    (subredditName: string) => {
+      const currentFavorites = filters.favoriteSubreddits;
+      const isCurrentlyFavorite = currentFavorites.includes(
+        subredditName.toLowerCase()
+      );
+
+      let newFavorites;
+      if (isCurrentlyFavorite) {
+        newFavorites = currentFavorites.filter(
+          (fav) => fav !== subredditName.toLowerCase()
+        );
+      } else {
+        newFavorites = [...currentFavorites, subredditName.toLowerCase()];
+      }
+
+      const newFilters = {
+        ...filters,
+        favoriteSubreddits: newFavorites,
+      };
+
+      setFilters(newFilters);
+    },
+    [filters]
+  );
 
   // Add debug log function
   const addDebugLog = useCallback((info: Omit<ApiDebugInfo, "timestamp">) => {
@@ -320,12 +420,27 @@ export default function WReddit() {
   // Get current page from navigation history
   const currentPage = navigationHistory[navigationHistory.length - 1];
   const isOnFeedPage = currentPage.page === "feed";
+  const isOnBookmarksPage = currentPage.page === "bookmarks";
 
   return (
     <div className="min-h-screen bg-black text-white" ref={scrollContainerRef}>
       <NavigationManager onNavigateBack={navigateBack} />
 
-      <SwipeHandler onSwipeRight={navigateBack} disabled={isOnFeedPage}>
+      <SwipeHandler
+        onSwipeRight={() => {
+          if (!isOnFeedPage && !isOnBookmarksPage) {
+            navigateBack();
+          } else if (!showSidebar) {
+            setShowSidebar(true);
+          }
+        }}
+        onSwipeLeft={() => {
+          if (showSidebar) {
+            setShowSidebar(false);
+          }
+        }}
+        disabled={false}
+      >
         <SubredditSidebar
           isOpen={showSidebar}
           onClose={() => setShowSidebar(false)}
@@ -333,6 +448,18 @@ export default function WReddit() {
           onSubredditSelect={navigateToSubreddit}
           filters={filters}
           onFiltersChange={setFilters}
+          onNavigateToBookmarks={navigateToBookmarks}
+        />
+
+        <BookmarksModal
+          isOpen={showBookmarks}
+          onClose={navigateBack}
+          bookmarks={bookmarks}
+          onPostClick={handleBookmarkPostClick}
+          onBookmarkRemove={(postId) => {
+            removeBookmark(postId);
+            setBookmarks(getBookmarks());
+          }}
         />
 
         {selectedPost ? (
@@ -340,8 +467,10 @@ export default function WReddit() {
             post={selectedPost}
             onBack={navigateBack}
             onSubredditClick={navigateToSubreddit}
+            onBookmarkToggle={handleBookmarkToggle}
+            isBookmarked={isBookmarked(selectedPost.id)}
           />
-        ) : (
+        ) : showBookmarks ? null : ( // Bookmarks view is handled by BookmarksModal
           <>
             {/* Header */}
             <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
@@ -349,11 +478,11 @@ export default function WReddit() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowSidebar(true)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-orange-500 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-800 font-bold text-lg"
+                    title="Open sidebar"
                   >
-                    <Menu size={22} />
+                    W
                   </button>
-                  <h1 className="text-xl font-bold text-orange-500">WReddit</h1>
                   {/* Connection Status Indicator */}
                   <div className="flex items-center gap-1">
                     {connectionStatus === "connected" && (
@@ -371,6 +500,13 @@ export default function WReddit() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={navigateToBookmarks}
+                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    title="View bookmarks"
+                  >
+                    <Bookmark size={22} />
+                  </button>
                   <button
                     onClick={() => setDebugMode(!debugMode)}
                     className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
@@ -480,19 +616,58 @@ export default function WReddit() {
                 </div>
 
                 <div className="flex gap-2">
-                  <select
-                    value={subreddit}
-                    onChange={(e) => navigateToSubreddit(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm"
+                  <div className="flex-1 relative">
+                    <select
+                      value={subreddit}
+                      onChange={(e) => navigateToSubreddit(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm appearance-none"
+                    >
+                      <option value="all">All</option>
+                      <option value="popular">Popular</option>
+                      {filters.favoriteSubreddits.map((sub) => (
+                        <option key={sub} value={sub}>
+                          r/{sub}
+                        </option>
+                      ))}
+                    </select>
+                    {filters.favoriteSubreddits.includes(
+                      subreddit.toLowerCase()
+                    ) && (
+                      <Heart
+                        size={16}
+                        className="absolute right-8 top-1/2 transform -translate-y-1/2 text-red-500 pointer-events-none"
+                        fill="currentColor"
+                      />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleFavoriteToggle(subreddit)}
+                    className={`p-2 rounded-xl border transition-colors ${
+                      filters.favoriteSubreddits.includes(
+                        subreddit.toLowerCase()
+                      )
+                        ? "bg-red-600 border-red-500 text-white"
+                        : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
+                    }`}
+                    title={
+                      filters.favoriteSubreddits.includes(
+                        subreddit.toLowerCase()
+                      )
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
                   >
-                    <option value="all">All</option>
-                    <option value="popular">Popular</option>
-                    {filters.favoriteSubreddits.map((sub) => (
-                      <option key={sub} value={sub}>
-                        r/{sub}
-                      </option>
-                    ))}
-                  </select>
+                    <Heart
+                      size={18}
+                      fill={
+                        filters.favoriteSubreddits.includes(
+                          subreddit.toLowerCase()
+                        )
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value)}
@@ -536,6 +711,8 @@ export default function WReddit() {
                 posts={filteredPosts}
                 onPostClick={navigateToPost}
                 onSubredditClick={navigateToSubreddit}
+                onBookmarkToggle={handleBookmarkToggle}
+                bookmarks={bookmarks}
               />
 
               {after && !loading && (
