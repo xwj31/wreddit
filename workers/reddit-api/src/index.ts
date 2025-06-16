@@ -107,6 +107,8 @@ export default {
         return await handleGetPosts(request, corsHeaders, requestId);
       } else if (path === "/api/subreddit") {
         return await handleGetSubreddit(request, corsHeaders, requestId);
+      } else if (path === "/api/search-subreddits") {
+        return await handleSearchSubreddits(request, corsHeaders, requestId);
       } else if (path === "/api/health") {
         return await handleHealthCheck(corsHeaders, requestId);
       }
@@ -165,6 +167,142 @@ async function handleHealthCheck(
   });
 }
 
+async function handleSearchSubreddits(
+  request: Request,
+  corsHeaders: Record<string, string>,
+  requestId: string
+): Promise<Response> {
+  const url = new URL(request.url);
+  const query = url.searchParams.get("q") || "";
+  const limit = url.searchParams.get("limit") || "20";
+
+  log(`[${requestId}] Search subreddits request`, {
+    query,
+    limit,
+  });
+
+  if (!query.trim()) {
+    return new Response(
+      JSON.stringify({
+        subreddits: [],
+        requestId,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
+  }
+
+  try {
+    // Use Reddit's search API to find subreddits
+    const searchUrl = `https://www.reddit.com/api/search_reddit_names.json?query=${encodeURIComponent(
+      query
+    )}&limit=${limit}`;
+
+    log(`[${requestId}] Fetching from Reddit API: ${searchUrl}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(searchUrl, {
+      headers: {
+        "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Reddit API error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as { names: string[] };
+
+    // Get detailed info for each subreddit
+    const subredditPromises = data.names
+      .slice(0, parseInt(limit))
+      .map(async (name) => {
+        try {
+          const aboutResponse = await fetch(
+            `https://www.reddit.com/r/${name}/about.json`,
+            {
+              headers: {
+                "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
+                Accept: "application/json",
+              },
+            }
+          );
+
+          if (aboutResponse.ok) {
+            const aboutData = (await aboutResponse.json()) as {
+              data: {
+                display_name: string;
+                subscribers: number;
+                public_description: string;
+              };
+            };
+
+            return {
+              name: name,
+              display_name: aboutData.data.display_name,
+              subscribers: aboutData.data.subscribers || 0,
+              public_description: aboutData.data.public_description || "",
+            };
+          }
+        } catch (error) {
+          log(
+            `[${requestId}] Error fetching subreddit details for ${name}`,
+            error as LogData
+          );
+        }
+
+        // Fallback if we can't get detailed info
+        return {
+          name: name,
+          display_name: name,
+          subscribers: 0,
+          public_description: "",
+        };
+      });
+
+    const subreddits = await Promise.all(subredditPromises);
+
+    // Sort by subscriber count (descending)
+    subreddits.sort((a, b) => b.subscribers - a.subscribers);
+
+    log(`[${requestId}] Found ${subreddits.length} subreddits`);
+
+    return new Response(
+      JSON.stringify({
+        subreddits,
+        requestId,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
+  } catch (error) {
+    log(`[${requestId}] Error searching subreddits`, {
+      error: error instanceof Error ? error.message : String(error),
+      query,
+    });
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout - Reddit API took too long to respond");
+    }
+
+    throw error;
+  }
+}
+
 async function handleGetPosts(
   request: Request,
   corsHeaders: Record<string, string>,
@@ -218,7 +356,7 @@ async function handleGetPosts(
 
     const response = await fetch(redditUrl, {
       headers: {
-        "User-Agent": "WWReddit/1.0.0 (by /u/wreddit_app)",
+        "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
         Accept: "application/json",
       },
       signal: controller.signal,

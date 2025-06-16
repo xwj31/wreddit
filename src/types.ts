@@ -20,7 +20,7 @@ export interface RedditPost {
 
 export interface Child {
   kind: string;
-  data: [];
+  data: RedditComment | RedditPost;
 }
 
 export interface FilterOptions {
@@ -36,14 +36,19 @@ export interface RedditComment {
   body: string;
   score: number;
   created_utc: number;
-  replies?: {
-    data: {
-      children: Array<{
+  parent_id?: string;
+  depth?: number;
+  replies?:
+    | {
         kind: string;
-        data: RedditComment;
-      }>;
-    };
-  };
+        data: {
+          children: Array<{
+            kind: string;
+            data: RedditComment | { count: number; children: string[] }; // MoreComments object
+          }>;
+        };
+      }
+    | "";
 }
 
 export interface RedditResponse {
@@ -58,4 +63,31 @@ export interface RedditResponse {
 export interface PostsApiResponse {
   posts: RedditPost[];
   after?: string;
+}
+
+export interface SubredditInfo {
+  display_name: string;
+  title: string;
+  public_description: string;
+  subscribers: number;
+  icon_img?: string;
+  banner_img?: string;
+  created_utc: number;
+}
+
+export interface SearchSubredditsResponse {
+  subreddits: Array<{
+    name: string;
+    display_name: string;
+    subscribers: number;
+    public_description: string;
+  }>;
+}
+
+export interface BookmarkedPost {
+  id: string;
+  title: string;
+  subreddit: string;
+  permalink: string;
+  bookmarkedAt: number;
 }

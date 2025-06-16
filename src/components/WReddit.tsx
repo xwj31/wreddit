@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  List,
 } from "lucide-react";
 
 import {
@@ -16,11 +17,13 @@ import {
   getSort,
   saveSort,
 } from "../utils/storage";
+import { throttle } from "../utils";
 
 import PostDetail from "./PostDetail";
 import SettingsModal from "./SettingsModal";
 import PostFeed from "./PostFeed";
 import type { FilterOptions, PostsApiResponse, RedditPost } from "../types";
+import SubredditSearchModal from "./SubredditSearchModal";
 
 const WORKER_URL = import.meta.env.VITE_WORKER_URL;
 
@@ -41,9 +44,11 @@ export default function WReddit() {
   const [error, setError] = useState<string | null>(null);
   const [after, setAfter] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSubredditSearch, setShowSubredditSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   // Debug states
   const [debugMode, setDebugMode] = useState(false);
@@ -53,10 +58,34 @@ export default function WReddit() {
   >("unknown");
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
 
   const [subreddit, setSubreddit] = useState(() => getSubreddit());
   const [sort, setSort] = useState(() => getSort());
   const [filters, setFilters] = useState<FilterOptions>(() => getFilters());
+
+  // Handle scroll to hide/show header
+  const handleScroll = useCallback(
+    throttle(() => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrolledFromTop = currentScrollY > 100;
+
+      if (scrolledFromTop) {
+        setIsHeaderVisible(!scrollingDown);
+      } else {
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   // Add debug log function
   const addDebugLog = useCallback((info: Omit<ApiDebugInfo, "timestamp">) => {
@@ -253,6 +282,23 @@ export default function WReddit() {
     }, 0);
   }, [scrollPosition]);
 
+  const handleLogoClick = useCallback(() => {
+    if (selectedPost) {
+      handleBackFromPost();
+    } else {
+      // Go to home page
+      setSubreddit("all");
+      setSearchTerm("");
+      window.scrollTo(0, 0);
+    }
+  }, [selectedPost, handleBackFromPost]);
+
+  const handleSubredditSelect = useCallback((selectedSubreddit: string) => {
+    setSubreddit(selectedSubreddit);
+    setShowSubredditSearch(false);
+    setSearchTerm("");
+  }, []);
+
   const filteredPosts = posts.filter((post) => {
     if (!searchTerm) return true;
     return (
@@ -268,10 +314,23 @@ export default function WReddit() {
   return (
     <div className="min-h-screen bg-black text-white" ref={scrollContainerRef}>
       {/* Header */}
-      <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
+      <header
+        className={`fixed top-0 left-0 right-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-50 transition-transform duration-300 ${
+          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-orange-500"></h1>
+            <button
+              onClick={handleLogoClick}
+              className="flex items-center gap-2 hover:bg-gray-800 p-2 rounded-full transition-colors"
+            >
+              {/* App Icon */}
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">W</span>
+              </div>
+              <h1 className="text-xl font-bold text-orange-500">WReddit</h1>
+            </button>
             {/* Connection Status Indicator */}
             <div className="flex items-center gap-1">
               {connectionStatus === "connected" && (
@@ -286,6 +345,13 @@ export default function WReddit() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowSubredditSearch(true)}
+              className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+              title="Browse Subreddits"
+            >
+              <List size={22} />
+            </button>
             <button
               onClick={() => setDebugMode(!debugMode)}
               className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
@@ -401,7 +467,7 @@ export default function WReddit() {
               <option value="popular">Popular</option>
               {filters.favoriteSubreddits.map((sub) => (
                 <option key={sub} value={sub}>
-                  {sub}
+                  r/{sub}
                 </option>
               ))}
             </select>
@@ -426,7 +492,15 @@ export default function WReddit() {
         onFiltersChange={setFilters}
       />
 
-      <main className="pb-4">
+      <SubredditSearchModal
+        isOpen={showSubredditSearch}
+        onClose={() => setShowSubredditSearch(false)}
+        onSubredditSelect={handleSubredditSelect}
+        workerUrl={WORKER_URL}
+      />
+
+      {/* Main content with top padding to account for fixed header */}
+      <main className="pt-44 pb-4">
         {error && (
           <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
             <div className="flex items-start gap-2">
