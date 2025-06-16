@@ -22,9 +22,7 @@ import SettingsModal from "./SettingsModal";
 import PostFeed from "./PostFeed";
 import type { FilterOptions, PostsApiResponse, RedditPost } from "../types";
 
-const WORKER_URL =
-  import.meta.env.VITE_WORKER_URL ||
-  "https://reddit-api-worker.your-subdomain.workers.dev";
+const WORKER_URL = import.meta.env.VITE_WORKER_URL;
 
 // Debug utilities
 interface ApiDebugInfo {
