@@ -1,4 +1,3 @@
-import "./App.css";
 import WReddit from "./components/WReddit";
 
 function App() {
