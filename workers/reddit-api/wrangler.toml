@@ -17,4 +17,4 @@ enabled = true
 head_sampling_rate = 1 # optional. default = 1.
 
 [limits]
-cpu_ms = 10000
+cpu_ms = 30000  # Increased from 10000 to 30000ms

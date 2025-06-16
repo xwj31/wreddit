@@ -32,45 +32,143 @@ interface FilterOptions {
   favoriteSubreddits?: string[];
   keywords?: string[];
   blockedKeywords?: string[];
+  [key: string]: unknown; // Add index signature for flexibility
+}
+
+// Enhanced logging function with proper TypeScript types
+type LogData =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | Array<unknown>
+  | FilterOptions;
+
+function log(message: string, data?: LogData): void {
+  const timestamp = new Date().toISOString();
+  if (data !== undefined && data !== null) {
+    try {
+      const serializedData =
+        typeof data === "object" ? JSON.stringify(data, null, 2) : String(data);
+      console.log(`[${timestamp}] ${message}`, serializedData);
+    } catch (error) {
+      // Fallback for non-serializable objects
+      console.error(
+        `[${timestamp}] ${message}`,
+        "[Object - could not serialize]",
+        error
+      );
+      console.log(
+        `[${timestamp}] ${message}`,
+        "[Object - could not serialize]"
+      );
+    }
+  } else {
+    console.log(`[${timestamp}] ${message}`);
+  }
 }
 
 export default {
   async fetch(request: Request): Promise<Response> {
-    // Handle CORS
+    const requestId = crypto.randomUUID().substring(0, 8);
+
+    log(`[${requestId}] Incoming request`, {
+      method: request.method,
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries()),
+    });
+
+    // Enhanced CORS headers
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, X-Requested-With",
+      "Access-Control-Max-Age": "86400",
     };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+      log(`[${requestId}] CORS preflight request`);
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+      });
     }
 
     const url = new URL(request.url);
     const path = url.pathname;
 
+    log(`[${requestId}] Processing path: ${path}`);
+
     try {
       if (path === "/api/posts") {
-        return await handleGetPosts(request, corsHeaders);
+        return await handleGetPosts(request, corsHeaders, requestId);
       } else if (path === "/api/subreddit") {
-        return await handleGetSubreddit(request, corsHeaders);
+        return await handleGetSubreddit(request, corsHeaders, requestId);
+      } else if (path === "/api/health") {
+        return await handleHealthCheck(corsHeaders, requestId);
       }
 
-      return new Response("Not found", { status: 404, headers: corsHeaders });
-    } catch (error) {
-      console.error("Worker error:", error);
-      return new Response("Internal server error", {
-        status: 500,
-        headers: corsHeaders,
+      log(`[${requestId}] Path not found: ${path}`);
+      return new Response(JSON.stringify({ error: "Not found", path }), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
       });
+    } catch (error) {
+      log(`[${requestId}] Worker error`, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "Internal server error",
+          message: error instanceof Error ? error.message : String(error),
+          requestId,
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
     }
   },
 };
 
+async function handleHealthCheck(
+  corsHeaders: Record<string, string>,
+  requestId: string
+): Promise<Response> {
+  log(`[${requestId}] Health check requested`);
+
+  const health = {
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    requestId,
+    worker: "reddit-api-worker",
+    version: "1.0.0",
+  };
+
+  return new Response(JSON.stringify(health), {
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders,
+    },
+  });
+}
+
 async function handleGetPosts(
   request: Request,
-  corsHeaders: Record<string, string>
+  corsHeaders: Record<string, string>,
+  requestId: string
 ): Promise<Response> {
   const url = new URL(request.url);
   const subreddit = url.searchParams.get("subreddit") || "all";
@@ -78,15 +176,30 @@ async function handleGetPosts(
   const limit = url.searchParams.get("limit") || "25";
   const after = url.searchParams.get("after") || "";
 
-  // Get filter options from request body or query params
+  log(`[${requestId}] Posts request parameters`, {
+    subreddit,
+    sort,
+    limit,
+    after: after || "none",
+  });
+
+  // Get filter options from request body
   let filterOptions: FilterOptions = {};
   if (request.method === "POST") {
     try {
-      const body = (await request.json()) as FilterOptions;
-      filterOptions = body;
+      const contentType = request.headers.get("content-type");
+      log(`[${requestId}] Request content-type: ${contentType}`);
+
+      if (contentType?.includes("application/json")) {
+        const body = (await request.json()) as FilterOptions;
+        filterOptions = body;
+        log(`[${requestId}] Parsed filter options`, filterOptions);
+      }
     } catch (error) {
-      // Fallback to query params if body parsing fails
-      console.error("Error parsing request body:", error);
+      log(`[${requestId}] Error parsing request body`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // Continue with empty filters
     }
   }
 
@@ -96,81 +209,174 @@ async function handleGetPosts(
     redditUrl += `&after=${after}`;
   }
 
-  // Fetch from Reddit API
-  console.log(redditUrl);
+  log(`[${requestId}] Fetching from Reddit API: ${redditUrl}`);
 
-  const response = await fetch(redditUrl, {
-    headers: {
-      "User-Agent": "WReddit/1.0.0",
-    },
-  });
+  try {
+    // Fetch from Reddit API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  if (!response.ok) {
-    throw new Error(`Reddit API error: ${response.status}`);
+    const response = await fetch(redditUrl, {
+      headers: {
+        "User-Agent": "WWReddit/1.0.0 (by /u/wreddit_app)",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    log(`[${requestId}] Reddit API response`, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log(`[${requestId}] Reddit API error response`, {
+        status: response.status,
+        body: errorText,
+      });
+
+      throw new Error(`Reddit API error: ${response.status} - ${errorText}`);
+    }
+
+    const data: RedditResponse = await response.json();
+
+    log(`[${requestId}] Reddit API data received`, {
+      postsCount: data.data.children.length,
+      after: data.data.after || "none",
+    });
+
+    // Filter posts based on user preferences
+    const allPosts = data.data.children.map((child) => child.data);
+    const filteredPosts = filterPosts(allPosts, filterOptions);
+
+    log(`[${requestId}] Posts filtered`, {
+      originalCount: allPosts.length,
+      filteredCount: filteredPosts.length,
+    });
+
+    const result = {
+      posts: filteredPosts,
+      after: data.data.after,
+      metadata: {
+        requestId,
+        subreddit,
+        sort,
+        originalCount: allPosts.length,
+        filteredCount: filteredPosts.length,
+      },
+    };
+
+    return new Response(JSON.stringify(result), {
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
+    });
+  } catch (error) {
+    log(`[${requestId}] Error fetching from Reddit`, {
+      error: error instanceof Error ? error.message : String(error),
+      redditUrl,
+    });
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout - Reddit API took too long to respond");
+    }
+
+    throw error;
   }
-
-  const data: RedditResponse = await response.json();
-
-  // Filter posts based on user preferences
-  const filteredPosts = filterPosts(
-    data.data.children.map((child) => child.data),
-    filterOptions
-  );
-
-  const result = {
-    posts: filteredPosts,
-    after: data.data.after,
-  };
-
-  return new Response(JSON.stringify(result), {
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders,
-    },
-  });
 }
 
 async function handleGetSubreddit(
   request: Request,
-  corsHeaders: Record<string, string>
+  corsHeaders: Record<string, string>,
+  requestId: string
 ): Promise<Response> {
   const url = new URL(request.url);
   const subredditName = url.searchParams.get("name");
 
+  log(`[${requestId}] Subreddit info request for: ${subredditName}`);
+
   if (!subredditName) {
-    return new Response("Subreddit name is required", {
-      status: 400,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Subreddit name is required",
+        requestId,
+      }),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
   }
 
-  // Fetch subreddit info
-  const response = await fetch(
-    `https://www.reddit.com/r/${subredditName}/about.json`,
-    {
+  const aboutUrl = `https://www.reddit.com/r/${subredditName}/about.json`;
+  log(`[${requestId}] Fetching subreddit info from: ${aboutUrl}`);
+
+  try {
+    const response = await fetch(aboutUrl, {
       headers: {
-        "User-Agent": "WReddit/1.0.0",
+        "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
+        Accept: "application/json",
       },
-    }
-  );
-
-  if (!response.ok) {
-    return new Response("Subreddit not found", {
-      status: 404,
-      headers: corsHeaders,
     });
+
+    log(`[${requestId}] Subreddit API response`, {
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log(`[${requestId}] Subreddit API error`, {
+        status: response.status,
+        body: errorText,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "Subreddit not found",
+          subreddit: subredditName,
+          requestId,
+        }),
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
+    }
+
+    const data = (await response.json()) as { data: Record<string, unknown> };
+    log(`[${requestId}] Subreddit data received successfully`);
+
+    return new Response(
+      JSON.stringify({
+        ...data.data,
+        requestId,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
+  } catch (error) {
+    log(`[${requestId}] Error fetching subreddit info`, {
+      error: error instanceof Error ? error.message : String(error),
+      subreddit: subredditName,
+    });
+    throw error;
   }
-
-  const data = await response.json<
-    RedditResponse & { data: { children: Array<{ data: RedditPost }> } }
-  >();
-
-  return new Response(JSON.stringify(data.data), {
-    headers: {
-      "Content-Type": "application/json",
-      ...corsHeaders,
-    },
-  });
 }
 
 function filterPosts(
@@ -179,13 +385,21 @@ function filterPosts(
 ): RedditPost[] {
   return posts.filter((post) => {
     // Filter out blocked subreddits
-    if (options.blockedSubreddits?.includes(post.subreddit.toLowerCase())) {
+    if (
+      options.blockedSubreddits?.some(
+        (blocked) => blocked.toLowerCase() === post.subreddit.toLowerCase()
+      )
+    ) {
       return false;
     }
 
     // If favorite subreddits are specified, only show those
     if (options.favoriteSubreddits && options.favoriteSubreddits.length > 0) {
-      if (!options.favoriteSubreddits.includes(post.subreddit.toLowerCase())) {
+      if (
+        !options.favoriteSubreddits.some(
+          (fav) => fav.toLowerCase() === post.subreddit.toLowerCase()
+        )
+      ) {
         return false;
       }
     }

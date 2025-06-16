@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, RefreshCw, Settings } from "lucide-react";
+import {
+  Search,
+  RefreshCw,
+  Settings,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 import {
   getFilters,
@@ -15,7 +22,20 @@ import SettingsModal from "./SettingsModal";
 import PostFeed from "./PostFeed";
 import type { FilterOptions, PostsApiResponse, RedditPost } from "../types";
 
-const WORKER_URL = import.meta.env.VITE_WORKER_URL;
+const WORKER_URL =
+  import.meta.env.VITE_WORKER_URL ||
+  "https://reddit-api-worker.your-subdomain.workers.dev";
+
+// Debug utilities
+interface ApiDebugInfo {
+  timestamp: string;
+  url: string;
+  method: string;
+  status?: number;
+  error?: string;
+  responseTime?: number;
+  success: boolean;
+}
 
 export default function WReddit() {
   const [posts, setPosts] = useState<RedditPost[]>([]);
@@ -27,11 +47,90 @@ export default function WReddit() {
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
+  // Debug states
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<ApiDebugInfo[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "unknown" | "connected" | "error"
+  >("unknown");
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [subreddit, setSubreddit] = useState(() => getSubreddit());
   const [sort, setSort] = useState(() => getSort());
   const [filters, setFilters] = useState<FilterOptions>(() => getFilters());
+
+  // Add debug log function
+  const addDebugLog = useCallback((info: Omit<ApiDebugInfo, "timestamp">) => {
+    const debugEntry: ApiDebugInfo = {
+      ...info,
+      timestamp: new Date().toISOString(),
+    };
+    setDebugInfo((prev) => [debugEntry, ...prev.slice(0, 9)]); // Keep last 10 entries
+    console.log("API Debug:", debugEntry);
+  }, []);
+
+  // Test API connection
+  const testConnection = useCallback(async () => {
+    const startTime = Date.now();
+    try {
+      console.log("Testing connection to:", `${WORKER_URL}/api/health`);
+
+      const response = await fetch(`${WORKER_URL}/api/health`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const responseTime = Date.now() - startTime;
+
+      if (response.ok) {
+        const data = await response.json();
+        setConnectionStatus("connected");
+        addDebugLog({
+          url: `${WORKER_URL}/api/health`,
+          method: "GET",
+          status: response.status,
+          responseTime,
+          success: true,
+        });
+        console.log("Health check response:", data);
+        return true;
+      } else {
+        const errorText = await response.text();
+        setConnectionStatus("error");
+        addDebugLog({
+          url: `${WORKER_URL}/api/health`,
+          method: "GET",
+          status: response.status,
+          error: `${response.status}: ${errorText}`,
+          responseTime,
+          success: false,
+        });
+        console.error("Health check failed:", response.status, errorText);
+        return false;
+      }
+    } catch (err) {
+      const responseTime = Date.now() - startTime;
+      setConnectionStatus("error");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      addDebugLog({
+        url: `${WORKER_URL}/api/health`,
+        method: "GET",
+        error: errorMessage,
+        responseTime,
+        success: false,
+      });
+      console.error("Connection test failed:", err);
+      return false;
+    }
+  }, [WORKER_URL, addDebugLog]);
+
+  // Test on mount
+  useEffect(() => {
+    testConnection();
+  }, [testConnection]);
 
   useEffect(() => {
     saveFilters(filters);
@@ -45,9 +144,9 @@ export default function WReddit() {
     saveSort(sort);
   }, [sort]);
 
-  // Remove 'after' from the dependency array to prevent infinite loops
   const fetchPosts = useCallback(
     async (reset = false, afterToken?: string) => {
+      const startTime = Date.now();
       try {
         setLoading(true);
         setError(null);
@@ -57,25 +156,51 @@ export default function WReddit() {
         url.searchParams.append("sort", sort);
         url.searchParams.append("limit", "25");
 
-        // Use the passed afterToken or current after state
         const currentAfter = afterToken !== undefined ? afterToken : after;
         if (!reset && currentAfter) {
           url.searchParams.append("after", currentAfter);
         }
 
+        console.log("Fetching posts from:", url.toString());
+        console.log("Request body:", filters);
+
         const response = await fetch(url.toString(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify(filters),
         });
 
+        const responseTime = Date.now() - startTime;
+
         if (!response.ok) {
-          throw new Error("Failed to fetch posts");
+          const errorText = await response.text();
+          console.error("API Error Response:", errorText);
+
+          addDebugLog({
+            url: url.toString(),
+            method: "POST",
+            status: response.status,
+            error: `${response.status}: ${errorText}`,
+            responseTime,
+            success: false,
+          });
+
+          throw new Error(`API Error: ${response.status} - ${errorText}`);
         }
 
         const data: PostsApiResponse = await response.json();
+        console.log("Posts fetched successfully:", data);
+
+        addDebugLog({
+          url: url.toString(),
+          method: "POST",
+          status: response.status,
+          responseTime,
+          success: true,
+        });
 
         if (reset) {
           setPosts(data.posts);
@@ -84,38 +209,47 @@ export default function WReddit() {
         }
 
         setAfter(data.after || null);
+        setConnectionStatus("connected");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        const responseTime = Date.now() - startTime;
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error("Fetch posts error:", err);
+
+        addDebugLog({
+          url: `${WORKER_URL}/api/posts`,
+          method: "POST",
+          error: errorMessage,
+          responseTime,
+          success: false,
+        });
+
+        setError(errorMessage);
+        setConnectionStatus("error");
       } finally {
         setLoading(false);
       }
     },
-    [subreddit, sort, filters] // Removed 'after' from dependencies
+    [subreddit, sort, filters, WORKER_URL, addDebugLog, after]
   );
 
-  // Separate effect for initial load and when core parameters change
   useEffect(() => {
     fetchPosts(true);
-    setAfter(null); // Reset pagination when core parameters change
+    setAfter(null);
   }, [subreddit, sort, filters]);
 
-  // Function to load more posts
   const loadMorePosts = useCallback(() => {
     if (after && !loading) {
       fetchPosts(false, after);
     }
   }, [after, loading, fetchPosts]);
 
-  // Function to handle post selection and save scroll position
   const handlePostClick = useCallback((post: RedditPost) => {
     setScrollPosition(window.scrollY);
     setSelectedPost(post);
   }, []);
 
-  // Function to handle going back and restore scroll position
   const handleBackFromPost = useCallback(() => {
     setSelectedPost(null);
-    // Restore scroll position after the component re-renders
     setTimeout(() => {
       window.scrollTo(0, scrollPosition);
     }, 0);
@@ -129,7 +263,6 @@ export default function WReddit() {
     );
   });
 
-  // If a post is selected, show the detail view
   if (selectedPost) {
     return <PostDetail post={selectedPost} onBack={handleBackFromPost} />;
   }
@@ -139,8 +272,32 @@ export default function WReddit() {
       {/* Header */}
       <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
         <div className="flex items-center justify-between p-3">
-          <h1 className="text-2xl font-bold text-orange-500">WReddit</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-orange-500"></h1>
+            {/* Connection Status Indicator */}
+            <div className="flex items-center gap-1">
+              {connectionStatus === "connected" && (
+                <CheckCircle size={16} className="text-green-500" />
+              )}
+              {connectionStatus === "error" && (
+                <XCircle size={16} className="text-red-500" />
+              )}
+              {connectionStatus === "unknown" && (
+                <RefreshCw size={16} className="text-yellow-500 animate-spin" />
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+              title="Toggle Debug Mode"
+            >
+              <AlertTriangle
+                size={22}
+                className={debugMode ? "text-yellow-500" : ""}
+              />
+            </button>
             <button
               onClick={() => setShowSettings(true)}
               className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
@@ -157,9 +314,71 @@ export default function WReddit() {
           </div>
         </div>
 
+        {/* Debug Panel */}
+        {debugMode && (
+          <div className="p-3 border-t border-gray-800 bg-gray-900">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-white">
+                  Debug Information
+                </h3>
+                <button
+                  onClick={testConnection}
+                  className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Test Connection
+                </button>
+              </div>
+
+              <div className="text-xs text-gray-400">
+                <div>Worker URL: {WORKER_URL}</div>
+                <div>
+                  Status:{" "}
+                  <span
+                    className={`${
+                      connectionStatus === "connected"
+                        ? "text-green-400"
+                        : connectionStatus === "error"
+                        ? "text-red-400"
+                        : "text-yellow-400"
+                    }`}
+                  >
+                    {connectionStatus}
+                  </span>
+                </div>
+              </div>
+
+              {debugInfo.length > 0 && (
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {debugInfo.map((info, index) => (
+                    <div
+                      key={index}
+                      className={`text-xs p-2 rounded ${
+                        info.success
+                          ? "bg-green-900/20 text-green-400"
+                          : "bg-red-900/20 text-red-400"
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <span>
+                          {info.method} {info.url.split("/").pop()}
+                        </span>
+                        <span>{info.responseTime}ms</span>
+                      </div>
+                      {info.error && (
+                        <div className="text-red-300">{info.error}</div>
+                      )}
+                      {info.status && <div>Status: {info.status}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Search and Controls */}
         <div className="px-3 pb-3 space-y-3">
-          {/* Search Bar */}
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
@@ -174,7 +393,6 @@ export default function WReddit() {
             />
           </div>
 
-          {/* Subreddit and Sort Controls */}
           <div className="flex gap-2">
             <select
               value={subreddit}
@@ -203,7 +421,6 @@ export default function WReddit() {
         </div>
       </header>
 
-      {/* Settings Modal */}
       <SettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
@@ -211,17 +428,26 @@ export default function WReddit() {
         onFiltersChange={setFilters}
       />
 
-      {/* Posts Feed */}
       <main className="pb-4">
         {error && (
           <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
-            {error}
+            <div className="flex items-start gap-2">
+              <XCircle size={20} className="flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-medium">API Error</div>
+                <div className="text-sm mt-1">{error}</div>
+                {connectionStatus === "error" && (
+                  <div className="text-xs mt-2 text-red-300">
+                    Check if the worker URL is correct: {WORKER_URL}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
         <PostFeed posts={filteredPosts} onPostClick={handlePostClick} />
 
-        {/* Load More Button */}
         {after && !loading && (
           <div className="p-4">
             <button
@@ -233,10 +459,18 @@ export default function WReddit() {
           </div>
         )}
 
-        {/* Loading indicator */}
         {loading && (
           <div className="flex justify-center p-8">
             <RefreshCw size={24} className="animate-spin text-orange-500" />
+          </div>
+        )}
+
+        {posts.length === 0 && !loading && !error && (
+          <div className="text-center py-12 px-4">
+            <div className="text-gray-400 text-lg mb-2">No posts found</div>
+            <div className="text-gray-500 text-sm">
+              Try adjusting your filters or check your connection
+            </div>
           </div>
         )}
       </main>
