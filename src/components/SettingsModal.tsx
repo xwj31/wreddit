@@ -48,13 +48,13 @@ export default function SettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 modal-safe">
       <div className="bg-gray-900 rounded-2xl w-full max-w-sm max-h-[85vh] overflow-y-auto">
         <div className="p-4 border-b border-gray-800 flex items-center justify-between sticky top-0 bg-gray-900">
           <h2 className="text-lg font-semibold">Settings</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-800 transition-colors"
+            className="p-1 rounded-full hover:bg-gray-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X size={20} />
           </button>
@@ -72,7 +72,7 @@ export default function SettingsModal({
                 <input
                   type="text"
                   placeholder="Add subreddit..."
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm"
+                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm min-h-[44px]"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       handleAddToList(
@@ -89,7 +89,7 @@ export default function SettingsModal({
                       .previousElementSibling as HTMLInputElement;
                     handleAddToList("favoriteSubreddits", input.value, input);
                   }}
-                  className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   <Plus size={16} />
                 </button>
@@ -98,14 +98,14 @@ export default function SettingsModal({
                 {filters.favoriteSubreddits.map((sub) => (
                   <span
                     key={sub}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-red-600/20 border border-red-600/40 text-red-400 rounded-lg text-sm"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-red-600/20 border border-red-600/40 text-red-400 rounded-lg text-sm min-h-[32px]"
                   >
                     r/{sub}
                     <button
                       onClick={() =>
                         handleRemoveFromList("favoriteSubreddits", sub)
                       }
-                      className="hover:text-red-300 transition-colors"
+                      className="hover:text-red-300 transition-colors min-h-[24px] min-w-[24px] flex items-center justify-center"
                     >
                       <X size={12} />
                     </button>
@@ -125,7 +125,7 @@ export default function SettingsModal({
                 <input
                   type="text"
                   placeholder="Block subreddit..."
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm"
+                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm min-h-[44px]"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       handleAddToList(
@@ -142,7 +142,7 @@ export default function SettingsModal({
                       .previousElementSibling as HTMLInputElement;
                     handleAddToList("blockedSubreddits", input.value, input);
                   }}
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   <Plus size={16} />
                 </button>
@@ -151,14 +151,14 @@ export default function SettingsModal({
                 {filters.blockedSubreddits.map((sub) => (
                   <span
                     key={sub}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-sm"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-sm min-h-[32px]"
                   >
                     r/{sub}
                     <button
                       onClick={() =>
                         handleRemoveFromList("blockedSubreddits", sub)
                       }
-                      className="hover:text-gray-200 transition-colors"
+                      className="hover:text-gray-200 transition-colors min-h-[24px] min-w-[24px] flex items-center justify-center"
                     >
                       <X size={12} />
                     </button>
@@ -176,7 +176,7 @@ export default function SettingsModal({
                 <input
                   type="text"
                   placeholder="Block keyword..."
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm"
+                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm min-h-[44px]"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       handleAddToList(
@@ -193,7 +193,7 @@ export default function SettingsModal({
                       .previousElementSibling as HTMLInputElement;
                     handleAddToList("blockedKeywords", input.value, input);
                   }}
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   <Plus size={16} />
                 </button>
@@ -202,14 +202,14 @@ export default function SettingsModal({
                 {filters.blockedKeywords.map((keyword) => (
                   <span
                     key={keyword}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-sm"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-sm min-h-[32px]"
                   >
                     {keyword}
                     <button
                       onClick={() =>
                         handleRemoveFromList("blockedKeywords", keyword)
                       }
-                      className="hover:text-gray-200 transition-colors"
+                      className="hover:text-gray-200 transition-colors min-h-[24px] min-w-[24px] flex items-center justify-center"
                     >
                       <X size={12} />
                     </button>

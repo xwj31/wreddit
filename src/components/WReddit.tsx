@@ -423,7 +423,7 @@ export default function WReddit() {
   const isOnBookmarksPage = currentPage.page === "bookmarks";
 
   return (
-    <div className="min-h-screen bg-black text-white" ref={scrollContainerRef}>
+    <div className="vh-full-safe bg-black text-white" ref={scrollContainerRef}>
       <NavigationManager onNavigateBack={navigateBack} />
 
       <SwipeHandler
@@ -472,13 +472,13 @@ export default function WReddit() {
           />
         ) : showBookmarks ? null : ( // Bookmarks view is handled by BookmarksModal
           <>
-            {/* Header */}
-            <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
+            {/* Header with Safe Area Support */}
+            <header className="sticky-header-safe">
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowSidebar(true)}
-                    className="p-2 text-orange-500 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-800 font-bold text-lg"
+                    className="p-2 text-orange-500 hover:text-orange-400 transition-colors rounded-full hover:bg-gray-800 font-bold text-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Open sidebar"
                   >
                     W
@@ -502,14 +502,14 @@ export default function WReddit() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={navigateToBookmarks}
-                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="View bookmarks"
                   >
                     <Bookmark size={22} />
                   </button>
                   <button
                     onClick={() => setDebugMode(!debugMode)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Toggle Debug Mode"
                   >
                     <AlertTriangle
@@ -519,13 +519,13 @@ export default function WReddit() {
                   </button>
                   <button
                     onClick={() => setShowSettings(true)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     <Settings size={22} />
                   </button>
                   <button
                     onClick={() => fetchPosts(true)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     disabled={loading}
                   >
                     <RefreshCw
@@ -546,7 +546,7 @@ export default function WReddit() {
                       </h3>
                       <button
                         onClick={testConnection}
-                        className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 min-h-[32px]"
                       >
                         Test Connection
                       </button>
@@ -611,7 +611,7 @@ export default function WReddit() {
                     placeholder="Search posts..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm min-h-[44px]"
                   />
                 </div>
 
@@ -620,7 +620,7 @@ export default function WReddit() {
                     <select
                       value={subreddit}
                       onChange={(e) => navigateToSubreddit(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm appearance-none"
+                      className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm appearance-none min-h-[44px]"
                     >
                       <option value="all">All</option>
                       <option value="popular">Popular</option>
@@ -642,7 +642,7 @@ export default function WReddit() {
                   </div>
                   <button
                     onClick={() => handleFavoriteToggle(subreddit)}
-                    className={`p-2 rounded-xl border transition-colors ${
+                    className={`p-2 rounded-xl border transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${
                       filters.favoriteSubreddits.includes(
                         subreddit.toLowerCase()
                       )
@@ -671,7 +671,7 @@ export default function WReddit() {
                   <select
                     value={sort}
                     onChange={(e) => setSort(e.target.value)}
-                    className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm"
+                    className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 text-sm min-h-[44px]"
                   >
                     <option value="hot">Hot</option>
                     <option value="new">New</option>
@@ -689,7 +689,7 @@ export default function WReddit() {
               onFiltersChange={setFilters}
             />
 
-            <main className="pb-4">
+            <main className="bottom-bar-safe">
               {error && (
                 <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
                   <div className="flex items-start gap-2">
@@ -719,7 +719,7 @@ export default function WReddit() {
                 <div className="p-4">
                   <button
                     onClick={loadMorePosts}
-                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-medium"
+                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-medium min-h-[44px]"
                   >
                     Load More Posts
                   </button>

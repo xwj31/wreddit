@@ -20,14 +20,14 @@ export default function BookmarksModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black z-50">
-      {/* Header */}
-      <div className="sticky top-0 bg-black border-b border-gray-800 z-10">
+    <div className="fixed inset-0 bg-black z-50 modal-safe">
+      {/* Header with Safe Area */}
+      <div className="sticky top-0 bg-black border-b border-gray-800 z-10 safe-area-top">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-800 transition-colors"
+              className="p-1 rounded-full hover:bg-gray-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X size={20} className="text-gray-400" />
             </button>
@@ -43,7 +43,7 @@ export default function BookmarksModal({
       </div>
 
       {/* Content */}
-      <div className="overflow-y-auto">
+      <div className="overflow-y-auto bottom-bar-safe">
         {bookmarks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4">
             <Bookmark size={48} className="text-gray-600 mb-4" />
@@ -83,7 +83,7 @@ export default function BookmarksModal({
                   </div>
                   <button
                     onClick={() => onBookmarkRemove(bookmark.id)}
-                    className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-full hover:bg-gray-800"
+                    className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-full hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Remove bookmark"
                   >
                     <Trash2 size={16} />
@@ -92,7 +92,7 @@ export default function BookmarksModal({
 
                 {/* Post Title - Clickable */}
                 <div
-                  className="cursor-pointer mb-3"
+                  className="cursor-pointer mb-3 min-h-[44px] flex items-center"
                   onClick={() => onPostClick(bookmark)}
                 >
                   <h3 className="text-white font-medium leading-tight text-sm hover:text-orange-400 transition-colors">
@@ -104,7 +104,7 @@ export default function BookmarksModal({
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => onPostClick(bookmark)}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm min-h-[44px] py-2"
                   >
                     <span>View Post</span>
                   </button>
@@ -112,7 +112,7 @@ export default function BookmarksModal({
                     href={`https://reddit.com${bookmark.permalink}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm min-h-[44px] py-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <ExternalLink size={16} />
