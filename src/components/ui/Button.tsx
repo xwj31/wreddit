@@ -8,12 +8,18 @@ type ButtonProps = {
   title?: string;
 };
 
-export const Button = ({ children, onClick, className = "", disabled, title }: ButtonProps) => (
+export const Button = ({
+  children,
+  onClick,
+  className = "",
+  disabled,
+  title,
+}: ButtonProps) => (
   <button
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-2 transition-colors rounded-lg hover:bg-gray-800 ${className}`}
+    className={`p-2 flex justify-center items-center gap-1 transition-colors rounded-lg hover:bg-gray-800 ${className}`}
   >
     {children}
   </button>

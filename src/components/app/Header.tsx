@@ -46,11 +46,11 @@ export const Header = ({
   const subredditOptions = [
     { value: "all", label: "All" },
     { value: "popular", label: "Popular" },
-    ...favoriteSubreddits.map(sub => ({ value: sub, label: `r/${sub}` })),
+    ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
   ];
 
   return (
-    <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
+    <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800">
       <div className="flex items-center justify-between p-3">
         <Button
           onClick={onShowSidebar}
@@ -59,7 +59,7 @@ export const Header = ({
         >
           W
         </Button>
-        
+
         <div className="flex items-center gap-1">
           <Button
             onClick={onShowBookmarks}
@@ -119,11 +119,7 @@ export const Header = ({
           >
             <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
           </Button>
-          <Select
-            value={sort}
-            onChange={onSortChange}
-            options={SORT_OPTIONS}
-          />
+          <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
         </div>
       </div>
     </header>
