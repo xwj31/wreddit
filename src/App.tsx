@@ -1,7 +1,3 @@
-import WReddit from "./components/WReddit";
-
-function App() {
-  return <WReddit />;
-}
+import { App } from "./components/app/App";
 
 export default App;

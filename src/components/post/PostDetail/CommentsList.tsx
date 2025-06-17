@@ -1,0 +1,111 @@
+import { useState } from "react";
+import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
+import { formatTimeAgo, formatScore } from "../../../utils";
+import { Button } from "../../ui/Button";
+import type { RedditComment } from "../../../types";
+
+type CommentsListProps = {
+  comments: RedditComment[];
+  loading: boolean;
+};
+
+type CommentProps = {
+  comment: RedditComment;
+  depth: number;
+};
+
+const Comment = ({ comment, depth }: CommentProps) => {
+  const [expanded, setExpanded] = useState(true);
+  const hasReplies = comment.replies && typeof comment.replies !== "string";
+  
+  const childComments = hasReplies && comment.replies
+    ? comment.replies.data.children
+        .filter((child) => child.kind === "t1")
+        .map((child) => child.data as RedditComment)
+    : [];
+
+  const toggleExpanded = () => setExpanded(!expanded);
+
+  return (
+    <div className={`border-l-2 ${depth === 0 ? "border-gray-800" : "border-gray-800/50"} pl-3 mb-3`}>
+      <div className="flex items-start gap-2 mb-2">
+        <div className="flex flex-col items-center mt-1">
+          <ArrowUp size={14} className="text-gray-500" />
+          <span className="text-xs text-gray-400">{formatScore(comment.score)}</span>
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium text-gray-300">u/{comment.author}</span>
+            <span className="text-gray-500 text-xs">
+              {formatTimeAgo(comment.created_utc)}
+            </span>
+          </div>
+          
+          {expanded && (
+            <div className="text-sm text-gray-200 mt-1 whitespace-pre-line">
+              {comment.body}
+            </div>
+          )}
+          
+          {hasReplies && (
+            <Button
+              onClick={toggleExpanded}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-300 mt-1 p-1"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp size={14} />
+                  <span>Hide {childComments.length} replies</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={14} />
+                  <span>Show {childComments.length} replies</span>
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      {expanded && hasReplies && (
+        <div className="ml-1">
+          {childComments.map((childComment) => (
+            <Comment
+              key={childComment.id}
+              comment={childComment}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const CommentsList = ({ comments, loading }: CommentsListProps) => {
+  if (loading) {
+    return (
+      <div className="p-4 text-center text-gray-400">
+        Loading comments...
+      </div>
+    );
+  }
+
+  if (comments.length === 0) {
+    return (
+      <div className="p-4 text-center text-gray-400">
+        No comments yet
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4">
+      {comments.map((comment) => (
+        <Comment key={comment.id} comment={comment} depth={0} />
+      ))}
+    </div>
+  );
+};
