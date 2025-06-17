@@ -50,7 +50,7 @@ export const Header = ({
   ];
 
   return (
-    <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800">
+    <header className="sticky-header-safe bg-black border-b border-gray-800">
       <div className="flex items-center justify-between p-3">
         <Button
           onClick={onShowSidebar}

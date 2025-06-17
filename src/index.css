@@ -35,8 +35,7 @@
   position: sticky;
   top: 0;
   padding-top: env(safe-area-inset-top);
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(12px);
+  background: #000000;
   border-bottom: 1px solid rgb(31, 41, 55);
   z-index: 10;
 }
