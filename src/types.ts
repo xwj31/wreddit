@@ -1,3 +1,4 @@
+// src/types.ts - Enhanced with video support
 export interface RedditPost {
   id: string;
   title: string;
@@ -16,6 +17,54 @@ export interface RedditPost {
   };
   selftext?: string;
   is_video: boolean;
+  // Enhanced video properties
+  media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  secure_media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  crosspost_parent_list?: RedditPost[];
+  domain?: string;
+  post_hint?: string;
 }
 
 export interface Child {
@@ -90,4 +139,24 @@ export interface BookmarkedPost {
   subreddit: string;
   permalink: string;
   bookmarkedAt: number;
+}
+
+// New video-related types
+export interface VideoInfo {
+  url: string;
+  type:
+    | "reddit_video"
+    | "youtube"
+    | "vimeo"
+    | "streamable"
+    | "imgur_gifv"
+    | "gfycat"
+    | "redgifs"
+    | "external";
+  thumbnail?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  isGif?: boolean;
+  embedHtml?: string;
 }

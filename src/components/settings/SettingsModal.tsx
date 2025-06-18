@@ -1,8 +1,10 @@
+// src/components/settings/SettingsModal.tsx - Enhanced with video settings
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Settings, Video } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import { VideoSettings } from "./VideoSettings";
 import type { FilterOptions } from "../../types";
 
 type SettingsModalProps = {
@@ -21,7 +23,21 @@ type FilterListProps = {
   color?: "red" | "gray";
 };
 
-const FilterList = ({ title, items, onAdd, onRemove, placeholder, color = "gray" }: FilterListProps) => {
+type VideoSettingsType = {
+  autoplayVideos: boolean;
+  muteByDefault: boolean;
+  showVideoIndicators: boolean;
+  preferHighQuality: boolean;
+};
+
+const FilterList = ({
+  title,
+  items,
+  onAdd,
+  onRemove,
+  placeholder,
+  color = "gray",
+}: FilterListProps) => {
   const [newItem, setNewItem] = useState("");
 
   const handleAdd = () => {
@@ -76,38 +92,147 @@ const FilterList = ({ title, items, onAdd, onRemove, placeholder, color = "gray"
   );
 };
 
-export const SettingsModal = ({ isOpen, onClose, filters, onFiltersChange }: SettingsModalProps) => {
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  filters,
+  onFiltersChange,
+}: SettingsModalProps) => {
+  const [activeTab, setActiveTab] = useState<"filters" | "video">("filters");
+
+  // Load video settings from localStorage or use defaults
+  const [videoSettings, setVideoSettings] = useState<VideoSettingsType>(() => {
+    try {
+      const saved = localStorage.getItem("wreddit-video-settings");
+      return saved
+        ? JSON.parse(saved)
+        : {
+            autoplayVideos: false,
+            muteByDefault: true,
+            showVideoIndicators: true,
+            preferHighQuality: false,
+          };
+    } catch {
+      return {
+        autoplayVideos: false,
+        muteByDefault: true,
+        showVideoIndicators: true,
+        preferHighQuality: false,
+      };
+    }
+  });
+
   const updateFilter = (key: keyof FilterOptions, items: string[]) => {
     onFiltersChange({ ...filters, [key]: items });
   };
 
+  const handleVideoSettingsChange = (newSettings: VideoSettingsType) => {
+    setVideoSettings(newSettings);
+    try {
+      localStorage.setItem(
+        "wreddit-video-settings",
+        JSON.stringify(newSettings)
+      );
+    } catch {
+      // Fail silently
+    }
+  };
+
+  const tabs = [
+    { id: "filters" as const, label: "Filters", icon: Settings },
+    { id: "video" as const, label: "Video", icon: Video },
+  ];
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Settings">
-      <div className="p-4 space-y-6">
-        <FilterList
-          title="Favorite Subreddits"
-          items={filters.favoriteSubreddits}
-          onAdd={(item) => updateFilter("favoriteSubreddits", [...filters.favoriteSubreddits, item])}
-          onRemove={(item) => updateFilter("favoriteSubreddits", filters.favoriteSubreddits.filter(i => i !== item))}
-          placeholder="Add subreddit..."
-          color="red"
-        />
+      <div className="border-b border-gray-800">
+        <div className="flex">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <Button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "text-orange-500 border-b-2 border-orange-500"
+                    : "text-gray-400 hover:text-gray-300"
+                }`}
+              >
+                <Icon size={18} />
+                {tab.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
 
-        <FilterList
-          title="Blocked Subreddits"
-          items={filters.blockedSubreddits}
-          onAdd={(item) => updateFilter("blockedSubreddits", [...filters.blockedSubreddits, item])}
-          onRemove={(item) => updateFilter("blockedSubreddits", filters.blockedSubreddits.filter(i => i !== item))}
-          placeholder="Block subreddit..."
-        />
+      <div className="p-4">
+        {activeTab === "filters" && (
+          <div className="space-y-6">
+            <FilterList
+              title="Favorite Subreddits"
+              items={filters.favoriteSubreddits}
+              onAdd={(item) =>
+                updateFilter("favoriteSubreddits", [
+                  ...filters.favoriteSubreddits,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "favoriteSubreddits",
+                  filters.favoriteSubreddits.filter((i) => i !== item)
+                )
+              }
+              placeholder="Add subreddit..."
+              color="red"
+            />
 
-        <FilterList
-          title="Blocked Keywords"
-          items={filters.blockedKeywords}
-          onAdd={(item) => updateFilter("blockedKeywords", [...filters.blockedKeywords, item])}
-          onRemove={(item) => updateFilter("blockedKeywords", filters.blockedKeywords.filter(i => i !== item))}
-          placeholder="Block keyword..."
-        />
+            <FilterList
+              title="Blocked Subreddits"
+              items={filters.blockedSubreddits}
+              onAdd={(item) =>
+                updateFilter("blockedSubreddits", [
+                  ...filters.blockedSubreddits,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "blockedSubreddits",
+                  filters.blockedSubreddits.filter((i) => i !== item)
+                )
+              }
+              placeholder="Block subreddit..."
+            />
+
+            <FilterList
+              title="Blocked Keywords"
+              items={filters.blockedKeywords}
+              onAdd={(item) =>
+                updateFilter("blockedKeywords", [
+                  ...filters.blockedKeywords,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "blockedKeywords",
+                  filters.blockedKeywords.filter((i) => i !== item)
+                )
+              }
+              placeholder="Block keyword..."
+            />
+          </div>
+        )}
+
+        {activeTab === "video" && (
+          <VideoSettings
+            settings={videoSettings}
+            onSettingsChange={handleVideoSettingsChange}
+          />
+        )}
       </div>
     </Modal>
   );

@@ -1,8 +1,17 @@
-import { ArrowUp, MessageCircle, ExternalLink, Bookmark } from "lucide-react";
+// src/components/post/PostCard.tsx - Updated with video support
+import {
+  ArrowUp,
+  MessageCircle,
+  ExternalLink,
+  Bookmark,
+  Play,
+} from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
-import { storage } from "../../utils/storage";
+import { getVideoInfo, hasVideoContent } from "../../utils/video";
 import { Button } from "../ui/Button";
+import { VideoPlayer } from "../ui/VideoPlayer";
 import type { RedditPost } from "../../types";
+import { storage } from "../../utils/storage";
 
 type PostCardProps = {
   post: RedditPost;
@@ -11,9 +20,16 @@ type PostCardProps = {
   onBookmarkToggle?: (post: RedditPost) => void;
 };
 
-export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle }: PostCardProps) => {
+export const PostCard = ({
+  post,
+  onPostClick,
+  onSubredditClick,
+  onBookmarkToggle,
+}: PostCardProps) => {
   const imageUrl = getImageUrl(post);
+  const videoInfo = getVideoInfo(post);
   const isBookmarked = storage.isBookmarked(post.id);
+  const hasVideo = hasVideoContent(post);
 
   return (
     <article className="bg-black border-b border-gray-900">
@@ -36,7 +52,7 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
             </div>
           </div>
         </Button>
-        
+
         <div className="flex items-center gap-2">
           <div className="flex items-center text-gray-400">
             <ArrowUp size={16} className="text-gray-500" />
@@ -44,6 +60,11 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
               {formatScore(post.score)}
             </span>
           </div>
+          {hasVideo && (
+            <div className="flex items-center text-red-400">
+              <Play size={16} fill="currentColor" />
+            </div>
+          )}
           {onBookmarkToggle && (
             <Button
               onClick={(e) => {
@@ -57,7 +78,10 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
               }`}
               title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
             >
-              <Bookmark size={16} fill={isBookmarked ? "currentColor" : "none"} />
+              <Bookmark
+                size={16}
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
             </Button>
           )}
         </div>
@@ -70,7 +94,21 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
           </h2>
         </div>
 
-        {imageUrl && (
+        {/* Video content */}
+        {videoInfo && (
+          <div className="w-full mb-2">
+            <VideoPlayer
+              videoInfo={videoInfo}
+              autoplay={false}
+              muted={true}
+              controls={true}
+              className="max-h-96"
+            />
+          </div>
+        )}
+
+        {/* Image content (only if no video) */}
+        {!videoInfo && imageUrl && (
           <div className="w-full">
             <img
               src={imageUrl}
@@ -80,6 +118,7 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
           </div>
         )}
 
+        {/* Text content */}
         {post.selftext && (
           <div className="px-3 mt-2">
             <p className="text-gray-300 text-sm leading-relaxed">
@@ -122,7 +161,7 @@ export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink size={18} />
-              <span className="text-sm">Link</span>
+              <span className="text-sm">{hasVideo ? "Video" : "Link"}</span>
             </a>
           )}
         </div>

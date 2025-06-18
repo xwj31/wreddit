@@ -1,3 +1,4 @@
+// src/utils/index.ts - Updated with video utilities export
 export const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now();
   const diff = now - timestamp * 1000;
@@ -49,20 +50,23 @@ export const sharePost = async (post: {
   permalink: string;
 }): Promise<boolean> => {
   const url = `https://reddit.com${post.permalink}`;
-  
+
   try {
     if (navigator.share) {
       await navigator.share({ title: post.title, url });
       return true;
     }
-    
+
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
       return true;
     }
-    
+
     return false;
   } catch {
     return false;
   }
 };
+
+// Re-export video utilities
+export * from "./video";

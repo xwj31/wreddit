@@ -1,3 +1,4 @@
+// workers/reddit-api/src/index.ts - Enhanced with better video metadata support
 interface RedditPost {
   id: string;
   title: string;
@@ -16,6 +17,54 @@ interface RedditPost {
   };
   selftext?: string;
   is_video: boolean;
+  // Enhanced video properties
+  media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  secure_media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  crosspost_parent_list?: RedditPost[];
+  domain?: string;
+  post_hint?: string;
 }
 
 interface RedditResponse {
@@ -68,6 +117,38 @@ function log(message: string, data?: LogData): void {
   } else {
     console.log(`[${timestamp}] ${message}`);
   }
+}
+
+// Helper function to check if a post has video content
+function hasVideoContent(post: RedditPost): boolean {
+  if (post.is_video) return true;
+  if (post.media?.reddit_video || post.secure_media?.reddit_video) return true;
+  if (post.media?.oembed || post.secure_media?.oembed) return true;
+
+  // Check for video domains
+  const videoDomains = [
+    "youtube.com",
+    "youtu.be",
+    "vimeo.com",
+    "streamable.com",
+    "gfycat.com",
+    "redgifs.com",
+    "imgur.com",
+  ];
+
+  if (
+    post.domain &&
+    videoDomains.some((domain) => post.domain?.includes(domain))
+  ) {
+    return true;
+  }
+
+  // Check for video file extensions
+  if (post.url && /\.(mp4|webm|ogv|mov|avi|m4v|gifv)(\?.*)?$/i.test(post.url)) {
+    return true;
+  }
+
+  return false;
 }
 
 export default {
@@ -391,13 +472,20 @@ async function handleGetPosts(
     const allPosts = data.data.children.map((child) => child.data);
     const filteredPosts = filterPosts(allPosts, filterOptions);
 
-    log(`[${requestId}] Posts filtered`, {
+    // Add video content detection
+    const postsWithVideoInfo = filteredPosts.map((post) => ({
+      ...post,
+      has_video_content: hasVideoContent(post),
+    }));
+
+    log(`[${requestId}] Posts filtered and enhanced`, {
       originalCount: allPosts.length,
       filteredCount: filteredPosts.length,
+      videoPosts: postsWithVideoInfo.filter((p) => p.has_video_content).length,
     });
 
     const result = {
-      posts: filteredPosts,
+      posts: postsWithVideoInfo,
       after: data.data.after,
       metadata: {
         requestId,
@@ -405,6 +493,8 @@ async function handleGetPosts(
         sort,
         originalCount: allPosts.length,
         filteredCount: filteredPosts.length,
+        videoPosts: postsWithVideoInfo.filter((p) => p.has_video_content)
+          .length,
       },
     };
 

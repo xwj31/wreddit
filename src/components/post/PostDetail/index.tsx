@@ -1,3 +1,4 @@
+// src/components/post/PostDetail/index.tsx - Updated with video support
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -7,11 +8,23 @@ import {
   MessageCircle,
   ExternalLink,
   RefreshCw,
+  Play,
 } from "lucide-react";
-import { formatTimeAgo, formatScore, getImageUrl, sharePost } from "../../../utils";
+import {
+  formatTimeAgo,
+  formatScore,
+  getImageUrl,
+  sharePost,
+} from "../../../utils";
+import {
+  getVideoInfo,
+  hasVideoContent,
+  formatDuration,
+} from "../../../utils/video";
 import { storage } from "../../../utils/storage";
 import { api } from "../../../api/reddit";
 import { Button } from "../../ui/Button";
+import { VideoPlayer } from "../../ui/VideoPlayer";
 import { CommentsList } from "./CommentsList";
 import type { RedditPost, RedditComment } from "../../../types";
 
@@ -35,6 +48,8 @@ export const PostDetail = ({
 
   const isBookmarked = storage.isBookmarked(post.id);
   const imageUrl = getImageUrl(post);
+  const videoInfo = getVideoInfo(post);
+  const hasVideo = hasVideoContent(post);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -62,23 +77,27 @@ export const PostDetail = ({
           <Button onClick={onBack} className="text-gray-400 hover:text-white">
             <ArrowLeft size={22} />
           </Button>
-          
+
           <Button
             onClick={() => onSubredditClick?.(post.subreddit)}
             className="text-lg font-medium text-white flex-1 text-center mx-4 truncate hover:text-orange-400"
           >
             r/{post.subreddit}
           </Button>
-          
+
           <div className="flex items-center gap-1">
             <Button
               onClick={handleShare}
-              className={shareSuccess ? "text-green-400" : "text-gray-400 hover:text-white"}
+              className={
+                shareSuccess
+                  ? "text-green-400"
+                  : "text-gray-400 hover:text-white"
+              }
               title="Share post"
             >
               <Share size={20} />
             </Button>
-            
+
             {onBookmarkToggle && (
               <Button
                 onClick={() => onBookmarkToggle(post)}
@@ -133,13 +152,46 @@ export const PostDetail = ({
                 {post.num_comments}
               </span>
             </div>
+            {hasVideo && (
+              <div
+                className="flex items-center text-red-400"
+                title="Video content"
+              >
+                <Play size={16} fill="currentColor" />
+              </div>
+            )}
           </div>
         </div>
 
         <div className="p-3">
           <h1 className="text-xl font-medium text-white mb-3">{post.title}</h1>
 
-          {imageUrl && (
+          {/* Video content */}
+          {videoInfo && (
+            <div className="mb-3">
+              <VideoPlayer
+                videoInfo={videoInfo}
+                autoplay={false}
+                muted={true}
+                controls={true}
+                className="w-full max-h-[70vh]"
+              />
+              {videoInfo.duration && (
+                <div className="text-gray-400 text-sm mt-2 flex items-center gap-2">
+                  <Play size={14} />
+                  <span>Duration: {formatDuration(videoInfo.duration)}</span>
+                  {videoInfo.isGif && (
+                    <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">
+                      GIF
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Image content (only if no video) */}
+          {!videoInfo && imageUrl && (
             <div className="mb-3">
               <img
                 src={imageUrl}
@@ -149,6 +201,7 @@ export const PostDetail = ({
             </div>
           )}
 
+          {/* Text content */}
           {post.selftext && (
             <div className="mb-3">
               <div
@@ -197,7 +250,7 @@ export const PostDetail = ({
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ExternalLink size={18} />
-                <span>Open Link</span>
+                <span>{hasVideo ? "Open Video" : "Open Link"}</span>
               </a>
             )}
           </div>
@@ -207,7 +260,7 @@ export const PostDetail = ({
           <div className="p-3 border-b border-gray-900">
             <h2 className="text-lg font-medium">Comments</h2>
           </div>
-          
+
           {loadingComments ? (
             <div className="flex justify-center p-8">
               <RefreshCw size={24} className="animate-spin text-orange-500" />
