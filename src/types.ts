@@ -1,4 +1,4 @@
-// src/types.ts - Enhanced with video support
+// src/types.ts - Enhanced with gallery and multiple images support
 export interface RedditPost {
   id: string;
   title: string;
@@ -13,10 +13,33 @@ export interface RedditPost {
   preview?: {
     images?: Array<{
       source: { url: string; width: number; height: number };
+      resolutions?: Array<{ url: string; width: number; height: number }>;
     }>;
   };
   selftext?: string;
   is_video: boolean;
+  // Gallery support
+  is_gallery?: boolean;
+  media_metadata?: {
+    [key: string]: {
+      status: string;
+      e: string;
+      m: string;
+      s: {
+        y: number;
+        x: number;
+        u?: string;
+        gif?: string;
+      };
+      id?: string;
+    };
+  };
+  gallery_data?: {
+    items: Array<{
+      media_id: string;
+      id: number;
+    }>;
+  };
   // Enhanced video properties
   media?: {
     reddit_video?: {
@@ -87,6 +110,7 @@ export interface RedditComment {
   created_utc: number;
   parent_id?: string;
   depth?: number;
+  body_html?: string; // For parsing images in comments
   replies?:
     | {
         kind: string;
@@ -141,7 +165,7 @@ export interface BookmarkedPost {
   bookmarkedAt: number;
 }
 
-// New video-related types
+// Video-related types
 export interface VideoInfo {
   url: string;
   type:
@@ -160,3 +184,6 @@ export interface VideoInfo {
   isGif?: boolean;
   embedHtml?: string;
 }
+
+// Home feed settings type
+export type HomeFeedSortOption = "new" | "score" | "comments";

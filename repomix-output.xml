@@ -68,6 +68,7 @@ src/
       PostCard.tsx
       PostFeed.tsx
     settings/
+      HomeFeedSettings.tsx
       SettingsModal.tsx
       VideoSettings.tsx
     sidebar/
@@ -115,6 +116,123 @@ vite.config.ts
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/components/settings/HomeFeedSettings.tsx">
+import { Home, Calendar, TrendingUp, MessageCircle } from "lucide-react";
+import { Button } from "../ui/Button";
+
+export type HomeFeedSortOption = "new" | "score" | "comments";
+
+type HomeFeedSettingsProps = {
+  settings: {
+    sortBy: HomeFeedSortOption;
+  };
+  onSettingsChange: (settings: HomeFeedSettingsProps["settings"]) => void;
+};
+
+export const HomeFeedSettings = ({
+  settings,
+  onSettingsChange,
+}: HomeFeedSettingsProps) => {
+  const setSortBy = (sortBy: HomeFeedSortOption) => {
+    onSettingsChange({
+      ...settings,
+      sortBy,
+    });
+  };
+
+  const sortOptions = [
+    {
+      key: "new" as const,
+      icon: Calendar,
+      title: "Newest First",
+      description: "Sort posts by creation time (newest first)",
+      color: "text-blue-500",
+    },
+    {
+      key: "score" as const,
+      icon: TrendingUp,
+      title: "Most Upvoted",
+      description: "Sort posts by upvote score",
+      color: "text-green-500",
+    },
+    {
+      key: "comments" as const,
+      icon: MessageCircle,
+      title: "Most Comments",
+      description: "Sort posts by number of comments",
+      color: "text-purple-500",
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+        <Home size={20} className="text-blue-500" />
+        Home Feed Settings
+      </h3>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-300">Sort Posts By</h4>
+
+        {sortOptions.map((option) => {
+          const Icon = option.icon;
+          const isSelected = settings.sortBy === option.key;
+
+          return (
+            <Button
+              key={option.key}
+              onClick={() => setSortBy(option.key)}
+              className={`w-full p-4 rounded-lg border transition-all ${
+                isSelected
+                  ? "bg-gray-700/50 border-orange-500 text-white"
+                  : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    isSelected ? "bg-orange-600" : "bg-gray-700"
+                  } ${option.color}`}
+                >
+                  <Icon size={20} />
+                </div>
+                <div className="text-left flex-1">
+                  <div className="font-medium">{option.title}</div>
+                  <div className="text-sm text-gray-400">
+                    {option.description}
+                  </div>
+                </div>
+                <div
+                  className={`w-4 h-4 rounded-full border-2 ${
+                    isSelected
+                      ? "bg-orange-500 border-orange-500"
+                      : "border-gray-600"
+                  }`}
+                >
+                  {isSelected && (
+                    <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                  )}
+                </div>
+              </div>
+            </Button>
+          );
+        })}
+      </div>
+
+      <div className="p-3 bg-blue-900/20 rounded-lg border border-blue-800/30">
+        <div className="text-blue-400 text-sm mb-1 font-medium">
+          About Home Feed
+        </div>
+        <div className="text-blue-300 text-xs">
+          Your Home Feed combines posts from all your favorite subreddits into a
+          single timeline. Choose how you want these posts to be sorted.
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
 
 <file path="dev-dist/registerSW.js">
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/dev-sw.js?dev-sw', { scope: '/', type: 'classic' })
@@ -5094,120 +5212,6 @@ export const BookmarksModal = ({
 };
 </file>
 
-<file path="src/components/post/PostDetail/CommentsList.tsx">
-import { useState } from "react";
-import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
-import { formatTimeAgo, formatScore } from "../../../utils";
-import { Button } from "../../ui/Button";
-import type { RedditComment } from "../../../types";
-
-type CommentsListProps = {
-  comments: RedditComment[];
-  loading: boolean;
-};
-
-type CommentProps = {
-  comment: RedditComment;
-  depth: number;
-};
-
-const Comment = ({ comment, depth }: CommentProps) => {
-  const [expanded, setExpanded] = useState(true);
-  const hasReplies = comment.replies && typeof comment.replies !== "string";
-  
-  const childComments = hasReplies && comment.replies
-    ? comment.replies.data.children
-        .filter((child) => child.kind === "t1")
-        .map((child) => child.data as RedditComment)
-    : [];
-
-  const toggleExpanded = () => setExpanded(!expanded);
-
-  return (
-    <div className={`border-l-2 ${depth === 0 ? "border-gray-800" : "border-gray-800/50"} pl-3 mb-3`}>
-      <div className="flex items-start gap-2 mb-2">
-        <div className="flex flex-col items-center mt-1">
-          <ArrowUp size={14} className="text-gray-500" />
-          <span className="text-xs text-gray-400">{formatScore(comment.score)}</span>
-        </div>
-        
-        <div className="flex-1">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium text-gray-300">u/{comment.author}</span>
-            <span className="text-gray-500 text-xs">
-              {formatTimeAgo(comment.created_utc)}
-            </span>
-          </div>
-          
-          {expanded && (
-            <div className="text-sm text-gray-200 mt-1 whitespace-pre-line">
-              {comment.body}
-            </div>
-          )}
-          
-          {hasReplies && (
-            <Button
-              onClick={toggleExpanded}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-300 mt-1 p-1"
-            >
-              {expanded ? (
-                <>
-                  <ChevronUp size={14} />
-                  <span>Hide {childComments.length} replies</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown size={14} />
-                  <span>Show {childComments.length} replies</span>
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
-      
-      {expanded && hasReplies && (
-        <div className="ml-1">
-          {childComments.map((childComment) => (
-            <Comment
-              key={childComment.id}
-              comment={childComment}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export const CommentsList = ({ comments, loading }: CommentsListProps) => {
-  if (loading) {
-    return (
-      <div className="p-4 text-center text-gray-400">
-        Loading comments...
-      </div>
-    );
-  }
-
-  if (comments.length === 0) {
-    return (
-      <div className="p-4 text-center text-gray-400">
-        No comments yet
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4">
-      {comments.map((comment) => (
-        <Comment key={comment.id} comment={comment} depth={0} />
-      ))}
-    </div>
-  );
-};
-</file>
-
 <file path="src/components/settings/VideoSettings.tsx">
 // src/components/settings/VideoSettings.tsx - Video-specific settings
 import { Play, Video, Volume2, VolumeX } from "lucide-react";
@@ -7056,7 +7060,8 @@ export const App = () => {
         loading={loading}
       />
 
-      <main>
+      {/* Add padding to account for fixed header */}
+      <main style={{ paddingTop: "140px" }}>
         <PostFeed
           posts={filteredPosts}
           loading={loading}
@@ -7073,6 +7078,150 @@ export const App = () => {
           isHomeFeed={isHomeFeed}
         />
       </main>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/post/PostDetail/CommentsList.tsx">
+import { useState } from "react";
+import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
+import { formatTimeAgo, formatScore } from "../../../utils";
+import { Button } from "../../ui/Button";
+import type { RedditComment } from "../../../types";
+
+type CommentsListProps = {
+  comments: RedditComment[];
+  loading: boolean;
+};
+
+type CommentProps = {
+  comment: RedditComment;
+  depth: number;
+};
+
+// Define colors for different comment depths
+const getCommentLineColor = (depth: number): string => {
+  const colors = [
+    "border-blue-500", // Top-level comments - bright blue
+    "border-green-500", // 1st level replies - green
+    "border-yellow-500", // 2nd level replies - yellow
+    "border-purple-500", // 3rd level replies - purple
+    "border-pink-500", // 4th level replies - pink
+    "border-orange-500", // 5th level replies - orange
+    "border-red-500", // 6th level replies - red
+    "border-cyan-500", // 7th level replies - cyan
+  ];
+
+  // For very deep nesting, cycle through colors
+  return colors[depth % colors.length];
+};
+
+const Comment = ({ comment, depth }: CommentProps) => {
+  const [expanded, setExpanded] = useState(true);
+  const hasReplies = comment.replies && typeof comment.replies !== "string";
+
+  const childComments =
+    hasReplies && comment.replies
+      ? comment.replies.data.children
+          .filter((child) => child.kind === "t1")
+          .map((child) => child.data as RedditComment)
+      : [];
+
+  const toggleExpanded = () => setExpanded(!expanded);
+
+  const lineColor = getCommentLineColor(depth);
+  const lineWidth = depth === 0 ? "border-l-3" : "border-l-2";
+
+  return (
+    <div className={`${lineColor} ${lineWidth} pl-3 mb-3 relative`}>
+      {/* Add a subtle background tint for better visual separation */}
+      <div
+        className={`${depth > 0 ? "bg-gray-900/20 rounded-r-lg" : ""} p-1 -m-1`}
+      >
+        <div className="flex items-start gap-2 mb-2">
+          <div className="flex flex-col items-center mt-1">
+            <ArrowUp size={14} className="text-gray-500" />
+            <span className="text-xs text-gray-400">
+              {formatScore(comment.score)}
+            </span>
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium text-gray-300">
+                u/{comment.author}
+              </span>
+              <span className="text-gray-500 text-xs">
+                {formatTimeAgo(comment.created_utc)}
+              </span>
+              {/* Add depth indicator for very nested comments */}
+              {depth > 2 && (
+                <span className="text-xs text-gray-600 bg-gray-800 px-1 rounded">
+                  depth {depth}
+                </span>
+              )}
+            </div>
+
+            {expanded && (
+              <div className="text-sm text-gray-200 mt-1 whitespace-pre-line">
+                {comment.body}
+              </div>
+            )}
+
+            {hasReplies && (
+              <Button
+                onClick={toggleExpanded}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-300 mt-1 p-1"
+              >
+                {expanded ? (
+                  <>
+                    <ChevronUp size={14} />
+                    <span>Hide {childComments.length} replies</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={14} />
+                    <span>Show {childComments.length} replies</span>
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {expanded && hasReplies && (
+          <div className="ml-1">
+            {childComments.map((childComment) => (
+              <Comment
+                key={childComment.id}
+                comment={childComment}
+                depth={depth + 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const CommentsList = ({ comments, loading }: CommentsListProps) => {
+  if (loading) {
+    return (
+      <div className="p-4 text-center text-gray-400">Loading comments...</div>
+    );
+  }
+
+  if (comments.length === 0) {
+    return <div className="p-4 text-center text-gray-400">No comments yet</div>;
+  }
+
+  return (
+    <div className="p-4">
+      {comments.map((comment) => (
+        <Comment key={comment.id} comment={comment} depth={0} />
+      ))}
     </div>
   );
 };
@@ -7463,13 +7612,14 @@ export const PostFeed = ({
 </file>
 
 <file path="src/components/settings/SettingsModal.tsx">
-// src/components/settings/SettingsModal.tsx - Enhanced with video settings
+// src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
 import { useState } from "react";
-import { Plus, X, Settings, Video } from "lucide-react";
+import { Plus, X, Settings, Video, Home } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
+import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
 import type { FilterOptions } from "../../types";
 
 type SettingsModalProps = {
@@ -7493,6 +7643,10 @@ type VideoSettingsType = {
   muteByDefault: boolean;
   showVideoIndicators: boolean;
   preferHighQuality: boolean;
+};
+
+type HomeFeedSettingsType = {
+  sortBy: HomeFeedSortOption;
 };
 
 const FilterList = ({
@@ -7563,7 +7717,9 @@ export const SettingsModal = ({
   filters,
   onFiltersChange,
 }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState<"filters" | "video">("filters");
+  const [activeTab, setActiveTab] = useState<"filters" | "video" | "home">(
+    "filters"
+  );
 
   // Load video settings from localStorage or use defaults
   const [videoSettings, setVideoSettings] = useState<VideoSettingsType>(() => {
@@ -7587,6 +7743,23 @@ export const SettingsModal = ({
     }
   });
 
+  // Load home feed settings from localStorage or use defaults
+  const [homeFeedSettings, setHomeFeedSettings] =
+    useState<HomeFeedSettingsType>(() => {
+      try {
+        const saved = localStorage.getItem("wreddit-home-feed-settings");
+        return saved
+          ? JSON.parse(saved)
+          : {
+              sortBy: "new" as HomeFeedSortOption,
+            };
+      } catch {
+        return {
+          sortBy: "new" as HomeFeedSortOption,
+        };
+      }
+    });
+
   const updateFilter = (key: keyof FilterOptions, items: string[]) => {
     onFiltersChange({ ...filters, [key]: items });
   };
@@ -7603,9 +7776,22 @@ export const SettingsModal = ({
     }
   };
 
+  const handleHomeFeedSettingsChange = (newSettings: HomeFeedSettingsType) => {
+    setHomeFeedSettings(newSettings);
+    try {
+      localStorage.setItem(
+        "wreddit-home-feed-settings",
+        JSON.stringify(newSettings)
+      );
+    } catch {
+      // Fail silently
+    }
+  };
+
   const tabs = [
     { id: "filters" as const, label: "Filters", icon: Settings },
     { id: "video" as const, label: "Video", icon: Video },
+    { id: "home" as const, label: "Home Feed", icon: Home },
   ];
 
   return (
@@ -7698,6 +7884,13 @@ export const SettingsModal = ({
             onSettingsChange={handleVideoSettingsChange}
           />
         )}
+
+        {activeTab === "home" && (
+          <HomeFeedSettings
+            settings={homeFeedSettings}
+            onSettingsChange={handleHomeFeedSettingsChange}
+          />
+        )}
       </div>
     </Modal>
   );
@@ -7710,9 +7903,6 @@ import {
   X,
   Heart,
   Plus,
-  Star,
-  TrendingUp,
-  BarChart3,
   Bookmark,
   Home,
 } from "lucide-react";
@@ -7729,15 +7919,6 @@ type SidebarProps = {
   onFiltersChange: (filters: FilterOptions) => void;
   onNavigateToBookmarks?: () => void;
 };
-
-const DEFAULT_SUBREDDITS = [
-  { name: "all", icon: BarChart3, label: "All" },
-  { name: "popular", icon: TrendingUp, label: "Popular" },
-  { name: "askreddit", icon: Star, label: "AskReddit" },
-  { name: "worldnews", icon: Star, label: "World News" },
-  { name: "technology", icon: Star, label: "Technology" },
-  { name: "gaming", icon: Star, label: "Gaming" },
-];
 
 export const Sidebar = ({
   isOpen,
@@ -7829,34 +8010,6 @@ export const Sidebar = ({
 
           <div>
             <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-              <Star size={16} className="text-yellow-500" />
-              Popular
-            </h3>
-            <div className="space-y-1">
-              {DEFAULT_SUBREDDITS.map((sub) => {
-                const Icon = sub.icon;
-                const isActive = currentSubreddit === sub.name;
-
-                return (
-                  <Button
-                    key={sub.name}
-                    onClick={() => handleSubredditClick(sub.name)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
-                      isActive
-                        ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
-                        : "text-gray-300 hover:bg-gray-800"
-                    }`}
-                  >
-                    <Icon size={18} />
-                    <span>{sub.label}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
               <Heart size={16} className="text-red-500" />
               Favorites
             </h3>
@@ -7931,7 +8084,7 @@ export const Sidebar = ({
 import type { ReactNode, MouseEvent } from "react";
 
 type ButtonProps = {
-  children: ReactNode;
+  children?: ReactNode;
   onClick?: (e?: MouseEvent) => void;
   className?: string;
   disabled?: boolean;
@@ -7951,7 +8104,7 @@ export const Button = ({
     title={title}
     className={`p-2 flex justify-center items-center gap-1 transition-colors rounded-lg hover:bg-gray-800 ${className}`}
   >
-    {children}
+    {children ?? children}
   </button>
 );
 </file>
@@ -7961,6 +8114,8 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "../api/reddit";
 import { storage } from "../utils/storage";
 import type { RedditPost, FilterOptions, BookmarkedPost } from "../types";
+
+type HomeFeedSortOption = "new" | "score" | "comments";
 
 export const useAppData = () => {
   const [posts, setPosts] = useState<RedditPost[]>([]);
@@ -7991,10 +8146,44 @@ export const useAppData = () => {
     storage.saveSort(sort);
   }, [sort]);
 
+  // Get home feed settings
+  const getHomeFeedSettings = useCallback((): {
+    sortBy: HomeFeedSortOption;
+  } => {
+    try {
+      const saved = localStorage.getItem("wreddit-home-feed-settings");
+      return saved
+        ? JSON.parse(saved)
+        : { sortBy: "new" as HomeFeedSortOption };
+    } catch {
+      return { sortBy: "new" as HomeFeedSortOption };
+    }
+  }, []);
+
   // Helper function to determine if we should use multi-subreddit feed
   const shouldUseFavoritesFeed = useCallback(() => {
     return subreddit === "home" && filters.favoriteSubreddits.length > 0;
   }, [subreddit, filters.favoriteSubreddits]);
+
+  // Sort posts according to home feed settings
+  const sortPostsForHomeFeed = useCallback(
+    (posts: RedditPost[]): RedditPost[] => {
+      const settings = getHomeFeedSettings();
+
+      return [...posts].sort((a, b) => {
+        switch (settings.sortBy) {
+          case "score":
+            return b.score - a.score;
+          case "comments":
+            return b.num_comments - a.num_comments;
+          case "new":
+          default:
+            return b.created_utc - a.created_utc;
+        }
+      });
+    },
+    [getHomeFeedSettings]
+  );
 
   // Function to fetch from multiple subreddits and combine results
   const fetchMultipleSubreddits = useCallback(
@@ -8022,16 +8211,17 @@ export const useAppData = () => {
         const results = await Promise.all(promises);
         const allPosts = results.flat();
 
-        // Sort by created_utc (newest first) and remove duplicates
-        const uniquePosts = allPosts
-          .filter(
-            (post, index, self) =>
-              index === self.findIndex((p) => p.id === post.id)
-          )
-          .sort((a, b) => b.created_utc - a.created_utc);
+        // Remove duplicates
+        const uniquePosts = allPosts.filter(
+          (post, index, self) =>
+            index === self.findIndex((p) => p.id === post.id)
+        );
+
+        // Sort according to home feed settings
+        const sortedPosts = sortPostsForHomeFeed(uniquePosts);
 
         // Limit to reasonable number of posts
-        const limitedPosts = uniquePosts.slice(0, reset ? 25 : 50);
+        const limitedPosts = sortedPosts.slice(0, reset ? 25 : 50);
 
         if (reset) {
           setPosts(limitedPosts);
@@ -8039,10 +8229,11 @@ export const useAppData = () => {
           setPosts((prev) => {
             const combined = [...prev, ...limitedPosts];
             // Remove duplicates again after combining
-            return combined.filter(
+            const uniqueCombined = combined.filter(
               (post, index, self) =>
                 index === self.findIndex((p) => p.id === post.id)
             );
+            return sortPostsForHomeFeed(uniqueCombined);
           });
         }
 
@@ -8056,7 +8247,7 @@ export const useAppData = () => {
         setLoading(false);
       }
     },
-    [sort, filters]
+    [sort, filters, sortPostsForHomeFeed]
   );
 
   const fetchPosts = useCallback(
@@ -8270,7 +8461,7 @@ declare module "virtual:pwa-register" {
 </file>
 
 <file path="src/components/post/PostCard.tsx">
-// src/components/post/PostCard.tsx - Updated with inline video player
+// src/components/post/PostCard.tsx - Updated with multiple images support
 import { useState } from "react";
 import {
   ArrowUp,
@@ -8279,6 +8470,8 @@ import {
   Bookmark,
   Play,
   Maximize2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
@@ -8294,6 +8487,49 @@ type PostCardProps = {
   onBookmarkToggle?: (post: RedditPost) => void;
 };
 
+// Helper function to extract all images from a post
+const getPostImages = (
+  post: RedditPost
+): Array<{ url: string; width?: number; height?: number }> => {
+  const images: Array<{ url: string; width?: number; height?: number }> = [];
+
+  // Check for gallery/multiple images in preview
+  if (post.preview?.images && post.preview.images.length > 1) {
+    post.preview.images.forEach((img) => {
+      if (img.source?.url) {
+        images.push({
+          url: img.source.url.replace(/&amp;/g, "&"),
+          width: img.source.width,
+          height: img.source.height,
+        });
+      }
+    });
+  }
+
+  // Check for Reddit gallery
+  if (post.is_gallery && post.media_metadata) {
+    Object.values(post.media_metadata).forEach((item: any) => { //TODO: i need a type here, not any
+      if (item.s?.u || item.s?.gif) {
+        images.push({
+          url: (item.s.u || item.s.gif).replace(/&amp;/g, "&"),
+          width: item.s.x,
+          height: item.s.y,
+        });
+      }
+    });
+  }
+
+  // Fallback to single image
+  if (images.length === 0) {
+    const singleImage = getImageUrl(post);
+    if (singleImage) {
+      images.push({ url: singleImage });
+    }
+  }
+
+  return images;
+};
+
 export const PostCard = ({
   post,
   onPostClick,
@@ -8301,11 +8537,13 @@ export const PostCard = ({
   onBookmarkToggle,
 }: PostCardProps) => {
   const [showFullVideo, setShowFullVideo] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const imageUrl = getImageUrl(post);
+  const images = getPostImages(post);
   const videoInfo = getVideoInfo(post);
   const isBookmarked = storage.isBookmarked(post.id);
   const hasVideo = hasVideoContent(post);
+  const hasMultipleImages = images.length > 1;
 
   // Handle clicking on the post (but not on interactive elements)
   const handlePostClick = (e: React.MouseEvent) => {
@@ -8316,6 +8554,14 @@ export const PostCard = ({
     if (!isInteractive) {
       onPostClick(post);
     }
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
@@ -8350,6 +8596,13 @@ export const PostCard = ({
           {hasVideo && (
             <div className="flex items-center text-red-400">
               <Play size={16} fill="currentColor" />
+            </div>
+          )}
+          {hasMultipleImages && (
+            <div className="flex items-center text-blue-400">
+              <span className="text-xs bg-blue-600/20 px-2 py-1 rounded">
+                {images.length} pics
+              </span>
             </div>
           )}
           {onBookmarkToggle && (
@@ -8406,14 +8659,65 @@ export const PostCard = ({
           </div>
         )}
 
-        {/* Image content (only if no video) */}
-        {!videoInfo && imageUrl && (
-          <div className="w-full">
+        {/* Multiple images carousel */}
+        {!videoInfo && images.length > 0 && (
+          <div className="w-full relative">
             <img
-              src={imageUrl}
-              alt="Post content"
+              src={images[currentImageIndex].url}
+              alt={`Post content ${currentImageIndex + 1} of ${images.length}`}
               className="w-full object-cover max-h-96"
             />
+
+            {/* Image navigation for multiple images */}
+            {hasMultipleImages && (
+              <>
+                {/* Navigation buttons */}
+                <Button
+                  onClick={(e?: React.MouseEvent<Element>) => {
+                    e?.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+                  title="Previous image"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+
+                <Button
+                  onClick={(e?: React.MouseEvent<Element>) => {
+                    e?.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+                  title="Next image"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+
+                {/* Image counter */}
+                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  {currentImageIndex + 1}/{images.length}
+                </div>
+
+                {/* Dots indicator */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                  {images.map((_, index) => (
+                    <Button
+                      key={index}
+                      onClick={(e?: React.MouseEvent<Element>) => {
+                        e?.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentImageIndex
+                          ? "bg-white"
+                          : "bg-white/50 hover:bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -8543,7 +8847,7 @@ export default App;
 </file>
 
 <file path="src/types.ts">
-// src/types.ts - Enhanced with video support
+// src/types.ts - Enhanced with gallery and multiple images support
 export interface RedditPost {
   id: string;
   title: string;
@@ -8558,10 +8862,33 @@ export interface RedditPost {
   preview?: {
     images?: Array<{
       source: { url: string; width: number; height: number };
+      resolutions?: Array<{ url: string; width: number; height: number }>;
     }>;
   };
   selftext?: string;
   is_video: boolean;
+  // Gallery support
+  is_gallery?: boolean;
+  media_metadata?: {
+    [key: string]: {
+      status: string;
+      e: string;
+      m: string;
+      s: {
+        y: number;
+        x: number;
+        u?: string;
+        gif?: string;
+      };
+      id?: string;
+    };
+  };
+  gallery_data?: {
+    items: Array<{
+      media_id: string;
+      id: number;
+    }>;
+  };
   // Enhanced video properties
   media?: {
     reddit_video?: {
@@ -8632,6 +8959,7 @@ export interface RedditComment {
   created_utc: number;
   parent_id?: string;
   depth?: number;
+  body_html?: string; // For parsing images in comments
   replies?:
     | {
         kind: string;
@@ -8686,7 +9014,7 @@ export interface BookmarkedPost {
   bookmarkedAt: number;
 }
 
-// New video-related types
+// Video-related types
 export interface VideoInfo {
   url: string;
   type:
@@ -8705,6 +9033,9 @@ export interface VideoInfo {
   isGif?: boolean;
   embedHtml?: string;
 }
+
+// Home feed settings type
+export type HomeFeedSortOption = "new" | "score" | "comments";
 </file>
 
 <file path="workers/reddit-api/wrangler.toml">
@@ -8844,6 +9175,7 @@ export default defineConfig({
 </file>
 
 <file path="src/components/app/Header.tsx">
+import { useEffect, useState } from "react";
 import { RefreshCw, Settings, Bookmark, Heart, Home } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -8889,9 +9221,49 @@ export const Header = ({
   onShowSidebar,
   loading,
 }: HeaderProps) => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Show header when scrolling up or at the top
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true);
+      }
+      // Hide header when scrolling down (but not immediately)
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    // Throttle scroll events for better performance
+    let timeoutId: number;
+    const throttledHandleScroll = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(handleScroll, 10);
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", throttledHandleScroll);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [lastScrollY]);
+
   const subredditOptions = [
     // Add Home option when user has favorites
-    ...(favoriteSubreddits.length > 0 ? [{ value: "home", label: "🏠 Home" }] : []),
+    ...(favoriteSubreddits.length > 0
+      ? [{ value: "home", label: "🏠 Home" }]
+      : []),
     { value: "all", label: "All" },
     { value: "popular", label: "Popular" },
     ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
@@ -8899,13 +9271,20 @@ export const Header = ({
 
   // Show different icon based on current selection
   const getSubredditIcon = () => {
-    if (subreddit === "home") return <Home size={16} className="text-blue-500" />;
-    if (isFavorite) return <Heart size={16} className="text-red-500" fill="currentColor" />;
+    if (subreddit === "home")
+      return <Home size={16} className="text-blue-500" />;
+    if (isFavorite)
+      return <Heart size={16} className="text-red-500" fill="currentColor" />;
     return null;
   };
 
   return (
-    <header className="sticky-header-safe bg-black border-b border-gray-800">
+    <header
+      className={`fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-gray-800 z-20 transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <div className="flex items-center justify-between p-3">
         <Button
           onClick={onShowSidebar}
@@ -8961,7 +9340,7 @@ export const Header = ({
               </div>
             )}
           </div>
-          
+
           {/* Only show favorite toggle for actual subreddits, not for home/all/popular */}
           {!["home", "all", "popular"].includes(subreddit) && (
             <Button
@@ -8976,7 +9355,7 @@ export const Header = ({
               <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
             </Button>
           )}
-          
+
           <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
         </div>
       </div>
@@ -9018,7 +9397,7 @@ export const Header = ({
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Sticky header with proper safe area */
+/* Sticky header with proper safe area - removed since we're using fixed positioning */
 .sticky-header-safe {
   position: sticky;
   top: 0;
@@ -9102,6 +9481,110 @@ html {
 /* Prevent horizontal scrolling */
 body {
   overflow-x: hidden;
+}
+
+/* Image carousel styles for multiple images */
+.image-carousel {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.image-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.image-carousel-item {
+  scroll-snap-align: center;
+}
+
+/* Comment images */
+.comment-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid rgb(55, 65, 81);
+  transition: opacity 0.2s ease;
+}
+
+.comment-image:hover {
+  opacity: 0.9;
+}
+
+/* Auto-hiding header animation improvements */
+.header-auto-hide {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Improved focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #ea580c;
+  outline-offset: 2px;
+}
+
+/* Loading skeleton animations */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+/* Improved video player controls */
+.video-controls {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-container:hover .video-controls {
+  opacity: 1;
+}
+
+/* Better image gallery indicators */
+.gallery-dot {
+  transition: all 0.2s ease;
+}
+
+.gallery-dot:hover {
+  transform: scale(1.2);
+}
+
+/* Smooth transitions for all interactive elements */
+.interactive-element {
+  transition: all 0.2s ease;
+}
+
+.interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
 </file>
 
@@ -9966,7 +10449,7 @@ define(['./workbox-9dc17825'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.359e903ak28"
+    "revision": "0.ufueu1393o"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {

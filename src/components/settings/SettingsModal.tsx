@@ -1,10 +1,11 @@
-// src/components/settings/SettingsModal.tsx - Enhanced with video settings
+// src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
 import { useState } from "react";
-import { Plus, X, Settings, Video } from "lucide-react";
+import { Plus, X, Settings, Video, Home } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
+import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
 import type { FilterOptions } from "../../types";
 
 type SettingsModalProps = {
@@ -28,6 +29,10 @@ type VideoSettingsType = {
   muteByDefault: boolean;
   showVideoIndicators: boolean;
   preferHighQuality: boolean;
+};
+
+type HomeFeedSettingsType = {
+  sortBy: HomeFeedSortOption;
 };
 
 const FilterList = ({
@@ -98,7 +103,9 @@ export const SettingsModal = ({
   filters,
   onFiltersChange,
 }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState<"filters" | "video">("filters");
+  const [activeTab, setActiveTab] = useState<"filters" | "video" | "home">(
+    "filters"
+  );
 
   // Load video settings from localStorage or use defaults
   const [videoSettings, setVideoSettings] = useState<VideoSettingsType>(() => {
@@ -122,6 +129,23 @@ export const SettingsModal = ({
     }
   });
 
+  // Load home feed settings from localStorage or use defaults
+  const [homeFeedSettings, setHomeFeedSettings] =
+    useState<HomeFeedSettingsType>(() => {
+      try {
+        const saved = localStorage.getItem("wreddit-home-feed-settings");
+        return saved
+          ? JSON.parse(saved)
+          : {
+              sortBy: "new" as HomeFeedSortOption,
+            };
+      } catch {
+        return {
+          sortBy: "new" as HomeFeedSortOption,
+        };
+      }
+    });
+
   const updateFilter = (key: keyof FilterOptions, items: string[]) => {
     onFiltersChange({ ...filters, [key]: items });
   };
@@ -138,9 +162,22 @@ export const SettingsModal = ({
     }
   };
 
+  const handleHomeFeedSettingsChange = (newSettings: HomeFeedSettingsType) => {
+    setHomeFeedSettings(newSettings);
+    try {
+      localStorage.setItem(
+        "wreddit-home-feed-settings",
+        JSON.stringify(newSettings)
+      );
+    } catch {
+      // Fail silently
+    }
+  };
+
   const tabs = [
     { id: "filters" as const, label: "Filters", icon: Settings },
     { id: "video" as const, label: "Video", icon: Video },
+    { id: "home" as const, label: "Home Feed", icon: Home },
   ];
 
   return (
@@ -231,6 +268,13 @@ export const SettingsModal = ({
           <VideoSettings
             settings={videoSettings}
             onSettingsChange={handleVideoSettingsChange}
+          />
+        )}
+
+        {activeTab === "home" && (
+          <HomeFeedSettings
+            settings={homeFeedSettings}
+            onSettingsChange={handleHomeFeedSettingsChange}
           />
         )}
       </div>

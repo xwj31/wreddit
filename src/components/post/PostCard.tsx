@@ -1,4 +1,4 @@
-// src/components/post/PostCard.tsx - Updated with inline video player
+// src/components/post/PostCard.tsx - Updated with multiple images support and proper typing
 import { useState } from "react";
 import {
   ArrowUp,
@@ -7,6 +7,8 @@ import {
   Bookmark,
   Play,
   Maximize2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
@@ -22,6 +24,63 @@ type PostCardProps = {
   onBookmarkToggle?: (post: RedditPost) => void;
 };
 
+// Define the media metadata item type based on your types.ts
+type MediaMetadataItem = {
+  status: string;
+  e: string;
+  m: string;
+  s: {
+    y: number;
+    x: number;
+    u?: string;
+    gif?: string;
+  };
+  id?: string;
+};
+
+// Helper function to extract all images from a post
+const getPostImages = (
+  post: RedditPost
+): Array<{ url: string; width?: number; height?: number }> => {
+  const images: Array<{ url: string; width?: number; height?: number }> = [];
+
+  // Check for gallery/multiple images in preview
+  if (post.preview?.images && post.preview.images.length > 1) {
+    post.preview.images.forEach((img) => {
+      if (img.source?.url) {
+        images.push({
+          url: img.source.url.replace(/&amp;/g, "&"),
+          width: img.source.width,
+          height: img.source.height,
+        });
+      }
+    });
+  }
+
+  // Check for Reddit gallery
+  if (post.is_gallery && post.media_metadata) {
+    Object.values(post.media_metadata).forEach((item: MediaMetadataItem) => {
+      const imageUrl = item.s?.u || item.s?.gif;
+      if (imageUrl) {
+        images.push({
+          url: imageUrl.replace(/&amp;/g, "&"),
+          width: item.s.x,
+          height: item.s.y,
+        });
+      }
+    });
+  }
+  // Fallback to single image
+  if (images.length === 0) {
+    const singleImage = getImageUrl(post);
+    if (singleImage) {
+      images.push({ url: singleImage });
+    }
+  }
+
+  return images;
+};
+
 export const PostCard = ({
   post,
   onPostClick,
@@ -29,11 +88,13 @@ export const PostCard = ({
   onBookmarkToggle,
 }: PostCardProps) => {
   const [showFullVideo, setShowFullVideo] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const imageUrl = getImageUrl(post);
+  const images = getPostImages(post);
   const videoInfo = getVideoInfo(post);
   const isBookmarked = storage.isBookmarked(post.id);
   const hasVideo = hasVideoContent(post);
+  const hasMultipleImages = images.length > 1;
 
   // Handle clicking on the post (but not on interactive elements)
   const handlePostClick = (e: React.MouseEvent) => {
@@ -44,6 +105,14 @@ export const PostCard = ({
     if (!isInteractive) {
       onPostClick(post);
     }
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
@@ -78,6 +147,13 @@ export const PostCard = ({
           {hasVideo && (
             <div className="flex items-center text-red-400">
               <Play size={16} fill="currentColor" />
+            </div>
+          )}
+          {hasMultipleImages && (
+            <div className="flex items-center text-blue-400">
+              <span className="text-xs bg-blue-600/20 px-2 py-1 rounded">
+                {images.length} pics
+              </span>
             </div>
           )}
           {onBookmarkToggle && (
@@ -134,14 +210,65 @@ export const PostCard = ({
           </div>
         )}
 
-        {/* Image content (only if no video) */}
-        {!videoInfo && imageUrl && (
-          <div className="w-full">
+        {/* Multiple images carousel */}
+        {!videoInfo && images.length > 0 && (
+          <div className="w-full relative">
             <img
-              src={imageUrl}
-              alt="Post content"
+              src={images[currentImageIndex].url}
+              alt={`Post content ${currentImageIndex + 1} of ${images.length}`}
               className="w-full object-cover max-h-96"
             />
+
+            {/* Image navigation for multiple images */}
+            {hasMultipleImages && (
+              <>
+                {/* Navigation buttons */}
+                <Button
+                  onClick={(e?: React.MouseEvent<Element>) => {
+                    e?.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+                  title="Previous image"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+
+                <Button
+                  onClick={(e?: React.MouseEvent<Element>) => {
+                    e?.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+                  title="Next image"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+
+                {/* Image counter */}
+                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  {currentImageIndex + 1}/{images.length}
+                </div>
+
+                {/* Dots indicator */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                  {images.map((_, index) => (
+                    <Button
+                      key={index}
+                      onClick={(e?: React.MouseEvent<Element>) => {
+                        e?.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentImageIndex
+                          ? "bg-white"
+                          : "bg-white/50 hover:bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 

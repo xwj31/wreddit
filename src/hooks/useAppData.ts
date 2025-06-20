@@ -3,6 +3,8 @@ import { api } from "../api/reddit";
 import { storage } from "../utils/storage";
 import type { RedditPost, FilterOptions, BookmarkedPost } from "../types";
 
+type HomeFeedSortOption = "new" | "score" | "comments";
+
 export const useAppData = () => {
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,44 @@ export const useAppData = () => {
     storage.saveSort(sort);
   }, [sort]);
 
+  // Get home feed settings
+  const getHomeFeedSettings = useCallback((): {
+    sortBy: HomeFeedSortOption;
+  } => {
+    try {
+      const saved = localStorage.getItem("wreddit-home-feed-settings");
+      return saved
+        ? JSON.parse(saved)
+        : { sortBy: "new" as HomeFeedSortOption };
+    } catch {
+      return { sortBy: "new" as HomeFeedSortOption };
+    }
+  }, []);
+
   // Helper function to determine if we should use multi-subreddit feed
   const shouldUseFavoritesFeed = useCallback(() => {
     return subreddit === "home" && filters.favoriteSubreddits.length > 0;
   }, [subreddit, filters.favoriteSubreddits]);
+
+  // Sort posts according to home feed settings
+  const sortPostsForHomeFeed = useCallback(
+    (posts: RedditPost[]): RedditPost[] => {
+      const settings = getHomeFeedSettings();
+
+      return [...posts].sort((a, b) => {
+        switch (settings.sortBy) {
+          case "score":
+            return b.score - a.score;
+          case "comments":
+            return b.num_comments - a.num_comments;
+          case "new":
+          default:
+            return b.created_utc - a.created_utc;
+        }
+      });
+    },
+    [getHomeFeedSettings]
+  );
 
   // Function to fetch from multiple subreddits and combine results
   const fetchMultipleSubreddits = useCallback(
@@ -63,16 +99,17 @@ export const useAppData = () => {
         const results = await Promise.all(promises);
         const allPosts = results.flat();
 
-        // Sort by created_utc (newest first) and remove duplicates
-        const uniquePosts = allPosts
-          .filter(
-            (post, index, self) =>
-              index === self.findIndex((p) => p.id === post.id)
-          )
-          .sort((a, b) => b.created_utc - a.created_utc);
+        // Remove duplicates
+        const uniquePosts = allPosts.filter(
+          (post, index, self) =>
+            index === self.findIndex((p) => p.id === post.id)
+        );
+
+        // Sort according to home feed settings
+        const sortedPosts = sortPostsForHomeFeed(uniquePosts);
 
         // Limit to reasonable number of posts
-        const limitedPosts = uniquePosts.slice(0, reset ? 25 : 50);
+        const limitedPosts = sortedPosts.slice(0, reset ? 25 : 50);
 
         if (reset) {
           setPosts(limitedPosts);
@@ -80,10 +117,11 @@ export const useAppData = () => {
           setPosts((prev) => {
             const combined = [...prev, ...limitedPosts];
             // Remove duplicates again after combining
-            return combined.filter(
+            const uniqueCombined = combined.filter(
               (post, index, self) =>
                 index === self.findIndex((p) => p.id === post.id)
             );
+            return sortPostsForHomeFeed(uniqueCombined);
           });
         }
 
@@ -97,7 +135,7 @@ export const useAppData = () => {
         setLoading(false);
       }
     },
-    [sort, filters]
+    [sort, filters, sortPostsForHomeFeed]
   );
 
   const fetchPosts = useCallback(

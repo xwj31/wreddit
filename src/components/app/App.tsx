@@ -170,7 +170,8 @@ export const App = () => {
         loading={loading}
       />
 
-      <main>
+      {/* Add padding to account for fixed header */}
+      <main style={{ paddingTop: "140px" }}>
         <PostFeed
           posts={filteredPosts}
           loading={loading}

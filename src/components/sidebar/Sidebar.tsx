@@ -3,9 +3,6 @@ import {
   X,
   Heart,
   Plus,
-  Star,
-  TrendingUp,
-  BarChart3,
   Bookmark,
   Home,
 } from "lucide-react";
@@ -22,15 +19,6 @@ type SidebarProps = {
   onFiltersChange: (filters: FilterOptions) => void;
   onNavigateToBookmarks?: () => void;
 };
-
-const DEFAULT_SUBREDDITS = [
-  { name: "all", icon: BarChart3, label: "All" },
-  { name: "popular", icon: TrendingUp, label: "Popular" },
-  { name: "askreddit", icon: Star, label: "AskReddit" },
-  { name: "worldnews", icon: Star, label: "World News" },
-  { name: "technology", icon: Star, label: "Technology" },
-  { name: "gaming", icon: Star, label: "Gaming" },
-];
 
 export const Sidebar = ({
   isOpen,
@@ -118,34 +106,6 @@ export const Sidebar = ({
               <Bookmark size={18} className="text-orange-500" />
               <span>Bookmarks</span>
             </Button>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-              <Star size={16} className="text-yellow-500" />
-              Popular
-            </h3>
-            <div className="space-y-1">
-              {DEFAULT_SUBREDDITS.map((sub) => {
-                const Icon = sub.icon;
-                const isActive = currentSubreddit === sub.name;
-
-                return (
-                  <Button
-                    key={sub.name}
-                    onClick={() => handleSubredditClick(sub.name)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
-                      isActive
-                        ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
-                        : "text-gray-300 hover:bg-gray-800"
-                    }`}
-                  >
-                    <Icon size={18} />
-                    <span>{sub.label}</span>
-                  </Button>
-                );
-              })}
-            </div>
           </div>
 
           <div>

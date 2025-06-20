@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { RefreshCw, Settings, Bookmark, Heart, Home } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -43,9 +44,49 @@ export const Header = ({
   onShowSidebar,
   loading,
 }: HeaderProps) => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Show header when scrolling up or at the top
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true);
+      }
+      // Hide header when scrolling down (but not immediately)
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    // Throttle scroll events for better performance
+    let timeoutId: number;
+    const throttledHandleScroll = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(handleScroll, 10);
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", throttledHandleScroll);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [lastScrollY]);
+
   const subredditOptions = [
     // Add Home option when user has favorites
-    ...(favoriteSubreddits.length > 0 ? [{ value: "home", label: "🏠 Home" }] : []),
+    ...(favoriteSubreddits.length > 0
+      ? [{ value: "home", label: "🏠 Home" }]
+      : []),
     { value: "all", label: "All" },
     { value: "popular", label: "Popular" },
     ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
@@ -53,13 +94,20 @@ export const Header = ({
 
   // Show different icon based on current selection
   const getSubredditIcon = () => {
-    if (subreddit === "home") return <Home size={16} className="text-blue-500" />;
-    if (isFavorite) return <Heart size={16} className="text-red-500" fill="currentColor" />;
+    if (subreddit === "home")
+      return <Home size={16} className="text-blue-500" />;
+    if (isFavorite)
+      return <Heart size={16} className="text-red-500" fill="currentColor" />;
     return null;
   };
 
   return (
-    <header className="sticky-header-safe bg-black border-b border-gray-800">
+    <header
+      className={`fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-gray-800 z-20 transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <div className="flex items-center justify-between p-3">
         <Button
           onClick={onShowSidebar}
@@ -115,7 +163,7 @@ export const Header = ({
               </div>
             )}
           </div>
-          
+
           {/* Only show favorite toggle for actual subreddits, not for home/all/popular */}
           {!["home", "all", "popular"].includes(subreddit) && (
             <Button
@@ -130,7 +178,7 @@ export const Header = ({
               <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
             </Button>
           )}
-          
+
           <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
         </div>
       </div>
