@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { X, Heart, Plus, Star, TrendingUp, BarChart3, Bookmark } from "lucide-react";
+import {
+  X,
+  Heart,
+  Plus,
+  Star,
+  TrendingUp,
+  BarChart3,
+  Bookmark,
+  Home,
+} from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import type { FilterOptions } from "../../types";
@@ -17,7 +26,7 @@ type SidebarProps = {
 const DEFAULT_SUBREDDITS = [
   { name: "all", icon: BarChart3, label: "All" },
   { name: "popular", icon: TrendingUp, label: "Popular" },
-  { name: "AskReddit", icon: Star, label: "AskReddit" },
+  { name: "askreddit", icon: Star, label: "AskReddit" },
   { name: "worldnews", icon: Star, label: "World News" },
   { name: "technology", icon: Star, label: "Technology" },
   { name: "gaming", icon: Star, label: "Gaming" },
@@ -36,7 +45,10 @@ export const Sidebar = ({
 
   const handleAddFavorite = () => {
     if (newSubreddit.trim()) {
-      const cleanSubreddit = newSubreddit.replace(/^r\//, "").toLowerCase().trim();
+      const cleanSubreddit = newSubreddit
+        .replace(/^r\//, "")
+        .toLowerCase()
+        .trim();
       if (!filters.favoriteSubreddits.includes(cleanSubreddit)) {
         onFiltersChange({
           ...filters,
@@ -50,7 +62,9 @@ export const Sidebar = ({
   const handleRemoveFavorite = (subreddit: string) => {
     onFiltersChange({
       ...filters,
-      favoriteSubreddits: filters.favoriteSubreddits.filter(sub => sub !== subreddit),
+      favoriteSubreddits: filters.favoriteSubreddits.filter(
+        (sub) => sub !== subreddit
+      ),
     });
   };
 
@@ -64,7 +78,7 @@ export const Sidebar = ({
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      
+
       <div className="fixed left-0 top-0 bottom-0 w-80 bg-gray-900 z-50 overflow-y-auto">
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Browse</h2>
@@ -75,13 +89,31 @@ export const Sidebar = ({
 
         <div className="p-4 space-y-6">
           <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3">Quick Access</h3>
+            <h3 className="text-sm font-medium text-gray-300 mb-3">
+              Quick Access
+            </h3>
+
+            {/* Home option - only show if user has favorites */}
+            {filters.favoriteSubreddits.length > 0 && (
+              <Button
+                onClick={() => handleSubredditClick("home")}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg text-left mb-2 ${
+                  currentSubreddit === "home"
+                    ? "bg-blue-600/20 text-blue-400 border border-blue-600/40"
+                    : "text-gray-300 hover:bg-gray-800"
+                }`}
+              >
+                <Home size={18} className="text-blue-500" />
+                <span>Home Feed</span>
+              </Button>
+            )}
+
             <Button
               onClick={() => {
                 onNavigateToBookmarks?.();
                 onClose();
               }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-gray-300"
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-gray-300 hover:bg-gray-800"
             >
               <Bookmark size={18} className="text-orange-500" />
               <span>Bookmarks</span>
@@ -105,7 +137,7 @@ export const Sidebar = ({
                     className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
                       isActive
                         ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
-                        : "text-gray-300"
+                        : "text-gray-300 hover:bg-gray-800"
                     }`}
                   >
                     <Icon size={18} />
@@ -162,7 +194,11 @@ export const Sidebar = ({
                           isActive ? "text-orange-400" : "text-gray-300"
                         }`}
                       >
-                        <Heart size={14} className="text-red-500" fill="currentColor" />
+                        <Heart
+                          size={14}
+                          className="text-red-500"
+                          fill="currentColor"
+                        />
                         <span>r/{sub}</span>
                       </Button>
                       <Button

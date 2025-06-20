@@ -1,4 +1,4 @@
-import { RefreshCw, Settings, Bookmark, Heart } from "lucide-react";
+import { RefreshCw, Settings, Bookmark, Heart, Home } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
@@ -44,10 +44,19 @@ export const Header = ({
   loading,
 }: HeaderProps) => {
   const subredditOptions = [
+    // Add Home option when user has favorites
+    ...(favoriteSubreddits.length > 0 ? [{ value: "home", label: "🏠 Home" }] : []),
     { value: "all", label: "All" },
     { value: "popular", label: "Popular" },
     ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
   ];
+
+  // Show different icon based on current selection
+  const getSubredditIcon = () => {
+    if (subreddit === "home") return <Home size={16} className="text-blue-500" />;
+    if (isFavorite) return <Heart size={16} className="text-red-500" fill="currentColor" />;
+    return null;
+  };
 
   return (
     <header className="sticky-header-safe bg-black border-b border-gray-800">
@@ -100,25 +109,28 @@ export const Header = ({
               options={subredditOptions}
               className="w-full"
             />
-            {isFavorite && (
-              <Heart
-                size={16}
-                className="absolute right-8 top-1/2 transform -translate-y-1/2 text-red-500 pointer-events-none"
-                fill="currentColor"
-              />
+            {getSubredditIcon() && (
+              <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                {getSubredditIcon()}
+              </div>
             )}
           </div>
-          <Button
-            onClick={onFavoriteToggle}
-            className={`rounded-xl border transition-colors ${
-              isFavorite
-                ? "bg-red-600 border-red-500 text-white"
-                : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
-            }`}
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
-          </Button>
+          
+          {/* Only show favorite toggle for actual subreddits, not for home/all/popular */}
+          {!["home", "all", "popular"].includes(subreddit) && (
+            <Button
+              onClick={onFavoriteToggle}
+              className={`rounded-xl border transition-colors ${
+                isFavorite
+                  ? "bg-red-600 border-red-500 text-white"
+                  : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
+              }`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
+            </Button>
+          )}
+          
           <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
         </div>
       </div>

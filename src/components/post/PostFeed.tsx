@@ -1,4 +1,4 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Home } from "lucide-react";
 import { PostCard } from "./PostCard";
 import { Button } from "../ui/Button";
 import type { RedditPost } from "../../types";
@@ -12,6 +12,7 @@ type PostFeedProps = {
   onBookmarkToggle?: (post: RedditPost) => void;
   onLoadMore?: () => void;
   error?: string;
+  isHomeFeed?: boolean;
 };
 
 export const PostFeed = ({
@@ -23,6 +24,7 @@ export const PostFeed = ({
   onBookmarkToggle,
   onLoadMore,
   error,
+  isHomeFeed = false,
 }: PostFeedProps) => {
   if (error) {
     return (
@@ -36,16 +38,40 @@ export const PostFeed = ({
   if (posts.length === 0 && !loading) {
     return (
       <div className="text-center py-12 px-4">
-        <div className="text-gray-400 text-lg mb-2">No posts found</div>
-        <div className="text-gray-500 text-sm">
-          Try adjusting your filters or check your connection
-        </div>
+        {isHomeFeed ? (
+          <div className="space-y-3">
+            <Home size={48} className="mx-auto text-gray-600" />
+            <div className="text-gray-400 text-lg mb-2">
+              Your Home Feed is Empty
+            </div>
+            <div className="text-gray-500 text-sm max-w-md mx-auto">
+              Add some favorite subreddits to see posts from communities you
+              love all in one place.
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="text-gray-400 text-lg mb-2">No posts found</div>
+            <div className="text-gray-500 text-sm">
+              Try adjusting your filters or check your connection
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-0">
+      {isHomeFeed && posts.length > 0 && (
+        <div className="p-3 bg-blue-900/20 border-b border-blue-800/30">
+          <div className="flex items-center gap-2 text-blue-400 text-sm">
+            <Home size={16} />
+            <span>Showing posts from your favorite subreddits</span>
+          </div>
+        </div>
+      )}
+
       {posts.map((post) => (
         <PostCard
           key={post.id}
@@ -56,7 +82,7 @@ export const PostFeed = ({
         />
       ))}
 
-      {hasMore && !loading && (
+      {hasMore && !loading && !isHomeFeed && (
         <div className="p-4">
           <Button
             onClick={onLoadMore}

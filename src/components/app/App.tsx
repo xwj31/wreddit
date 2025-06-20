@@ -87,7 +87,10 @@ export const App = () => {
     );
   });
 
-  const isFavorite = filters.favoriteSubreddits.includes(subreddit.toLowerCase());
+  const isFavorite = filters.favoriteSubreddits.includes(
+    subreddit.toLowerCase()
+  );
+  const isHomeFeed = subreddit === "home";
 
   useSwipe(() => {
     if (currentPage !== "feed") {
@@ -181,6 +184,7 @@ export const App = () => {
           onBookmarkToggle={handleBookmarkToggle}
           onLoadMore={loadMorePosts}
           error={error || undefined}
+          isHomeFeed={isHomeFeed}
         />
       </main>
     </div>

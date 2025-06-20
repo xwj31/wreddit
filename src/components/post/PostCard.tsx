@@ -1,10 +1,12 @@
-// src/components/post/PostCard.tsx - Updated with video support
+// src/components/post/PostCard.tsx - Updated with inline video player
+import { useState } from "react";
 import {
   ArrowUp,
   MessageCircle,
   ExternalLink,
   Bookmark,
   Play,
+  Maximize2,
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
@@ -26,10 +28,23 @@ export const PostCard = ({
   onSubredditClick,
   onBookmarkToggle,
 }: PostCardProps) => {
+  const [showFullVideo, setShowFullVideo] = useState(false);
+
   const imageUrl = getImageUrl(post);
   const videoInfo = getVideoInfo(post);
   const isBookmarked = storage.isBookmarked(post.id);
   const hasVideo = hasVideoContent(post);
+
+  // Handle clicking on the post (but not on interactive elements)
+  const handlePostClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on buttons, links, or video controls
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, a, video, [role="button"]');
+
+    if (!isInteractive) {
+      onPostClick(post);
+    }
+  };
 
   return (
     <article className="bg-black border-b border-gray-900">
@@ -87,23 +102,35 @@ export const PostCard = ({
         </div>
       </div>
 
-      <div className="px-0 cursor-pointer" onClick={() => onPostClick(post)}>
+      <div className="px-0 cursor-pointer" onClick={handlePostClick}>
         <div className="px-3 mb-2">
           <h2 className="text-white font-medium leading-tight text-sm">
             {post.title}
           </h2>
         </div>
 
-        {/* Video content */}
+        {/* Video content with inline player */}
         {videoInfo && (
-          <div className="w-full mb-2">
+          <div className="w-full mb-2 relative">
             <VideoPlayer
               videoInfo={videoInfo}
               autoplay={false}
               muted={true}
               controls={true}
-              className="max-h-96"
+              className={showFullVideo ? "max-h-[70vh]" : "max-h-96"}
             />
+
+            {/* Expand button for videos */}
+            <Button
+              onClick={(e?: React.MouseEvent<Element>) => {
+                e?.stopPropagation();
+                setShowFullVideo((prev) => !prev);
+              }}
+              className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+              title={showFullVideo ? "Collapse video" : "Expand video"}
+            >
+              <Maximize2 size={16} />
+            </Button>
           </div>
         )}
 

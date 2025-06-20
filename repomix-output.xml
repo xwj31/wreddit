@@ -69,6 +69,7 @@ src/
       PostFeed.tsx
     settings/
       SettingsModal.tsx
+      VideoSettings.tsx
     sidebar/
       Sidebar.tsx
     ui/
@@ -76,6 +77,7 @@ src/
       Input.tsx
       Modal.tsx
       Select.tsx
+      VideoPlayer.tsx
   hooks/
     useAppData.ts
     useNavigation.ts
@@ -83,6 +85,7 @@ src/
   utils/
     index.ts
     storage.ts
+    video.ts
   App.tsx
   index.css
   main.tsx
@@ -5396,366 +5399,6 @@ export const CommentsList = ({ comments, loading }: CommentsListProps) => {
 };
 </file>
 
-<file path="src/components/post/PostDetail/index.tsx">
-import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  Share,
-  Bookmark,
-  ArrowUp,
-  MessageCircle,
-  ExternalLink,
-  RefreshCw,
-} from "lucide-react";
-import { formatTimeAgo, formatScore, getImageUrl, sharePost } from "../../../utils";
-import { storage } from "../../../utils/storage";
-import { api } from "../../../api/reddit";
-import { Button } from "../../ui/Button";
-import { CommentsList } from "./CommentsList";
-import type { RedditPost, RedditComment } from "../../../types";
-
-type PostDetailProps = {
-  post: RedditPost;
-  onBack: () => void;
-  onSubredditClick?: (subreddit: string) => void;
-  onBookmarkToggle?: (post: RedditPost) => void;
-};
-
-export const PostDetail = ({
-  post,
-  onBack,
-  onSubredditClick,
-  onBookmarkToggle,
-}: PostDetailProps) => {
-  const [comments, setComments] = useState<RedditComment[]>([]);
-  const [loadingComments, setLoadingComments] = useState(true);
-  const [showFullText, setShowFullText] = useState(false);
-  const [shareSuccess, setShareSuccess] = useState(false);
-
-  const isBookmarked = storage.isBookmarked(post.id);
-  const imageUrl = getImageUrl(post);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      setLoadingComments(true);
-      const fetchedComments = await api.fetchComments(post.permalink);
-      setComments(fetchedComments);
-      setLoadingComments(false);
-    };
-
-    fetchComments();
-  }, [post.permalink]);
-
-  const handleShare = async () => {
-    const success = await sharePost(post);
-    if (success) {
-      setShareSuccess(true);
-      setTimeout(() => setShareSuccess(false), 2000);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
-        <div className="flex items-center justify-between p-3">
-          <Button onClick={onBack} className="text-gray-400 hover:text-white">
-            <ArrowLeft size={22} />
-          </Button>
-          
-          <Button
-            onClick={() => onSubredditClick?.(post.subreddit)}
-            className="text-lg font-medium text-white flex-1 text-center mx-4 truncate hover:text-orange-400"
-          >
-            r/{post.subreddit}
-          </Button>
-          
-          <div className="flex items-center gap-1">
-            <Button
-              onClick={handleShare}
-              className={shareSuccess ? "text-green-400" : "text-gray-400 hover:text-white"}
-              title="Share post"
-            >
-              <Share size={20} />
-            </Button>
-            
-            {onBookmarkToggle && (
-              <Button
-                onClick={() => onBookmarkToggle(post)}
-                className={
-                  isBookmarked
-                    ? "text-orange-500 hover:text-orange-400"
-                    : "text-gray-400 hover:text-white"
-                }
-                title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-              >
-                <Bookmark
-                  size={20}
-                  fill={isBookmarked ? "currentColor" : "none"}
-                />
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="pb-6">
-        <div className="flex items-center justify-between p-3 border-b border-gray-900">
-          <Button
-            onClick={() => onSubredditClick?.(post.subreddit)}
-            className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">
-                {post.subreddit.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="text-left">
-              <div className="text-white font-medium hover:text-orange-400 transition-colors">
-                r/{post.subreddit}
-              </div>
-              <div className="text-gray-500 text-sm">
-                u/{post.author} • {formatTimeAgo(post.created_utc)}
-              </div>
-            </div>
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center text-gray-400">
-              <ArrowUp size={16} className="text-gray-500" />
-              <span className="text-xs font-medium ml-1">
-                {formatScore(post.score)}
-              </span>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <MessageCircle size={16} className="text-gray-500" />
-              <span className="text-xs font-medium ml-1">
-                {post.num_comments}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-3">
-          <h1 className="text-xl font-medium text-white mb-3">{post.title}</h1>
-
-          {imageUrl && (
-            <div className="mb-3">
-              <img
-                src={imageUrl}
-                alt="Post content"
-                className="w-full object-contain max-h-[70vh] rounded-lg"
-              />
-            </div>
-          )}
-
-          {post.selftext && (
-            <div className="mb-3">
-              <div
-                className={`text-gray-300 whitespace-pre-line ${
-                  !showFullText && post.selftext.length > 500
-                    ? "max-h-60 overflow-hidden relative"
-                    : ""
-                }`}
-              >
-                {!showFullText && post.selftext.length > 500
-                  ? post.selftext.slice(0, 500) + "..."
-                  : post.selftext}
-
-                {!showFullText && post.selftext.length > 500 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent"></div>
-                )}
-              </div>
-
-              {post.selftext.length > 500 && (
-                <Button
-                  onClick={() => setShowFullText(!showFullText)}
-                  className="text-orange-500 hover:text-orange-400 mt-2"
-                >
-                  {showFullText ? "Show less" : "Read more"}
-                </Button>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3 mt-4">
-            <a
-              href={`https://reddit.com${post.permalink}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <ExternalLink size={18} />
-              <span>Open on Reddit</span>
-            </a>
-
-            {post.url && post.url !== `https://reddit.com${post.permalink}` && (
-              <a
-                href={post.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <ExternalLink size={18} />
-                <span>Open Link</span>
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-900 mt-4">
-          <div className="p-3 border-b border-gray-900">
-            <h2 className="text-lg font-medium">Comments</h2>
-          </div>
-          
-          {loadingComments ? (
-            <div className="flex justify-center p-8">
-              <RefreshCw size={24} className="animate-spin text-orange-500" />
-            </div>
-          ) : (
-            <CommentsList comments={comments} loading={loadingComments} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-</file>
-
-<file path="src/components/post/PostCard.tsx">
-import { ArrowUp, MessageCircle, ExternalLink, Bookmark } from "lucide-react";
-import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
-import { storage } from "../../utils/storage";
-import { Button } from "../ui/Button";
-import type { RedditPost } from "../../types";
-
-type PostCardProps = {
-  post: RedditPost;
-  onPostClick: (post: RedditPost) => void;
-  onSubredditClick?: (subreddit: string) => void;
-  onBookmarkToggle?: (post: RedditPost) => void;
-};
-
-export const PostCard = ({ post, onPostClick, onSubredditClick, onBookmarkToggle }: PostCardProps) => {
-  const imageUrl = getImageUrl(post);
-  const isBookmarked = storage.isBookmarked(post.id);
-
-  return (
-    <article className="bg-black border-b border-gray-900">
-      <div className="flex items-center justify-between p-3">
-        <Button
-          onClick={() => onSubredditClick?.(post.subreddit)}
-          className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
-        >
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
-              {post.subreddit.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="text-left">
-            <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
-              r/{post.subreddit}
-            </div>
-            <div className="text-gray-500 text-xs">
-              u/{post.author} • {formatTimeAgo(post.created_utc)}
-            </div>
-          </div>
-        </Button>
-        
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-gray-400">
-            <ArrowUp size={16} className="text-gray-500" />
-            <span className="text-xs font-medium ml-1">
-              {formatScore(post.score)}
-            </span>
-          </div>
-          {onBookmarkToggle && (
-            <Button
-              onClick={(e) => {
-                e?.stopPropagation();
-                onBookmarkToggle(post);
-              }}
-              className={`p-1.5 rounded-full ${
-                isBookmarked
-                  ? "text-orange-500 hover:text-orange-400"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-              title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-            >
-              <Bookmark size={16} fill={isBookmarked ? "currentColor" : "none"} />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="px-0 cursor-pointer" onClick={() => onPostClick(post)}>
-        <div className="px-3 mb-2">
-          <h2 className="text-white font-medium leading-tight text-sm">
-            {post.title}
-          </h2>
-        </div>
-
-        {imageUrl && (
-          <div className="w-full">
-            <img
-              src={imageUrl}
-              alt="Post content"
-              className="w-full object-cover max-h-96"
-            />
-          </div>
-        )}
-
-        {post.selftext && (
-          <div className="px-3 mt-2">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {post.selftext.length > 200
-                ? `${post.selftext.slice(0, 200)}...`
-                : post.selftext}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between px-3 py-3">
-        <Button
-          onClick={() => onPostClick(post)}
-          className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-        >
-          <MessageCircle size={20} />
-          <span className="text-sm font-medium">
-            {post.num_comments} comments
-          </span>
-        </Button>
-
-        <div className="flex items-center gap-1">
-          <a
-            href={`https://reddit.com${post.permalink}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink size={18} />
-            <span className="text-sm">Reddit</span>
-          </a>
-          {post.url !== `https://reddit.com${post.permalink}` && (
-            <a
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink size={18} />
-              <span className="text-sm">Link</span>
-            </a>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-};
-</file>
-
 <file path="src/components/post/PostFeed.tsx">
 import { RefreshCw } from "lucide-react";
 import { PostCard } from "./PostCard";
@@ -5836,119 +5479,102 @@ export const PostFeed = ({
 };
 </file>
 
-<file path="src/components/settings/SettingsModal.tsx">
-import { useState } from "react";
-import { Plus, X } from "lucide-react";
-import { Modal } from "../ui/Modal";
-import { Input } from "../ui/Input";
+<file path="src/components/settings/VideoSettings.tsx">
+// src/components/settings/VideoSettings.tsx - Video-specific settings
+import { Play, Video, Volume2, VolumeX } from "lucide-react";
 import { Button } from "../ui/Button";
-import type { FilterOptions } from "../../types";
 
-type SettingsModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  filters: FilterOptions;
-  onFiltersChange: (filters: FilterOptions) => void;
+type VideoSettingsProps = {
+  settings: {
+    autoplayVideos: boolean;
+    muteByDefault: boolean;
+    showVideoIndicators: boolean;
+    preferHighQuality: boolean;
+  };
+  onSettingsChange: (settings: VideoSettingsProps["settings"]) => void;
 };
 
-type FilterListProps = {
-  title: string;
-  items: string[];
-  onAdd: (item: string) => void;
-  onRemove: (item: string) => void;
-  placeholder: string;
-  color?: "red" | "gray";
-};
-
-const FilterList = ({ title, items, onAdd, onRemove, placeholder, color = "gray" }: FilterListProps) => {
-  const [newItem, setNewItem] = useState("");
-
-  const handleAdd = () => {
-    if (newItem.trim() && !items.includes(newItem.toLowerCase().trim())) {
-      onAdd(newItem.toLowerCase().trim());
-      setNewItem("");
-    }
+export const VideoSettings = ({
+  settings,
+  onSettingsChange,
+}: VideoSettingsProps) => {
+  const toggleSetting = (key: keyof VideoSettingsProps["settings"]) => {
+    onSettingsChange({
+      ...settings,
+      [key]: !settings[key],
+    });
   };
 
-  const colorClasses = {
-    red: "bg-red-600/20 border-red-600/40 text-red-400",
-    gray: "bg-gray-700/50 border-gray-600 text-gray-300",
-  };
+  const settingsItems = [
+    {
+      key: "autoplayVideos" as const,
+      icon: Play,
+      title: "Autoplay Videos",
+      description: "Automatically play videos when they come into view",
+      color: "text-green-500",
+    },
+    {
+      key: "muteByDefault" as const,
+      icon: settings.muteByDefault ? VolumeX : Volume2,
+      title: "Mute by Default",
+      description: "Start all videos muted",
+      color: "text-blue-500",
+    },
+    {
+      key: "showVideoIndicators" as const,
+      icon: Video,
+      title: "Show Video Indicators",
+      description: "Display play icons on video posts",
+      color: "text-purple-500",
+    },
+    {
+      key: "preferHighQuality" as const,
+      icon: Video,
+      title: "Prefer High Quality",
+      description: "Use higher quality video sources when available",
+      color: "text-orange-500",
+    },
+  ];
 
   return (
-    <div>
-      <h3 className="font-medium mb-3 text-gray-300">{title}</h3>
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            placeholder={placeholder}
-            value={newItem}
-            onChange={setNewItem}
-            onEnter={handleAdd}
-            className="flex-1"
-          />
-          <Button
-            onClick={handleAdd}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white mb-4">Video Settings</h3>
+
+      {settingsItems.map((item) => {
+        const Icon = item.icon;
+        const isEnabled = settings[item.key];
+
+        return (
+          <div
+            key={item.key}
+            className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg"
           >
-            <Plus size={16} />
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {items.map((item) => (
-            <span
-              key={item}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm ${colorClasses[color]}`}
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg bg-gray-700 ${item.color}`}>
+                <Icon size={20} />
+              </div>
+              <div>
+                <div className="text-white font-medium">{item.title}</div>
+                <div className="text-gray-400 text-sm">{item.description}</div>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => toggleSetting(item.key)}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                isEnabled ? "bg-orange-600" : "bg-gray-600"
+              }`}
             >
-              {item}
-              <Button
-                onClick={() => onRemove(item)}
-                className="hover:text-gray-200"
-              >
-                <X size={12} />
-              </Button>
-            </span>
-          ))}
-        </div>
-      </div>
+              <div
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                  isEnabled ? "translate-x-6" : "translate-x-0.5"
+                }`}
+              />
+            </Button>
+          </div>
+        );
+      })}
     </div>
-  );
-};
-
-export const SettingsModal = ({ isOpen, onClose, filters, onFiltersChange }: SettingsModalProps) => {
-  const updateFilter = (key: keyof FilterOptions, items: string[]) => {
-    onFiltersChange({ ...filters, [key]: items });
-  };
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Settings">
-      <div className="p-4 space-y-6">
-        <FilterList
-          title="Favorite Subreddits"
-          items={filters.favoriteSubreddits}
-          onAdd={(item) => updateFilter("favoriteSubreddits", [...filters.favoriteSubreddits, item])}
-          onRemove={(item) => updateFilter("favoriteSubreddits", filters.favoriteSubreddits.filter(i => i !== item))}
-          placeholder="Add subreddit..."
-          color="red"
-        />
-
-        <FilterList
-          title="Blocked Subreddits"
-          items={filters.blockedSubreddits}
-          onAdd={(item) => updateFilter("blockedSubreddits", [...filters.blockedSubreddits, item])}
-          onRemove={(item) => updateFilter("blockedSubreddits", filters.blockedSubreddits.filter(i => i !== item))}
-          placeholder="Block subreddit..."
-        />
-
-        <FilterList
-          title="Blocked Keywords"
-          items={filters.blockedKeywords}
-          onAdd={(item) => updateFilter("blockedKeywords", [...filters.blockedKeywords, item])}
-          onRemove={(item) => updateFilter("blockedKeywords", filters.blockedKeywords.filter(i => i !== item))}
-          placeholder="Block keyword..."
-        />
-      </div>
-    </Modal>
   );
 };
 </file>
@@ -6228,6 +5854,272 @@ export const Select = ({ value, onChange, options, className = "" }: SelectProps
 );
 </file>
 
+<file path="src/components/ui/VideoPlayer.tsx">
+// src/components/ui/VideoPlayer.tsx
+import { useState, useRef, useEffect } from "react";
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "./Button";
+import { formatDuration } from "../../utils/video";
+import type { VideoInfo } from "../../types";
+
+type VideoPlayerProps = {
+  videoInfo: VideoInfo;
+  autoplay?: boolean;
+  muted?: boolean;
+  controls?: boolean;
+  className?: string;
+};
+
+export const VideoPlayer = ({
+  videoInfo,
+  autoplay = false,
+  muted = true,
+  controls = true,
+  className = "",
+}: VideoPlayerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(muted);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const controlsTimeoutRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleDurationChange = () => setDuration(video.duration);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleError = () => setError("Failed to load video");
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("durationchange", handleDurationChange);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
+    video.addEventListener("error", handleError);
+
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("durationchange", handleDurationChange);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
+      video.removeEventListener("error", handleError);
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play().catch(() => setError("Failed to play video"));
+    }
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    if (!video || !duration) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    const newTime = percentage * duration;
+
+    video.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const handleFullscreen = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.requestFullscreen) {
+      video.requestFullscreen();
+    }
+  };
+
+  const retry = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    setError(null);
+    video.load();
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
+  const handleMouseLeave = () => {
+    if (isPlaying) {
+      setShowControls(false);
+    }
+  };
+
+  // For embedded content (YouTube, Vimeo, etc.)
+  if (videoInfo.embedHtml && videoInfo.type !== "reddit_video") {
+    return (
+      <div
+        className={`relative w-full bg-black rounded-lg overflow-hidden ${className}`}
+        style={{
+          aspectRatio:
+            videoInfo.width && videoInfo.height
+              ? `${videoInfo.width}/${videoInfo.height}`
+              : "16/9",
+        }}
+      >
+        <div
+          className="w-full h-full"
+          dangerouslySetInnerHTML={{ __html: videoInfo.embedHtml }}
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`relative w-full bg-gray-900 rounded-lg overflow-hidden flex flex-col items-center justify-center p-8 ${className}`}
+      >
+        <div className="text-red-400 text-center mb-4">
+          <div className="text-lg font-medium mb-2">Video failed to load</div>
+          <div className="text-sm text-gray-400">{error}</div>
+        </div>
+        <Button
+          onClick={retry}
+          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+        >
+          <RotateCcw size={16} />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`relative w-full bg-black rounded-lg overflow-hidden group ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <video
+        ref={videoRef}
+        src={videoInfo.url}
+        autoPlay={autoplay}
+        muted={isMuted}
+        loop={videoInfo.isGif}
+        playsInline
+        className="w-full h-full object-contain"
+        onClick={togglePlay}
+      />
+
+      {controls && (
+        <div
+          className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 transition-opacity duration-300 ${
+            showControls ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {/* Center play button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button
+              onClick={togglePlay}
+              className={`bg-black/50 hover:bg-black/70 text-white rounded-full p-4 transition-all ${
+                isPlaying ? "opacity-0 scale-75" : "opacity-100 scale-100"
+              }`}
+            >
+              <Play size={32} />
+            </Button>
+          </div>
+
+          {/* Bottom controls */}
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            {/* Progress bar */}
+            {duration > 0 && (
+              <div
+                className="w-full h-1 bg-gray-600 rounded cursor-pointer mb-3"
+                onClick={handleSeek}
+              >
+                <div
+                  className="h-full bg-red-500 rounded"
+                  style={{ width: `${(currentTime / duration) * 100}%` }}
+                />
+              </div>
+            )}
+
+            {/* Control buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={togglePlay}
+                  className="text-white hover:text-gray-300"
+                >
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                </Button>
+
+                <Button
+                  onClick={toggleMute}
+                  className="text-white hover:text-gray-300"
+                >
+                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </Button>
+
+                {duration > 0 && (
+                  <span className="text-white text-sm">
+                    {formatDuration(currentTime)} / {formatDuration(duration)}
+                  </span>
+                )}
+
+                {videoInfo.isGif && (
+                  <span className="text-white text-xs bg-white/20 px-2 py-1 rounded">
+                    GIF
+                  </span>
+                )}
+              </div>
+
+              <Button
+                onClick={handleFullscreen}
+                className="text-white hover:text-gray-300"
+              >
+                <Maximize2 size={20} />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+</file>
+
 <file path="src/hooks/useAppData.ts">
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../api/reddit";
@@ -6406,6 +6298,219 @@ export const useSwipe = (onSwipeRight?: () => void) => {
       document.removeEventListener("touchend", handleTouchEnd);
     };
   }, [onSwipeRight]);
+};
+</file>
+
+<file path="src/utils/video.ts">
+// src/utils/video.ts - Video handling utilities
+import type { RedditPost, VideoInfo } from "../types";
+
+export const getVideoInfo = (post: RedditPost): VideoInfo | null => {
+  // Check for Reddit native video
+  const redditVideo =
+    post.secure_media?.reddit_video || post.media?.reddit_video;
+  if (redditVideo && redditVideo.fallback_url) {
+    return {
+      url: redditVideo.fallback_url,
+      type: "reddit_video",
+      width: redditVideo.width,
+      height: redditVideo.height,
+      duration: redditVideo.duration,
+      isGif: redditVideo.is_gif,
+    };
+  }
+
+  // Check for YouTube
+  if (isYouTubeUrl(post.url)) {
+    const videoId = extractYouTubeId(post.url);
+    if (videoId) {
+      return {
+        url: post.url,
+        type: "youtube",
+        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        embedHtml: getYouTubeEmbedHtml(videoId),
+      };
+    }
+  }
+
+  // Check for Vimeo
+  if (isVimeoUrl(post.url)) {
+    const videoId = extractVimeoId(post.url);
+    if (videoId) {
+      return {
+        url: post.url,
+        type: "vimeo",
+        embedHtml: getVimeoEmbedHtml(videoId),
+      };
+    }
+  }
+
+  // Check for Streamable
+  if (isStreamableUrl(post.url)) {
+    const videoId = extractStreamableId(post.url);
+    if (videoId) {
+      return {
+        url: `https://streamable.com/e/${videoId}`,
+        type: "streamable",
+        embedHtml: getStreamableEmbedHtml(videoId),
+      };
+    }
+  }
+
+  // Check for Imgur GIFV
+  if (isImgurGifvUrl(post.url)) {
+    return {
+      url: post.url.replace(".gifv", ".mp4"),
+      type: "imgur_gifv",
+      isGif: true,
+    };
+  }
+
+  // Check for Gfycat
+  if (isGfycatUrl(post.url)) {
+    const gfyId = extractGfycatId(post.url);
+    if (gfyId) {
+      return {
+        url: `https://giant.gfycat.com/${gfyId}.mp4`,
+        type: "gfycat",
+        isGif: true,
+      };
+    }
+  }
+
+  // Check for RedGIFs
+  if (isRedgifsUrl(post.url)) {
+    const gifId = extractRedgifsId(post.url);
+    if (gifId) {
+      return {
+        url: `https://thumbs2.redgifs.com/${gifId}.mp4`,
+        type: "redgifs",
+        isGif: true,
+      };
+    }
+  }
+
+  // Check for other video formats by URL extension
+  if (isDirectVideoUrl(post.url)) {
+    return {
+      url: post.url,
+      type: "external",
+      isGif: post.url.includes(".gif"),
+    };
+  }
+
+  // Check for OEmbed video content
+  const oembed = post.secure_media?.oembed || post.media?.oembed;
+  if (oembed && oembed.html) {
+    return {
+      url: post.url,
+      type: "external",
+      embedHtml: oembed.html,
+      thumbnail: oembed.thumbnail_url,
+      width: oembed.width,
+      height: oembed.height,
+    };
+  }
+
+  return null;
+};
+
+// URL detection functions
+const isYouTubeUrl = (url: string): boolean => {
+  return /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i.test(
+    url
+  );
+};
+
+const isVimeoUrl = (url: string): boolean => {
+  return /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/i.test(
+    url
+  );
+};
+
+const isStreamableUrl = (url: string): boolean => {
+  return /streamable\.com\/(\w+)/i.test(url);
+};
+
+const isImgurGifvUrl = (url: string): boolean => {
+  return /imgur\.com\/\w+\.gifv$/i.test(url);
+};
+
+const isGfycatUrl = (url: string): boolean => {
+  return /gfycat\.com\/(\w+)/i.test(url);
+};
+
+const isRedgifsUrl = (url: string): boolean => {
+  return /redgifs\.com\/(?:watch\/)?(\w+)/i.test(url);
+};
+
+const isDirectVideoUrl = (url: string): boolean => {
+  return /\.(mp4|webm|ogv|mov|avi|m4v)(\?.*)?$/i.test(url);
+};
+
+// ID extraction functions
+const extractYouTubeId = (url: string): string | null => {
+  const match = url.match(
+    /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i
+  );
+  return match ? match[1] : null;
+};
+
+const extractVimeoId = (url: string): string | null => {
+  const match = url.match(
+    /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/i
+  );
+  return match ? match[3] : null;
+};
+
+const extractStreamableId = (url: string): string | null => {
+  const match = url.match(/streamable\.com\/(\w+)/i);
+  return match ? match[1] : null;
+};
+
+const extractGfycatId = (url: string): string | null => {
+  const match = url.match(/gfycat\.com\/(\w+)/i);
+  return match ? match[1] : null;
+};
+
+const extractRedgifsId = (url: string): string | null => {
+  const match = url.match(/redgifs\.com\/(?:watch\/)?(\w+)/i);
+  return match ? match[1] : null;
+};
+
+// Embed HTML generators
+const getYouTubeEmbedHtml = (videoId: string): string => {
+  return `<iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+};
+
+const getVimeoEmbedHtml = (videoId: string): string => {
+  return `<iframe src="https://player.vimeo.com/video/${videoId}" width="100%" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+};
+
+const getStreamableEmbedHtml = (videoId: string): string => {
+  return `<iframe src="https://streamable.com/e/${videoId}" width="100%" height="315" frameborder="0" scrolling="no" allowfullscreen></iframe>`;
+};
+
+// Format duration from seconds to MM:SS or HH:MM:SS
+export const formatDuration = (seconds: number): string => {
+  if (!seconds) return "";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+};
+
+// Check if post has any video content
+export const hasVideoContent = (post: RedditPost): boolean => {
+  return getVideoInfo(post) !== null || post.is_video;
 };
 </file>
 
@@ -7354,6 +7459,700 @@ declare module "virtual:pwa-register" {
 </svg>
 </file>
 
+<file path="src/components/post/PostDetail/index.tsx">
+// src/components/post/PostDetail/index.tsx - Updated with video support
+import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Share,
+  Bookmark,
+  ArrowUp,
+  MessageCircle,
+  ExternalLink,
+  RefreshCw,
+  Play,
+} from "lucide-react";
+import {
+  formatTimeAgo,
+  formatScore,
+  getImageUrl,
+  sharePost,
+} from "../../../utils";
+import {
+  getVideoInfo,
+  hasVideoContent,
+  formatDuration,
+} from "../../../utils/video";
+import { storage } from "../../../utils/storage";
+import { api } from "../../../api/reddit";
+import { Button } from "../../ui/Button";
+import { VideoPlayer } from "../../ui/VideoPlayer";
+import { CommentsList } from "./CommentsList";
+import type { RedditPost, RedditComment } from "../../../types";
+
+type PostDetailProps = {
+  post: RedditPost;
+  onBack: () => void;
+  onSubredditClick?: (subreddit: string) => void;
+  onBookmarkToggle?: (post: RedditPost) => void;
+};
+
+export const PostDetail = ({
+  post,
+  onBack,
+  onSubredditClick,
+  onBookmarkToggle,
+}: PostDetailProps) => {
+  const [comments, setComments] = useState<RedditComment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(true);
+  const [showFullText, setShowFullText] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const isBookmarked = storage.isBookmarked(post.id);
+  const imageUrl = getImageUrl(post);
+  const videoInfo = getVideoInfo(post);
+  const hasVideo = hasVideoContent(post);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      setLoadingComments(true);
+      const fetchedComments = await api.fetchComments(post.permalink);
+      setComments(fetchedComments);
+      setLoadingComments(false);
+    };
+
+    fetchComments();
+  }, [post.permalink]);
+
+  const handleShare = async () => {
+    const success = await sharePost(post);
+    if (success) {
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <header className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-gray-800 z-10">
+        <div className="flex items-center justify-between p-3">
+          <Button onClick={onBack} className="text-gray-400 hover:text-white">
+            <ArrowLeft size={22} />
+          </Button>
+
+          <Button
+            onClick={() => onSubredditClick?.(post.subreddit)}
+            className="text-lg font-medium text-white flex-1 text-center mx-4 truncate hover:text-orange-400"
+          >
+            r/{post.subreddit}
+          </Button>
+
+          <div className="flex items-center gap-1">
+            <Button
+              onClick={handleShare}
+              className={
+                shareSuccess
+                  ? "text-green-400"
+                  : "text-gray-400 hover:text-white"
+              }
+              title="Share post"
+            >
+              <Share size={20} />
+            </Button>
+
+            {onBookmarkToggle && (
+              <Button
+                onClick={() => onBookmarkToggle(post)}
+                className={
+                  isBookmarked
+                    ? "text-orange-500 hover:text-orange-400"
+                    : "text-gray-400 hover:text-white"
+                }
+                title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+              >
+                <Bookmark
+                  size={20}
+                  fill={isBookmarked ? "currentColor" : "none"}
+                />
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="pb-6">
+        <div className="flex items-center justify-between p-3 border-b border-gray-900">
+          <Button
+            onClick={() => onSubredditClick?.(post.subreddit)}
+            className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
+          >
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold">
+                {post.subreddit.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="text-left">
+              <div className="text-white font-medium hover:text-orange-400 transition-colors">
+                r/{post.subreddit}
+              </div>
+              <div className="text-gray-500 text-sm">
+                u/{post.author} • {formatTimeAgo(post.created_utc)}
+              </div>
+            </div>
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center text-gray-400">
+              <ArrowUp size={16} className="text-gray-500" />
+              <span className="text-xs font-medium ml-1">
+                {formatScore(post.score)}
+              </span>
+            </div>
+            <div className="flex items-center text-gray-400">
+              <MessageCircle size={16} className="text-gray-500" />
+              <span className="text-xs font-medium ml-1">
+                {post.num_comments}
+              </span>
+            </div>
+            {hasVideo && (
+              <div
+                className="flex items-center text-red-400"
+                title="Video content"
+              >
+                <Play size={16} fill="currentColor" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-3">
+          <h1 className="text-xl font-medium text-white mb-3">{post.title}</h1>
+
+          {/* Video content */}
+          {videoInfo && (
+            <div className="mb-3">
+              <VideoPlayer
+                videoInfo={videoInfo}
+                autoplay={false}
+                muted={true}
+                controls={true}
+                className="w-full max-h-[70vh]"
+              />
+              {videoInfo.duration && (
+                <div className="text-gray-400 text-sm mt-2 flex items-center gap-2">
+                  <Play size={14} />
+                  <span>Duration: {formatDuration(videoInfo.duration)}</span>
+                  {videoInfo.isGif && (
+                    <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">
+                      GIF
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Image content (only if no video) */}
+          {!videoInfo && imageUrl && (
+            <div className="mb-3">
+              <img
+                src={imageUrl}
+                alt="Post content"
+                className="w-full object-contain max-h-[70vh] rounded-lg"
+              />
+            </div>
+          )}
+
+          {/* Text content */}
+          {post.selftext && (
+            <div className="mb-3">
+              <div
+                className={`text-gray-300 whitespace-pre-line ${
+                  !showFullText && post.selftext.length > 500
+                    ? "max-h-60 overflow-hidden relative"
+                    : ""
+                }`}
+              >
+                {!showFullText && post.selftext.length > 500
+                  ? post.selftext.slice(0, 500) + "..."
+                  : post.selftext}
+
+                {!showFullText && post.selftext.length > 500 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent"></div>
+                )}
+              </div>
+
+              {post.selftext.length > 500 && (
+                <Button
+                  onClick={() => setShowFullText(!showFullText)}
+                  className="text-orange-500 hover:text-orange-400 mt-2"
+                >
+                  {showFullText ? "Show less" : "Read more"}
+                </Button>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 mt-4">
+            <a
+              href={`https://reddit.com${post.permalink}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ExternalLink size={18} />
+              <span>Open on Reddit</span>
+            </a>
+
+            {post.url && post.url !== `https://reddit.com${post.permalink}` && (
+              <a
+                href={post.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <ExternalLink size={18} />
+                <span>{hasVideo ? "Open Video" : "Open Link"}</span>
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-900 mt-4">
+          <div className="p-3 border-b border-gray-900">
+            <h2 className="text-lg font-medium">Comments</h2>
+          </div>
+
+          {loadingComments ? (
+            <div className="flex justify-center p-8">
+              <RefreshCw size={24} className="animate-spin text-orange-500" />
+            </div>
+          ) : (
+            <CommentsList comments={comments} loading={loadingComments} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="src/components/post/PostCard.tsx">
+// src/components/post/PostCard.tsx - Updated with video support
+import {
+  ArrowUp,
+  MessageCircle,
+  ExternalLink,
+  Bookmark,
+  Play,
+} from "lucide-react";
+import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
+import { getVideoInfo, hasVideoContent } from "../../utils/video";
+import { Button } from "../ui/Button";
+import { VideoPlayer } from "../ui/VideoPlayer";
+import type { RedditPost } from "../../types";
+import { storage } from "../../utils/storage";
+
+type PostCardProps = {
+  post: RedditPost;
+  onPostClick: (post: RedditPost) => void;
+  onSubredditClick?: (subreddit: string) => void;
+  onBookmarkToggle?: (post: RedditPost) => void;
+};
+
+export const PostCard = ({
+  post,
+  onPostClick,
+  onSubredditClick,
+  onBookmarkToggle,
+}: PostCardProps) => {
+  const imageUrl = getImageUrl(post);
+  const videoInfo = getVideoInfo(post);
+  const isBookmarked = storage.isBookmarked(post.id);
+  const hasVideo = hasVideoContent(post);
+
+  return (
+    <article className="bg-black border-b border-gray-900">
+      <div className="flex items-center justify-between p-3">
+        <Button
+          onClick={() => onSubredditClick?.(post.subreddit)}
+          className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
+        >
+          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">
+              {post.subreddit.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="text-left">
+            <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
+              r/{post.subreddit}
+            </div>
+            <div className="text-gray-500 text-xs">
+              u/{post.author} • {formatTimeAgo(post.created_utc)}
+            </div>
+          </div>
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center text-gray-400">
+            <ArrowUp size={16} className="text-gray-500" />
+            <span className="text-xs font-medium ml-1">
+              {formatScore(post.score)}
+            </span>
+          </div>
+          {hasVideo && (
+            <div className="flex items-center text-red-400">
+              <Play size={16} fill="currentColor" />
+            </div>
+          )}
+          {onBookmarkToggle && (
+            <Button
+              onClick={(e) => {
+                e?.stopPropagation();
+                onBookmarkToggle(post);
+              }}
+              className={`p-1.5 rounded-full ${
+                isBookmarked
+                  ? "text-orange-500 hover:text-orange-400"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+              title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            >
+              <Bookmark
+                size={16}
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="px-0 cursor-pointer" onClick={() => onPostClick(post)}>
+        <div className="px-3 mb-2">
+          <h2 className="text-white font-medium leading-tight text-sm">
+            {post.title}
+          </h2>
+        </div>
+
+        {/* Video content */}
+        {videoInfo && (
+          <div className="w-full mb-2">
+            <VideoPlayer
+              videoInfo={videoInfo}
+              autoplay={false}
+              muted={true}
+              controls={true}
+              className="max-h-96"
+            />
+          </div>
+        )}
+
+        {/* Image content (only if no video) */}
+        {!videoInfo && imageUrl && (
+          <div className="w-full">
+            <img
+              src={imageUrl}
+              alt="Post content"
+              className="w-full object-cover max-h-96"
+            />
+          </div>
+        )}
+
+        {/* Text content */}
+        {post.selftext && (
+          <div className="px-3 mt-2">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {post.selftext.length > 200
+                ? `${post.selftext.slice(0, 200)}...`
+                : post.selftext}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between px-3 py-3">
+        <Button
+          onClick={() => onPostClick(post)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+        >
+          <MessageCircle size={20} />
+          <span className="text-sm font-medium">
+            {post.num_comments} comments
+          </span>
+        </Button>
+
+        <div className="flex items-center gap-1">
+          <a
+            href={`https://reddit.com${post.permalink}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink size={18} />
+            <span className="text-sm">Reddit</span>
+          </a>
+          {post.url !== `https://reddit.com${post.permalink}` && (
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={18} />
+              <span className="text-sm">{hasVideo ? "Video" : "Link"}</span>
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+};
+</file>
+
+<file path="src/components/settings/SettingsModal.tsx">
+// src/components/settings/SettingsModal.tsx - Enhanced with video settings
+import { useState } from "react";
+import { Plus, X, Settings, Video } from "lucide-react";
+import { Modal } from "../ui/Modal";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { VideoSettings } from "./VideoSettings";
+import type { FilterOptions } from "../../types";
+
+type SettingsModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  filters: FilterOptions;
+  onFiltersChange: (filters: FilterOptions) => void;
+};
+
+type FilterListProps = {
+  title: string;
+  items: string[];
+  onAdd: (item: string) => void;
+  onRemove: (item: string) => void;
+  placeholder: string;
+  color?: "red" | "gray";
+};
+
+type VideoSettingsType = {
+  autoplayVideos: boolean;
+  muteByDefault: boolean;
+  showVideoIndicators: boolean;
+  preferHighQuality: boolean;
+};
+
+const FilterList = ({
+  title,
+  items,
+  onAdd,
+  onRemove,
+  placeholder,
+  color = "gray",
+}: FilterListProps) => {
+  const [newItem, setNewItem] = useState("");
+
+  const handleAdd = () => {
+    if (newItem.trim() && !items.includes(newItem.toLowerCase().trim())) {
+      onAdd(newItem.toLowerCase().trim());
+      setNewItem("");
+    }
+  };
+
+  const colorClasses = {
+    red: "bg-red-600/20 border-red-600/40 text-red-400",
+    gray: "bg-gray-700/50 border-gray-600 text-gray-300",
+  };
+
+  return (
+    <div>
+      <h3 className="font-medium mb-3 text-gray-300">{title}</h3>
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <Input
+            placeholder={placeholder}
+            value={newItem}
+            onChange={setNewItem}
+            onEnter={handleAdd}
+            className="flex-1"
+          />
+          <Button
+            onClick={handleAdd}
+            className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+          >
+            <Plus size={16} />
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {items.map((item) => (
+            <span
+              key={item}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm ${colorClasses[color]}`}
+            >
+              {item}
+              <Button
+                onClick={() => onRemove(item)}
+                className="hover:text-gray-200"
+              >
+                <X size={12} />
+              </Button>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  filters,
+  onFiltersChange,
+}: SettingsModalProps) => {
+  const [activeTab, setActiveTab] = useState<"filters" | "video">("filters");
+
+  // Load video settings from localStorage or use defaults
+  const [videoSettings, setVideoSettings] = useState<VideoSettingsType>(() => {
+    try {
+      const saved = localStorage.getItem("wreddit-video-settings");
+      return saved
+        ? JSON.parse(saved)
+        : {
+            autoplayVideos: false,
+            muteByDefault: true,
+            showVideoIndicators: true,
+            preferHighQuality: false,
+          };
+    } catch {
+      return {
+        autoplayVideos: false,
+        muteByDefault: true,
+        showVideoIndicators: true,
+        preferHighQuality: false,
+      };
+    }
+  });
+
+  const updateFilter = (key: keyof FilterOptions, items: string[]) => {
+    onFiltersChange({ ...filters, [key]: items });
+  };
+
+  const handleVideoSettingsChange = (newSettings: VideoSettingsType) => {
+    setVideoSettings(newSettings);
+    try {
+      localStorage.setItem(
+        "wreddit-video-settings",
+        JSON.stringify(newSettings)
+      );
+    } catch {
+      // Fail silently
+    }
+  };
+
+  const tabs = [
+    { id: "filters" as const, label: "Filters", icon: Settings },
+    { id: "video" as const, label: "Video", icon: Video },
+  ];
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Settings">
+      <div className="border-b border-gray-800">
+        <div className="flex">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <Button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "text-orange-500 border-b-2 border-orange-500"
+                    : "text-gray-400 hover:text-gray-300"
+                }`}
+              >
+                <Icon size={18} />
+                {tab.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-4">
+        {activeTab === "filters" && (
+          <div className="space-y-6">
+            <FilterList
+              title="Favorite Subreddits"
+              items={filters.favoriteSubreddits}
+              onAdd={(item) =>
+                updateFilter("favoriteSubreddits", [
+                  ...filters.favoriteSubreddits,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "favoriteSubreddits",
+                  filters.favoriteSubreddits.filter((i) => i !== item)
+                )
+              }
+              placeholder="Add subreddit..."
+              color="red"
+            />
+
+            <FilterList
+              title="Blocked Subreddits"
+              items={filters.blockedSubreddits}
+              onAdd={(item) =>
+                updateFilter("blockedSubreddits", [
+                  ...filters.blockedSubreddits,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "blockedSubreddits",
+                  filters.blockedSubreddits.filter((i) => i !== item)
+                )
+              }
+              placeholder="Block subreddit..."
+            />
+
+            <FilterList
+              title="Blocked Keywords"
+              items={filters.blockedKeywords}
+              onAdd={(item) =>
+                updateFilter("blockedKeywords", [
+                  ...filters.blockedKeywords,
+                  item,
+                ])
+              }
+              onRemove={(item) =>
+                updateFilter(
+                  "blockedKeywords",
+                  filters.blockedKeywords.filter((i) => i !== item)
+                )
+              }
+              placeholder="Block keyword..."
+            />
+          </div>
+        )}
+
+        {activeTab === "video" && (
+          <VideoSettings
+            settings={videoSettings}
+            onSettingsChange={handleVideoSettingsChange}
+          />
+        )}
+      </div>
+    </Modal>
+  );
+};
+</file>
+
 <file path="src/components/ui/Button.tsx">
 import type { ReactNode, MouseEvent } from "react";
 
@@ -7381,102 +8180,6 @@ export const Button = ({
     {children}
   </button>
 );
-</file>
-
-<file path="src/types.ts">
-export interface RedditPost {
-  id: string;
-  title: string;
-  author: string;
-  subreddit: string;
-  url: string;
-  permalink: string;
-  score: number;
-  num_comments: number;
-  created_utc: number;
-  thumbnail?: string;
-  preview?: {
-    images?: Array<{
-      source: { url: string; width: number; height: number };
-    }>;
-  };
-  selftext?: string;
-  is_video: boolean;
-}
-
-export interface Child {
-  kind: string;
-  data: RedditComment | RedditPost;
-}
-
-export interface FilterOptions {
-  blockedSubreddits: string[];
-  favoriteSubreddits: string[];
-  keywords: string[];
-  blockedKeywords: string[];
-}
-
-export interface RedditComment {
-  id: string;
-  author: string;
-  body: string;
-  score: number;
-  created_utc: number;
-  parent_id?: string;
-  depth?: number;
-  replies?:
-    | {
-        kind: string;
-        data: {
-          children: Array<{
-            kind: string;
-            data: RedditComment | { count: number; children: string[] }; // MoreComments object
-          }>;
-        };
-      }
-    | "";
-}
-
-export interface RedditResponse {
-  data: {
-    children: Array<{
-      data: RedditPost;
-    }>;
-    after?: string;
-  };
-}
-
-export interface PostsApiResponse {
-  posts: RedditPost[];
-  after?: string;
-}
-
-export interface SubredditInfo {
-  display_name: string;
-  title: string;
-  public_description: string;
-  subscribers: number;
-  icon_img?: string;
-  banner_img?: string;
-  created_utc: number;
-}
-
-export interface SearchSubredditsResponse {
-  subreddits: Array<{
-    name: string;
-    display_name: string;
-    subscribers: number;
-    public_description: string;
-  }>;
-}
-
-export interface BookmarkedPost {
-  id: string;
-  title: string;
-  subreddit: string;
-  permalink: string;
-  bookmarkedAt: number;
-}
 </file>
 
 <file path="src/vite-env.d.ts">
@@ -7782,6 +8485,171 @@ import { App } from "./components/app/App";
 export default App;
 </file>
 
+<file path="src/types.ts">
+// src/types.ts - Enhanced with video support
+export interface RedditPost {
+  id: string;
+  title: string;
+  author: string;
+  subreddit: string;
+  url: string;
+  permalink: string;
+  score: number;
+  num_comments: number;
+  created_utc: number;
+  thumbnail?: string;
+  preview?: {
+    images?: Array<{
+      source: { url: string; width: number; height: number };
+    }>;
+  };
+  selftext?: string;
+  is_video: boolean;
+  // Enhanced video properties
+  media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  secure_media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  crosspost_parent_list?: RedditPost[];
+  domain?: string;
+  post_hint?: string;
+}
+
+export interface Child {
+  kind: string;
+  data: RedditComment | RedditPost;
+}
+
+export interface FilterOptions {
+  blockedSubreddits: string[];
+  favoriteSubreddits: string[];
+  keywords: string[];
+  blockedKeywords: string[];
+}
+
+export interface RedditComment {
+  id: string;
+  author: string;
+  body: string;
+  score: number;
+  created_utc: number;
+  parent_id?: string;
+  depth?: number;
+  replies?:
+    | {
+        kind: string;
+        data: {
+          children: Array<{
+            kind: string;
+            data: RedditComment | { count: number; children: string[] }; // MoreComments object
+          }>;
+        };
+      }
+    | "";
+}
+
+export interface RedditResponse {
+  data: {
+    children: Array<{
+      data: RedditPost;
+    }>;
+    after?: string;
+  };
+}
+
+export interface PostsApiResponse {
+  posts: RedditPost[];
+  after?: string;
+}
+
+export interface SubredditInfo {
+  display_name: string;
+  title: string;
+  public_description: string;
+  subscribers: number;
+  icon_img?: string;
+  banner_img?: string;
+  created_utc: number;
+}
+
+export interface SearchSubredditsResponse {
+  subreddits: Array<{
+    name: string;
+    display_name: string;
+    subscribers: number;
+    public_description: string;
+  }>;
+}
+
+export interface BookmarkedPost {
+  id: string;
+  title: string;
+  subreddit: string;
+  permalink: string;
+  bookmarkedAt: number;
+}
+
+// New video-related types
+export interface VideoInfo {
+  url: string;
+  type:
+    | "reddit_video"
+    | "youtube"
+    | "vimeo"
+    | "streamable"
+    | "imgur_gifv"
+    | "gfycat"
+    | "redgifs"
+    | "external";
+  thumbnail?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  isGif?: boolean;
+  embedHtml?: string;
+}
+</file>
+
 <file path="workers/reddit-api/wrangler.toml">
 name = "reddit-api-worker"
 main = "src/index.ts"
@@ -7918,77 +8786,6 @@ export default defineConfig({
 });
 </file>
 
-<file path="src/utils/index.ts">
-export const formatTimeAgo = (timestamp: number): string => {
-  const now = Date.now();
-  const diff = now - timestamp * 1000;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  return "Just now";
-};
-
-export const formatScore = (score: number): string => {
-  if (score >= 1000) {
-    return `${(score / 1000).toFixed(1)}k`;
-  }
-  return score.toString();
-};
-
-export const getImageUrl = (post: {
-  preview?: {
-    images?: Array<{
-      source: { url: string; width: number; height: number };
-    }>;
-  };
-  thumbnail?: string;
-}): string | null => {
-  if (post.preview?.images?.[0]?.source) {
-    return post.preview.images[0].source.url.replace(/&amp;/g, "&");
-  }
-
-  if (
-    post.thumbnail &&
-    post.thumbnail !== "self" &&
-    post.thumbnail !== "default" &&
-    post.thumbnail !== "nsfw" &&
-    post.thumbnail !== "spoiler"
-  ) {
-    return post.thumbnail;
-  }
-
-  return null;
-};
-
-// Alias for backward compatibility
-export const getHighQualityImage = getImageUrl;
-
-export const sharePost = async (post: {
-  title: string;
-  permalink: string;
-}): Promise<boolean> => {
-  const url = `https://reddit.com${post.permalink}`;
-  
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: post.title, url });
-      return true;
-    }
-    
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(url);
-      return true;
-    }
-    
-    return false;
-  } catch {
-    return false;
-  }
-};
-</file>
-
 <file path="src/index.css">
 @import "tailwindcss";
 
@@ -8109,7 +8906,122 @@ body {
 }
 </file>
 
+<file path="package.json">
+{
+  "name": "wreddit",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy ./dist",
+    "generate-pwa-assets": "pwa-assets-generator"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.10",
+    "lucide-react": "^0.515.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vite-pwa/assets-generator": "^1.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.0"
+  }
+}
+</file>
+
+<file path="src/utils/index.ts">
+// src/utils/index.ts - Updated with video utilities export
+export const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp * 1000;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  return "Just now";
+};
+
+export const formatScore = (score: number): string => {
+  if (score >= 1000) {
+    return `${(score / 1000).toFixed(1)}k`;
+  }
+  return score.toString();
+};
+
+export const getImageUrl = (post: {
+  preview?: {
+    images?: Array<{
+      source: { url: string; width: number; height: number };
+    }>;
+  };
+  thumbnail?: string;
+}): string | null => {
+  if (post.preview?.images?.[0]?.source) {
+    return post.preview.images[0].source.url.replace(/&amp;/g, "&");
+  }
+
+  if (
+    post.thumbnail &&
+    post.thumbnail !== "self" &&
+    post.thumbnail !== "default" &&
+    post.thumbnail !== "nsfw" &&
+    post.thumbnail !== "spoiler"
+  ) {
+    return post.thumbnail;
+  }
+
+  return null;
+};
+
+// Alias for backward compatibility
+export const getHighQualityImage = getImageUrl;
+
+export const sharePost = async (post: {
+  title: string;
+  permalink: string;
+}): Promise<boolean> => {
+  const url = `https://reddit.com${post.permalink}`;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: post.title, url });
+      return true;
+    }
+
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+// Re-export video utilities
+export * from "./video";
+</file>
+
 <file path="workers/reddit-api/src/index.ts">
+// workers/reddit-api/src/index.ts - Enhanced with better video metadata support
 interface RedditPost {
   id: string;
   title: string;
@@ -8128,6 +9040,54 @@ interface RedditPost {
   };
   selftext?: string;
   is_video: boolean;
+  // Enhanced video properties
+  media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  secure_media?: {
+    reddit_video?: {
+      bitrate_kbps?: number;
+      fallback_url?: string;
+      height?: number;
+      width?: number;
+      scrubber_media_url?: string;
+      dash_url?: string;
+      duration?: number;
+      hls_url?: string;
+      is_gif?: boolean;
+      transcoding_status?: string;
+    };
+    oembed?: {
+      provider_name?: string;
+      title?: string;
+      html?: string;
+      width?: number;
+      height?: number;
+      thumbnail_url?: string;
+    };
+  };
+  crosspost_parent_list?: RedditPost[];
+  domain?: string;
+  post_hint?: string;
 }
 
 interface RedditResponse {
@@ -8180,6 +9140,38 @@ function log(message: string, data?: LogData): void {
   } else {
     console.log(`[${timestamp}] ${message}`);
   }
+}
+
+// Helper function to check if a post has video content
+function hasVideoContent(post: RedditPost): boolean {
+  if (post.is_video) return true;
+  if (post.media?.reddit_video || post.secure_media?.reddit_video) return true;
+  if (post.media?.oembed || post.secure_media?.oembed) return true;
+
+  // Check for video domains
+  const videoDomains = [
+    "youtube.com",
+    "youtu.be",
+    "vimeo.com",
+    "streamable.com",
+    "gfycat.com",
+    "redgifs.com",
+    "imgur.com",
+  ];
+
+  if (
+    post.domain &&
+    videoDomains.some((domain) => post.domain?.includes(domain))
+  ) {
+    return true;
+  }
+
+  // Check for video file extensions
+  if (post.url && /\.(mp4|webm|ogv|mov|avi|m4v|gifv)(\?.*)?$/i.test(post.url)) {
+    return true;
+  }
+
+  return false;
 }
 
 export default {
@@ -8503,13 +9495,20 @@ async function handleGetPosts(
     const allPosts = data.data.children.map((child) => child.data);
     const filteredPosts = filterPosts(allPosts, filterOptions);
 
-    log(`[${requestId}] Posts filtered`, {
+    // Add video content detection
+    const postsWithVideoInfo = filteredPosts.map((post) => ({
+      ...post,
+      has_video_content: hasVideoContent(post),
+    }));
+
+    log(`[${requestId}] Posts filtered and enhanced`, {
       originalCount: allPosts.length,
       filteredCount: filteredPosts.length,
+      videoPosts: postsWithVideoInfo.filter((p) => p.has_video_content).length,
     });
 
     const result = {
-      posts: filteredPosts,
+      posts: postsWithVideoInfo,
       after: data.data.after,
       metadata: {
         requestId,
@@ -8517,6 +9516,8 @@ async function handleGetPosts(
         sort,
         originalCount: allPosts.length,
         filteredCount: filteredPosts.length,
+        videoPosts: postsWithVideoInfo.filter((p) => p.has_video_content)
+          .length,
       },
     };
 
@@ -8681,45 +9682,6 @@ function filterPosts(
 }
 </file>
 
-<file path="package.json">
-{
-  "name": "wreddit",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy ./dist",
-    "generate-pwa-assets": "pwa-assets-generator"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.10",
-    "lucide-react": "^0.515.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.10"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.25.0",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "@vite-pwa/assets-generator": "^1.0.0",
-    "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^9.25.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^16.0.0",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5",
-    "vite-plugin-pwa": "^1.0.0"
-  }
-}
-</file>
-
 <file path="dev-dist/sw.js">
 /**
  * Copyright 2018 Google Inc. All Rights Reserved.
@@ -8805,7 +9767,7 @@ define(['./workbox-9dc17825'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.71qntf1noj8"
+    "revision": "0.m1252jciiio"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
