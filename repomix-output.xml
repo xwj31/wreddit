@@ -4971,197 +4971,6 @@ export const api = {
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
 </file>
 
-<file path="src/components/app/App.tsx">
-import { useState } from "react";
-import { useSwipe } from "../../hooks/useSwipe";
-import { useNavigation } from "../../hooks/useNavigation";
-import { useAppData } from "../../hooks/useAppData";
-import { storage } from "../../utils/storage";
-import { Header } from "./Header";
-import { PostFeed } from "../post/PostFeed";
-import { PostDetail } from "../post/PostDetail";
-import { Sidebar } from "../sidebar/Sidebar";
-import { SettingsModal } from "../settings/SettingsModal";
-import { BookmarksModal } from "../bookmarks/BookmarksModal";
-import type { RedditPost, BookmarkedPost } from "../../types";
-
-type Page = "feed" | "post" | "bookmarks";
-
-export const App = () => {
-  const [currentPage, setCurrentPage] = useState<Page>("feed");
-  const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showBookmarks, setShowBookmarks] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const {
-    posts,
-    loading,
-    error,
-    after,
-    bookmarks,
-    subreddit,
-    sort,
-    filters,
-    setSubreddit,
-    setSort,
-    setFilters,
-    fetchPosts,
-    loadMorePosts,
-    handleBookmarkToggle,
-    handleFavoriteToggle,
-  } = useAppData();
-
-  const navigateBack = () => {
-    if (currentPage === "post" || currentPage === "bookmarks") {
-      setCurrentPage("feed");
-      setSelectedPost(null);
-      setShowBookmarks(false);
-    }
-  };
-
-  const { pushState } = useNavigation(navigateBack);
-
-  const navigateToPost = (post: RedditPost) => {
-    setCurrentPage("post");
-    setSelectedPost(post);
-    setShowBookmarks(false);
-    pushState({ page: "post", postId: post.id });
-  };
-
-  const navigateToBookmarks = () => {
-    setCurrentPage("bookmarks");
-    setShowBookmarks(true);
-    setShowSidebar(false);
-    pushState({ page: "bookmarks" });
-  };
-
-  const handleBookmarkPostClick = (bookmark: BookmarkedPost) => {
-    const post: RedditPost = {
-      id: bookmark.id,
-      title: bookmark.title,
-      subreddit: bookmark.subreddit,
-      permalink: bookmark.permalink,
-      author: "unknown",
-      url: `https://reddit.com${bookmark.permalink}`,
-      score: 0,
-      num_comments: 0,
-      created_utc: Math.floor(bookmark.bookmarkedAt / 1000),
-      is_video: false,
-    };
-    navigateToPost(post);
-  };
-
-  const filteredPosts = posts.filter((post) => {
-    if (!searchTerm) return true;
-    return (
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.subreddit.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  const isFavorite = filters.favoriteSubreddits.includes(subreddit.toLowerCase());
-
-  useSwipe(() => {
-    if (currentPage !== "feed") {
-      navigateBack();
-    } else if (!showSidebar) {
-      setShowSidebar(true);
-    }
-  });
-
-  if (selectedPost) {
-    return (
-      <PostDetail
-        post={selectedPost}
-        onBack={navigateBack}
-        onSubredditClick={(subredditName) => {
-          setSubreddit(subredditName);
-          setShowSidebar(false);
-          setShowBookmarks(false);
-        }}
-        onBookmarkToggle={handleBookmarkToggle}
-      />
-    );
-  }
-
-  if (showBookmarks) {
-    return (
-      <BookmarksModal
-        isOpen={showBookmarks}
-        onClose={navigateBack}
-        bookmarks={bookmarks}
-        onPostClick={handleBookmarkPostClick}
-        onBookmarkRemove={(postId) => {
-          storage.removeBookmark(postId);
-          // No need to call setBookmarks as it's handled by useAppData
-        }}
-      />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <Sidebar
-        isOpen={showSidebar}
-        onClose={() => setShowSidebar(false)}
-        currentSubreddit={subreddit}
-        onSubredditSelect={(subredditName) => {
-          setSubreddit(subredditName);
-          setShowSidebar(false);
-          setShowBookmarks(false);
-        }}
-        filters={filters}
-        onFiltersChange={setFilters}
-        onNavigateToBookmarks={navigateToBookmarks}
-      />
-
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
-
-      <Header
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        subreddit={subreddit}
-        onSubredditChange={setSubreddit}
-        sort={sort}
-        onSortChange={setSort}
-        favoriteSubreddits={filters.favoriteSubreddits}
-        isFavorite={isFavorite}
-        onFavoriteToggle={() => handleFavoriteToggle(subreddit)}
-        onRefresh={() => fetchPosts(true)}
-        onShowSettings={() => setShowSettings(true)}
-        onShowBookmarks={navigateToBookmarks}
-        onShowSidebar={() => setShowSidebar(true)}
-        loading={loading}
-      />
-
-      <main>
-        <PostFeed
-          posts={filteredPosts}
-          loading={loading}
-          hasMore={!!after}
-          onPostClick={navigateToPost}
-          onSubredditClick={(subredditName) => {
-            setSubreddit(subredditName);
-            setShowSidebar(false);
-            setShowBookmarks(false);
-          }}
-          onBookmarkToggle={handleBookmarkToggle}
-          onLoadMore={loadMorePosts}
-          error={error || undefined}
-        />
-      </main>
-    </div>
-  );
-};
-</file>
-
 <file path="src/components/bookmarks/BookmarksModal.tsx">
 import { X, Bookmark, Trash2, ExternalLink } from "lucide-react";
 import { formatTimeAgo } from "../../utils";
@@ -5399,86 +5208,6 @@ export const CommentsList = ({ comments, loading }: CommentsListProps) => {
 };
 </file>
 
-<file path="src/components/post/PostFeed.tsx">
-import { RefreshCw } from "lucide-react";
-import { PostCard } from "./PostCard";
-import { Button } from "../ui/Button";
-import type { RedditPost } from "../../types";
-
-type PostFeedProps = {
-  posts: RedditPost[];
-  loading: boolean;
-  hasMore: boolean;
-  onPostClick: (post: RedditPost) => void;
-  onSubredditClick?: (subreddit: string) => void;
-  onBookmarkToggle?: (post: RedditPost) => void;
-  onLoadMore?: () => void;
-  error?: string;
-};
-
-export const PostFeed = ({
-  posts,
-  loading,
-  hasMore,
-  onPostClick,
-  onSubredditClick,
-  onBookmarkToggle,
-  onLoadMore,
-  error,
-}: PostFeedProps) => {
-  if (error) {
-    return (
-      <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
-        <div className="font-medium">Error</div>
-        <div className="text-sm mt-1">{error}</div>
-      </div>
-    );
-  }
-
-  if (posts.length === 0 && !loading) {
-    return (
-      <div className="text-center py-12 px-4">
-        <div className="text-gray-400 text-lg mb-2">No posts found</div>
-        <div className="text-gray-500 text-sm">
-          Try adjusting your filters or check your connection
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-0">
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          onPostClick={onPostClick}
-          onSubredditClick={onSubredditClick}
-          onBookmarkToggle={onBookmarkToggle}
-        />
-      ))}
-
-      {hasMore && !loading && (
-        <div className="p-4">
-          <Button
-            onClick={onLoadMore}
-            className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 font-medium"
-          >
-            Load More Posts
-          </Button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="flex justify-center p-8">
-          <RefreshCw size={24} className="animate-spin text-orange-500" />
-        </div>
-      )}
-    </div>
-  );
-};
-</file>
-
 <file path="src/components/settings/VideoSettings.tsx">
 // src/components/settings/VideoSettings.tsx - Video-specific settings
 import { Play, Video, Volume2, VolumeX } from "lucide-react";
@@ -5575,193 +5304,6 @@ export const VideoSettings = ({
         );
       })}
     </div>
-  );
-};
-</file>
-
-<file path="src/components/sidebar/Sidebar.tsx">
-import { useState } from "react";
-import { X, Heart, Plus, Star, TrendingUp, BarChart3, Bookmark } from "lucide-react";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import type { FilterOptions } from "../../types";
-
-type SidebarProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  currentSubreddit: string;
-  onSubredditSelect: (subreddit: string) => void;
-  filters: FilterOptions;
-  onFiltersChange: (filters: FilterOptions) => void;
-  onNavigateToBookmarks?: () => void;
-};
-
-const DEFAULT_SUBREDDITS = [
-  { name: "all", icon: BarChart3, label: "All" },
-  { name: "popular", icon: TrendingUp, label: "Popular" },
-  { name: "AskReddit", icon: Star, label: "AskReddit" },
-  { name: "worldnews", icon: Star, label: "World News" },
-  { name: "technology", icon: Star, label: "Technology" },
-  { name: "gaming", icon: Star, label: "Gaming" },
-];
-
-export const Sidebar = ({
-  isOpen,
-  onClose,
-  currentSubreddit,
-  onSubredditSelect,
-  filters,
-  onFiltersChange,
-  onNavigateToBookmarks,
-}: SidebarProps) => {
-  const [newSubreddit, setNewSubreddit] = useState("");
-
-  const handleAddFavorite = () => {
-    if (newSubreddit.trim()) {
-      const cleanSubreddit = newSubreddit.replace(/^r\//, "").toLowerCase().trim();
-      if (!filters.favoriteSubreddits.includes(cleanSubreddit)) {
-        onFiltersChange({
-          ...filters,
-          favoriteSubreddits: [...filters.favoriteSubreddits, cleanSubreddit],
-        });
-      }
-      setNewSubreddit("");
-    }
-  };
-
-  const handleRemoveFavorite = (subreddit: string) => {
-    onFiltersChange({
-      ...filters,
-      favoriteSubreddits: filters.favoriteSubreddits.filter(sub => sub !== subreddit),
-    });
-  };
-
-  const handleSubredditClick = (subreddit: string) => {
-    onSubredditSelect(subreddit);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      
-      <div className="fixed left-0 top-0 bottom-0 w-80 bg-gray-900 z-50 overflow-y-auto">
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Browse</h2>
-          <Button onClick={onClose} className="text-gray-400">
-            <X size={20} />
-          </Button>
-        </div>
-
-        <div className="p-4 space-y-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3">Quick Access</h3>
-            <Button
-              onClick={() => {
-                onNavigateToBookmarks?.();
-                onClose();
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-gray-300"
-            >
-              <Bookmark size={18} className="text-orange-500" />
-              <span>Bookmarks</span>
-            </Button>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-              <Star size={16} className="text-yellow-500" />
-              Popular
-            </h3>
-            <div className="space-y-1">
-              {DEFAULT_SUBREDDITS.map((sub) => {
-                const Icon = sub.icon;
-                const isActive = currentSubreddit === sub.name;
-
-                return (
-                  <Button
-                    key={sub.name}
-                    onClick={() => handleSubredditClick(sub.name)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
-                      isActive
-                        ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
-                        : "text-gray-300"
-                    }`}
-                  >
-                    <Icon size={18} />
-                    <span>{sub.label}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-              <Heart size={16} className="text-red-500" />
-              Favorites
-            </h3>
-
-            <div className="mb-3 flex gap-2">
-              <Input
-                placeholder="Add subreddit..."
-                value={newSubreddit}
-                onChange={setNewSubreddit}
-                onEnter={handleAddFavorite}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleAddFavorite}
-                className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-              >
-                <Plus size={16} />
-              </Button>
-            </div>
-
-            <div className="space-y-1">
-              {filters.favoriteSubreddits.length === 0 ? (
-                <div className="text-gray-500 text-sm text-center py-4">
-                  No favorite subreddits yet
-                </div>
-              ) : (
-                filters.favoriteSubreddits.map((sub) => {
-                  const isActive = currentSubreddit === sub;
-
-                  return (
-                    <div
-                      key={sub}
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        isActive
-                          ? "bg-orange-600/20 border border-orange-600/40"
-                          : "hover:bg-gray-800"
-                      }`}
-                    >
-                      <Button
-                        onClick={() => handleSubredditClick(sub)}
-                        className={`flex-1 text-left flex items-center gap-2 ${
-                          isActive ? "text-orange-400" : "text-gray-300"
-                        }`}
-                      >
-                        <Heart size={14} className="text-red-500" fill="currentColor" />
-                        <span>r/{sub}</span>
-                      </Button>
-                      <Button
-                        onClick={() => handleRemoveFavorite(sub)}
-                        className="p-1 text-gray-500 hover:text-red-400"
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
   );
 };
 </file>
@@ -6117,124 +5659,6 @@ export const VideoPlayer = ({
       )}
     </div>
   );
-};
-</file>
-
-<file path="src/hooks/useAppData.ts">
-import { useState, useEffect, useCallback } from "react";
-import { api } from "../api/reddit";
-import { storage } from "../utils/storage";
-import type { RedditPost, FilterOptions, BookmarkedPost } from "../types";
-
-export const useAppData = () => {
-  const [posts, setPosts] = useState<RedditPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [after, setAfter] = useState<string | null>(null);
-  const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
-
-  const [subreddit, setSubreddit] = useState(() => storage.getSubreddit());
-  const [sort, setSort] = useState(() => storage.getSort());
-  const [filters, setFilters] = useState<FilterOptions>(() => storage.getFilters());
-
-  useEffect(() => {
-    setBookmarks(storage.getBookmarks());
-  }, []);
-
-  useEffect(() => {
-    storage.saveFilters(filters);
-  }, [filters]);
-
-  useEffect(() => {
-    storage.saveSubreddit(subreddit);
-  }, [subreddit]);
-
-  useEffect(() => {
-    storage.saveSort(sort);
-  }, [sort]);
-
-  const fetchPosts = useCallback(
-    async (reset = false, afterToken?: string) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const currentAfter = afterToken !== undefined ? afterToken : after;
-        const data = await api.fetchPosts({
-          subreddit,
-          sort,
-          after: !reset ? currentAfter || undefined : undefined,
-          filters,
-        });
-
-        if (reset) {
-          setPosts(data.posts);
-        } else {
-          setPosts((prev) => [...prev, ...data.posts]);
-        }
-
-        setAfter(data.after || null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [subreddit, sort, filters, after]
-  );
-
-  useEffect(() => {
-    fetchPosts(true);
-    setAfter(null);
-  }, [subreddit, sort, filters]);
-
-  const loadMorePosts = useCallback(() => {
-    if (after && !loading) {
-      fetchPosts(false, after);
-    }
-  }, [after, loading, fetchPosts]);
-
-  const handleBookmarkToggle = useCallback((post: RedditPost) => {
-    if (storage.isBookmarked(post.id)) {
-      storage.removeBookmark(post.id);
-    } else {
-      storage.addBookmark(post);
-    }
-    setBookmarks(storage.getBookmarks());
-  }, []);
-
-  const handleFavoriteToggle = useCallback(
-    (subredditName: string) => {
-      const currentFavorites = filters.favoriteSubreddits;
-      const isCurrentlyFavorite = currentFavorites.includes(subredditName.toLowerCase());
-
-      const newFavorites = isCurrentlyFavorite
-        ? currentFavorites.filter(fav => fav !== subredditName.toLowerCase())
-        : [...currentFavorites, subredditName.toLowerCase()];
-
-      setFilters({ ...filters, favoriteSubreddits: newFavorites });
-    },
-    [filters]
-  );
-
-  return {
-    posts,
-    loading,
-    error,
-    after,
-    bookmarks,
-    subreddit,
-    sort,
-    filters,
-    setSubreddit,
-    setSort,
-    setFilters,
-    fetchPosts,
-    loadMorePosts,
-    handleBookmarkToggle,
-    handleFavoriteToggle,
-  };
 };
 </file>
 
@@ -7459,6 +6883,201 @@ declare module "virtual:pwa-register" {
 </svg>
 </file>
 
+<file path="src/components/app/App.tsx">
+import { useState } from "react";
+import { useSwipe } from "../../hooks/useSwipe";
+import { useNavigation } from "../../hooks/useNavigation";
+import { useAppData } from "../../hooks/useAppData";
+import { storage } from "../../utils/storage";
+import { Header } from "./Header";
+import { PostFeed } from "../post/PostFeed";
+import { PostDetail } from "../post/PostDetail";
+import { Sidebar } from "../sidebar/Sidebar";
+import { SettingsModal } from "../settings/SettingsModal";
+import { BookmarksModal } from "../bookmarks/BookmarksModal";
+import type { RedditPost, BookmarkedPost } from "../../types";
+
+type Page = "feed" | "post" | "bookmarks";
+
+export const App = () => {
+  const [currentPage, setCurrentPage] = useState<Page>("feed");
+  const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const {
+    posts,
+    loading,
+    error,
+    after,
+    bookmarks,
+    subreddit,
+    sort,
+    filters,
+    setSubreddit,
+    setSort,
+    setFilters,
+    fetchPosts,
+    loadMorePosts,
+    handleBookmarkToggle,
+    handleFavoriteToggle,
+  } = useAppData();
+
+  const navigateBack = () => {
+    if (currentPage === "post" || currentPage === "bookmarks") {
+      setCurrentPage("feed");
+      setSelectedPost(null);
+      setShowBookmarks(false);
+    }
+  };
+
+  const { pushState } = useNavigation(navigateBack);
+
+  const navigateToPost = (post: RedditPost) => {
+    setCurrentPage("post");
+    setSelectedPost(post);
+    setShowBookmarks(false);
+    pushState({ page: "post", postId: post.id });
+  };
+
+  const navigateToBookmarks = () => {
+    setCurrentPage("bookmarks");
+    setShowBookmarks(true);
+    setShowSidebar(false);
+    pushState({ page: "bookmarks" });
+  };
+
+  const handleBookmarkPostClick = (bookmark: BookmarkedPost) => {
+    const post: RedditPost = {
+      id: bookmark.id,
+      title: bookmark.title,
+      subreddit: bookmark.subreddit,
+      permalink: bookmark.permalink,
+      author: "unknown",
+      url: `https://reddit.com${bookmark.permalink}`,
+      score: 0,
+      num_comments: 0,
+      created_utc: Math.floor(bookmark.bookmarkedAt / 1000),
+      is_video: false,
+    };
+    navigateToPost(post);
+  };
+
+  const filteredPosts = posts.filter((post) => {
+    if (!searchTerm) return true;
+    return (
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.subreddit.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const isFavorite = filters.favoriteSubreddits.includes(
+    subreddit.toLowerCase()
+  );
+  const isHomeFeed = subreddit === "home";
+
+  useSwipe(() => {
+    if (currentPage !== "feed") {
+      navigateBack();
+    } else if (!showSidebar) {
+      setShowSidebar(true);
+    }
+  });
+
+  if (selectedPost) {
+    return (
+      <PostDetail
+        post={selectedPost}
+        onBack={navigateBack}
+        onSubredditClick={(subredditName) => {
+          setSubreddit(subredditName);
+          setShowSidebar(false);
+          setShowBookmarks(false);
+        }}
+        onBookmarkToggle={handleBookmarkToggle}
+      />
+    );
+  }
+
+  if (showBookmarks) {
+    return (
+      <BookmarksModal
+        isOpen={showBookmarks}
+        onClose={navigateBack}
+        bookmarks={bookmarks}
+        onPostClick={handleBookmarkPostClick}
+        onBookmarkRemove={(postId) => {
+          storage.removeBookmark(postId);
+          // No need to call setBookmarks as it's handled by useAppData
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Sidebar
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        currentSubreddit={subreddit}
+        onSubredditSelect={(subredditName) => {
+          setSubreddit(subredditName);
+          setShowSidebar(false);
+          setShowBookmarks(false);
+        }}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onNavigateToBookmarks={navigateToBookmarks}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      <Header
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        subreddit={subreddit}
+        onSubredditChange={setSubreddit}
+        sort={sort}
+        onSortChange={setSort}
+        favoriteSubreddits={filters.favoriteSubreddits}
+        isFavorite={isFavorite}
+        onFavoriteToggle={() => handleFavoriteToggle(subreddit)}
+        onRefresh={() => fetchPosts(true)}
+        onShowSettings={() => setShowSettings(true)}
+        onShowBookmarks={navigateToBookmarks}
+        onShowSidebar={() => setShowSidebar(true)}
+        loading={loading}
+      />
+
+      <main>
+        <PostFeed
+          posts={filteredPosts}
+          loading={loading}
+          hasMore={!!after}
+          onPostClick={navigateToPost}
+          onSubredditClick={(subredditName) => {
+            setSubreddit(subredditName);
+            setShowSidebar(false);
+            setShowBookmarks(false);
+          }}
+          onBookmarkToggle={handleBookmarkToggle}
+          onLoadMore={loadMorePosts}
+          error={error || undefined}
+          isHomeFeed={isHomeFeed}
+        />
+      </main>
+    </div>
+  );
+};
+</file>
+
 <file path="src/components/post/PostDetail/index.tsx">
 // src/components/post/PostDetail/index.tsx - Updated with video support
 import { useState, useEffect } from "react";
@@ -7737,176 +7356,108 @@ export const PostDetail = ({
 };
 </file>
 
-<file path="src/components/post/PostCard.tsx">
-// src/components/post/PostCard.tsx - Updated with video support
-import {
-  ArrowUp,
-  MessageCircle,
-  ExternalLink,
-  Bookmark,
-  Play,
-} from "lucide-react";
-import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
-import { getVideoInfo, hasVideoContent } from "../../utils/video";
+<file path="src/components/post/PostFeed.tsx">
+import { RefreshCw, Home } from "lucide-react";
+import { PostCard } from "./PostCard";
 import { Button } from "../ui/Button";
-import { VideoPlayer } from "../ui/VideoPlayer";
 import type { RedditPost } from "../../types";
-import { storage } from "../../utils/storage";
 
-type PostCardProps = {
-  post: RedditPost;
+type PostFeedProps = {
+  posts: RedditPost[];
+  loading: boolean;
+  hasMore: boolean;
   onPostClick: (post: RedditPost) => void;
   onSubredditClick?: (subreddit: string) => void;
   onBookmarkToggle?: (post: RedditPost) => void;
+  onLoadMore?: () => void;
+  error?: string;
+  isHomeFeed?: boolean;
 };
 
-export const PostCard = ({
-  post,
+export const PostFeed = ({
+  posts,
+  loading,
+  hasMore,
   onPostClick,
   onSubredditClick,
   onBookmarkToggle,
-}: PostCardProps) => {
-  const imageUrl = getImageUrl(post);
-  const videoInfo = getVideoInfo(post);
-  const isBookmarked = storage.isBookmarked(post.id);
-  const hasVideo = hasVideoContent(post);
+  onLoadMore,
+  error,
+  isHomeFeed = false,
+}: PostFeedProps) => {
+  if (error) {
+    return (
+      <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
+        <div className="font-medium">Error</div>
+        <div className="text-sm mt-1">{error}</div>
+      </div>
+    );
+  }
+
+  if (posts.length === 0 && !loading) {
+    return (
+      <div className="text-center py-12 px-4">
+        {isHomeFeed ? (
+          <div className="space-y-3">
+            <Home size={48} className="mx-auto text-gray-600" />
+            <div className="text-gray-400 text-lg mb-2">
+              Your Home Feed is Empty
+            </div>
+            <div className="text-gray-500 text-sm max-w-md mx-auto">
+              Add some favorite subreddits to see posts from communities you
+              love all in one place.
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="text-gray-400 text-lg mb-2">No posts found</div>
+            <div className="text-gray-500 text-sm">
+              Try adjusting your filters or check your connection
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <article className="bg-black border-b border-gray-900">
-      <div className="flex items-center justify-between p-3">
-        <Button
-          onClick={() => onSubredditClick?.(post.subreddit)}
-          className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
-        >
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
-              {post.subreddit.charAt(0).toUpperCase()}
-            </span>
+    <div className="space-y-0">
+      {isHomeFeed && posts.length > 0 && (
+        <div className="p-3 bg-blue-900/20 border-b border-blue-800/30">
+          <div className="flex items-center gap-2 text-blue-400 text-sm">
+            <Home size={16} />
+            <span>Showing posts from your favorite subreddits</span>
           </div>
-          <div className="text-left">
-            <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
-              r/{post.subreddit}
-            </div>
-            <div className="text-gray-500 text-xs">
-              u/{post.author} • {formatTimeAgo(post.created_utc)}
-            </div>
-          </div>
-        </Button>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-gray-400">
-            <ArrowUp size={16} className="text-gray-500" />
-            <span className="text-xs font-medium ml-1">
-              {formatScore(post.score)}
-            </span>
-          </div>
-          {hasVideo && (
-            <div className="flex items-center text-red-400">
-              <Play size={16} fill="currentColor" />
-            </div>
-          )}
-          {onBookmarkToggle && (
-            <Button
-              onClick={(e) => {
-                e?.stopPropagation();
-                onBookmarkToggle(post);
-              }}
-              className={`p-1.5 rounded-full ${
-                isBookmarked
-                  ? "text-orange-500 hover:text-orange-400"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-              title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-            >
-              <Bookmark
-                size={16}
-                fill={isBookmarked ? "currentColor" : "none"}
-              />
-            </Button>
-          )}
         </div>
-      </div>
+      )}
 
-      <div className="px-0 cursor-pointer" onClick={() => onPostClick(post)}>
-        <div className="px-3 mb-2">
-          <h2 className="text-white font-medium leading-tight text-sm">
-            {post.title}
-          </h2>
-        </div>
+      {posts.map((post) => (
+        <PostCard
+          key={post.id}
+          post={post}
+          onPostClick={onPostClick}
+          onSubredditClick={onSubredditClick}
+          onBookmarkToggle={onBookmarkToggle}
+        />
+      ))}
 
-        {/* Video content */}
-        {videoInfo && (
-          <div className="w-full mb-2">
-            <VideoPlayer
-              videoInfo={videoInfo}
-              autoplay={false}
-              muted={true}
-              controls={true}
-              className="max-h-96"
-            />
-          </div>
-        )}
-
-        {/* Image content (only if no video) */}
-        {!videoInfo && imageUrl && (
-          <div className="w-full">
-            <img
-              src={imageUrl}
-              alt="Post content"
-              className="w-full object-cover max-h-96"
-            />
-          </div>
-        )}
-
-        {/* Text content */}
-        {post.selftext && (
-          <div className="px-3 mt-2">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {post.selftext.length > 200
-                ? `${post.selftext.slice(0, 200)}...`
-                : post.selftext}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between px-3 py-3">
-        <Button
-          onClick={() => onPostClick(post)}
-          className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-        >
-          <MessageCircle size={20} />
-          <span className="text-sm font-medium">
-            {post.num_comments} comments
-          </span>
-        </Button>
-
-        <div className="flex items-center gap-1">
-          <a
-            href={`https://reddit.com${post.permalink}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-            onClick={(e) => e.stopPropagation()}
+      {hasMore && !loading && !isHomeFeed && (
+        <div className="p-4">
+          <Button
+            onClick={onLoadMore}
+            className="w-full py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 font-medium"
           >
-            <ExternalLink size={18} />
-            <span className="text-sm">Reddit</span>
-          </a>
-          {post.url !== `https://reddit.com${post.permalink}` && (
-            <a
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink size={18} />
-              <span className="text-sm">{hasVideo ? "Video" : "Link"}</span>
-            </a>
-          )}
+            Load More Posts
+          </Button>
         </div>
-      </div>
-    </article>
+      )}
+
+      {loading && (
+        <div className="flex justify-center p-8">
+          <RefreshCw size={24} className="animate-spin text-orange-500" />
+        </div>
+      )}
+    </div>
   );
 };
 </file>
@@ -8153,6 +7704,229 @@ export const SettingsModal = ({
 };
 </file>
 
+<file path="src/components/sidebar/Sidebar.tsx">
+import { useState } from "react";
+import {
+  X,
+  Heart,
+  Plus,
+  Star,
+  TrendingUp,
+  BarChart3,
+  Bookmark,
+  Home,
+} from "lucide-react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import type { FilterOptions } from "../../types";
+
+type SidebarProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  currentSubreddit: string;
+  onSubredditSelect: (subreddit: string) => void;
+  filters: FilterOptions;
+  onFiltersChange: (filters: FilterOptions) => void;
+  onNavigateToBookmarks?: () => void;
+};
+
+const DEFAULT_SUBREDDITS = [
+  { name: "all", icon: BarChart3, label: "All" },
+  { name: "popular", icon: TrendingUp, label: "Popular" },
+  { name: "askreddit", icon: Star, label: "AskReddit" },
+  { name: "worldnews", icon: Star, label: "World News" },
+  { name: "technology", icon: Star, label: "Technology" },
+  { name: "gaming", icon: Star, label: "Gaming" },
+];
+
+export const Sidebar = ({
+  isOpen,
+  onClose,
+  currentSubreddit,
+  onSubredditSelect,
+  filters,
+  onFiltersChange,
+  onNavigateToBookmarks,
+}: SidebarProps) => {
+  const [newSubreddit, setNewSubreddit] = useState("");
+
+  const handleAddFavorite = () => {
+    if (newSubreddit.trim()) {
+      const cleanSubreddit = newSubreddit
+        .replace(/^r\//, "")
+        .toLowerCase()
+        .trim();
+      if (!filters.favoriteSubreddits.includes(cleanSubreddit)) {
+        onFiltersChange({
+          ...filters,
+          favoriteSubreddits: [...filters.favoriteSubreddits, cleanSubreddit],
+        });
+      }
+      setNewSubreddit("");
+    }
+  };
+
+  const handleRemoveFavorite = (subreddit: string) => {
+    onFiltersChange({
+      ...filters,
+      favoriteSubreddits: filters.favoriteSubreddits.filter(
+        (sub) => sub !== subreddit
+      ),
+    });
+  };
+
+  const handleSubredditClick = (subreddit: string) => {
+    onSubredditSelect(subreddit);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
+
+      <div className="fixed left-0 top-0 bottom-0 w-80 bg-gray-900 z-50 overflow-y-auto">
+        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Browse</h2>
+          <Button onClick={onClose} className="text-gray-400">
+            <X size={20} />
+          </Button>
+        </div>
+
+        <div className="p-4 space-y-6">
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-3">
+              Quick Access
+            </h3>
+
+            {/* Home option - only show if user has favorites */}
+            {filters.favoriteSubreddits.length > 0 && (
+              <Button
+                onClick={() => handleSubredditClick("home")}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg text-left mb-2 ${
+                  currentSubreddit === "home"
+                    ? "bg-blue-600/20 text-blue-400 border border-blue-600/40"
+                    : "text-gray-300 hover:bg-gray-800"
+                }`}
+              >
+                <Home size={18} className="text-blue-500" />
+                <span>Home Feed</span>
+              </Button>
+            )}
+
+            <Button
+              onClick={() => {
+                onNavigateToBookmarks?.();
+                onClose();
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-left text-gray-300 hover:bg-gray-800"
+            >
+              <Bookmark size={18} className="text-orange-500" />
+              <span>Bookmarks</span>
+            </Button>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+              <Star size={16} className="text-yellow-500" />
+              Popular
+            </h3>
+            <div className="space-y-1">
+              {DEFAULT_SUBREDDITS.map((sub) => {
+                const Icon = sub.icon;
+                const isActive = currentSubreddit === sub.name;
+
+                return (
+                  <Button
+                    key={sub.name}
+                    onClick={() => handleSubredditClick(sub.name)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
+                      isActive
+                        ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{sub.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+              <Heart size={16} className="text-red-500" />
+              Favorites
+            </h3>
+
+            <div className="mb-3 flex gap-2">
+              <Input
+                placeholder="Add subreddit..."
+                value={newSubreddit}
+                onChange={setNewSubreddit}
+                onEnter={handleAddFavorite}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleAddFavorite}
+                className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                <Plus size={16} />
+              </Button>
+            </div>
+
+            <div className="space-y-1">
+              {filters.favoriteSubreddits.length === 0 ? (
+                <div className="text-gray-500 text-sm text-center py-4">
+                  No favorite subreddits yet
+                </div>
+              ) : (
+                filters.favoriteSubreddits.map((sub) => {
+                  const isActive = currentSubreddit === sub;
+
+                  return (
+                    <div
+                      key={sub}
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        isActive
+                          ? "bg-orange-600/20 border border-orange-600/40"
+                          : "hover:bg-gray-800"
+                      }`}
+                    >
+                      <Button
+                        onClick={() => handleSubredditClick(sub)}
+                        className={`flex-1 text-left flex items-center gap-2 ${
+                          isActive ? "text-orange-400" : "text-gray-300"
+                        }`}
+                      >
+                        <Heart
+                          size={14}
+                          className="text-red-500"
+                          fill="currentColor"
+                        />
+                        <span>r/{sub}</span>
+                      </Button>
+                      <Button
+                        onClick={() => handleRemoveFavorite(sub)}
+                        className="p-1 text-gray-500 hover:text-red-400"
+                      >
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+</file>
+
 <file path="src/components/ui/Button.tsx">
 import type { ReactNode, MouseEvent } from "react";
 
@@ -8180,6 +7954,218 @@ export const Button = ({
     {children}
   </button>
 );
+</file>
+
+<file path="src/hooks/useAppData.ts">
+import { useState, useEffect, useCallback } from "react";
+import { api } from "../api/reddit";
+import { storage } from "../utils/storage";
+import type { RedditPost, FilterOptions, BookmarkedPost } from "../types";
+
+export const useAppData = () => {
+  const [posts, setPosts] = useState<RedditPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [after, setAfter] = useState<string | null>(null);
+  const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
+
+  const [subreddit, setSubreddit] = useState(() => storage.getSubreddit());
+  const [sort, setSort] = useState(() => storage.getSort());
+  const [filters, setFilters] = useState<FilterOptions>(() =>
+    storage.getFilters()
+  );
+
+  useEffect(() => {
+    setBookmarks(storage.getBookmarks());
+  }, []);
+
+  useEffect(() => {
+    storage.saveFilters(filters);
+  }, [filters]);
+
+  useEffect(() => {
+    storage.saveSubreddit(subreddit);
+  }, [subreddit]);
+
+  useEffect(() => {
+    storage.saveSort(sort);
+  }, [sort]);
+
+  // Helper function to determine if we should use multi-subreddit feed
+  const shouldUseFavoritesFeed = useCallback(() => {
+    return subreddit === "home" && filters.favoriteSubreddits.length > 0;
+  }, [subreddit, filters.favoriteSubreddits]);
+
+  // Function to fetch from multiple subreddits and combine results
+  const fetchMultipleSubreddits = useCallback(
+    async (subreddits: string[], reset = false, afterToken?: string) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch from each subreddit concurrently
+        const promises = subreddits.map(async (sub) => {
+          try {
+            const data = await api.fetchPosts({
+              subreddit: sub,
+              sort,
+              after: !reset && afterToken ? afterToken : undefined,
+              filters: { ...filters, favoriteSubreddits: [] }, // Don't filter by favorites when fetching individual subs
+            });
+            return data.posts;
+          } catch (err) {
+            console.warn(`Failed to fetch from r/${sub}:`, err);
+            return [];
+          }
+        });
+
+        const results = await Promise.all(promises);
+        const allPosts = results.flat();
+
+        // Sort by created_utc (newest first) and remove duplicates
+        const uniquePosts = allPosts
+          .filter(
+            (post, index, self) =>
+              index === self.findIndex((p) => p.id === post.id)
+          )
+          .sort((a, b) => b.created_utc - a.created_utc);
+
+        // Limit to reasonable number of posts
+        const limitedPosts = uniquePosts.slice(0, reset ? 25 : 50);
+
+        if (reset) {
+          setPosts(limitedPosts);
+        } else {
+          setPosts((prev) => {
+            const combined = [...prev, ...limitedPosts];
+            // Remove duplicates again after combining
+            return combined.filter(
+              (post, index, self) =>
+                index === self.findIndex((p) => p.id === post.id)
+            );
+          });
+        }
+
+        // For multi-subreddit feeds, we don't have a reliable "after" token
+        // so we'll disable infinite scroll for now
+        setAfter(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [sort, filters]
+  );
+
+  const fetchPosts = useCallback(
+    async (reset = false, afterToken?: string) => {
+      // Check if we should use the favorites feed
+      if (shouldUseFavoritesFeed()) {
+        return fetchMultipleSubreddits(
+          filters.favoriteSubreddits,
+          reset,
+          afterToken
+        );
+      }
+
+      // Original single subreddit logic
+      try {
+        setLoading(true);
+        setError(null);
+
+        const currentAfter = afterToken !== undefined ? afterToken : after;
+        const data = await api.fetchPosts({
+          subreddit,
+          sort,
+          after: !reset ? currentAfter || undefined : undefined,
+          filters,
+        });
+
+        if (reset) {
+          setPosts(data.posts);
+        } else {
+          setPosts((prev) => [...prev, ...data.posts]);
+        }
+
+        setAfter(data.after || null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      subreddit,
+      sort,
+      filters,
+      after,
+      shouldUseFavoritesFeed,
+      fetchMultipleSubreddits,
+    ]
+  );
+
+  useEffect(() => {
+    fetchPosts(true);
+    setAfter(null);
+  }, [subreddit, sort, filters]);
+
+  const loadMorePosts = useCallback(() => {
+    // Don't allow load more for multi-subreddit feeds for now
+    if (shouldUseFavoritesFeed()) {
+      return;
+    }
+
+    if (after && !loading) {
+      fetchPosts(false, after);
+    }
+  }, [after, loading, fetchPosts, shouldUseFavoritesFeed]);
+
+  const handleBookmarkToggle = useCallback((post: RedditPost) => {
+    if (storage.isBookmarked(post.id)) {
+      storage.removeBookmark(post.id);
+    } else {
+      storage.addBookmark(post);
+    }
+    setBookmarks(storage.getBookmarks());
+  }, []);
+
+  const handleFavoriteToggle = useCallback(
+    (subredditName: string) => {
+      const currentFavorites = filters.favoriteSubreddits;
+      const isCurrentlyFavorite = currentFavorites.includes(
+        subredditName.toLowerCase()
+      );
+
+      const newFavorites = isCurrentlyFavorite
+        ? currentFavorites.filter((fav) => fav !== subredditName.toLowerCase())
+        : [...currentFavorites, subredditName.toLowerCase()];
+
+      setFilters({ ...filters, favoriteSubreddits: newFavorites });
+    },
+    [filters]
+  );
+
+  return {
+    posts,
+    loading,
+    error,
+    after: shouldUseFavoritesFeed() ? null : after, // Disable infinite scroll for multi-subreddit
+    bookmarks,
+    subreddit,
+    sort,
+    filters,
+    setSubreddit,
+    setSort,
+    setFilters,
+    fetchPosts,
+    loadMorePosts,
+    handleBookmarkToggle,
+    handleFavoriteToggle,
+  };
+};
 </file>
 
 <file path="src/vite-env.d.ts">
@@ -8283,132 +8269,203 @@ declare module "virtual:pwa-register" {
 }
 </file>
 
-<file path="src/components/app/Header.tsx">
-import { RefreshCw, Settings, Bookmark, Heart } from "lucide-react";
+<file path="src/components/post/PostCard.tsx">
+// src/components/post/PostCard.tsx - Updated with inline video player
+import { useState } from "react";
+import {
+  ArrowUp,
+  MessageCircle,
+  ExternalLink,
+  Bookmark,
+  Play,
+  Maximize2,
+} from "lucide-react";
+import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
+import { getVideoInfo, hasVideoContent } from "../../utils/video";
 import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import { Select } from "../ui/Select";
+import { VideoPlayer } from "../ui/VideoPlayer";
+import type { RedditPost } from "../../types";
+import { storage } from "../../utils/storage";
 
-type HeaderProps = {
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-  subreddit: string;
-  onSubredditChange: (subreddit: string) => void;
-  sort: string;
-  onSortChange: (sort: string) => void;
-  favoriteSubreddits: string[];
-  isFavorite: boolean;
-  onFavoriteToggle: () => void;
-  onRefresh: () => void;
-  onShowSettings: () => void;
-  onShowBookmarks: () => void;
-  onShowSidebar: () => void;
-  loading: boolean;
+type PostCardProps = {
+  post: RedditPost;
+  onPostClick: (post: RedditPost) => void;
+  onSubredditClick?: (subreddit: string) => void;
+  onBookmarkToggle?: (post: RedditPost) => void;
 };
 
-const SORT_OPTIONS = [
-  { value: "hot", label: "Hot" },
-  { value: "new", label: "New" },
-  { value: "top", label: "Top" },
-  { value: "rising", label: "Rising" },
-];
+export const PostCard = ({
+  post,
+  onPostClick,
+  onSubredditClick,
+  onBookmarkToggle,
+}: PostCardProps) => {
+  const [showFullVideo, setShowFullVideo] = useState(false);
 
-export const Header = ({
-  searchTerm,
-  onSearchChange,
-  subreddit,
-  onSubredditChange,
-  sort,
-  onSortChange,
-  favoriteSubreddits,
-  isFavorite,
-  onFavoriteToggle,
-  onRefresh,
-  onShowSettings,
-  onShowBookmarks,
-  onShowSidebar,
-  loading,
-}: HeaderProps) => {
-  const subredditOptions = [
-    { value: "all", label: "All" },
-    { value: "popular", label: "Popular" },
-    ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
-  ];
+  const imageUrl = getImageUrl(post);
+  const videoInfo = getVideoInfo(post);
+  const isBookmarked = storage.isBookmarked(post.id);
+  const hasVideo = hasVideoContent(post);
+
+  // Handle clicking on the post (but not on interactive elements)
+  const handlePostClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on buttons, links, or video controls
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, a, video, [role="button"]');
+
+    if (!isInteractive) {
+      onPostClick(post);
+    }
+  };
 
   return (
-    <header className="sticky-header-safe bg-black border-b border-gray-800">
+    <article className="bg-black border-b border-gray-900">
       <div className="flex items-center justify-between p-3">
         <Button
-          onClick={onShowSidebar}
-          className="text-orange-500 hover:text-orange-400 font-bold text-lg"
-          title="Open sidebar"
+          onClick={() => onSubredditClick?.(post.subreddit)}
+          className="flex items-center gap-3 hover:bg-gray-900/50 rounded-lg p-1 -m-1"
         >
-          W
+          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">
+              {post.subreddit.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="text-left">
+            <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
+              r/{post.subreddit}
+            </div>
+            <div className="text-gray-500 text-xs">
+              u/{post.author} • {formatTimeAgo(post.created_utc)}
+            </div>
+          </div>
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center text-gray-400">
+            <ArrowUp size={16} className="text-gray-500" />
+            <span className="text-xs font-medium ml-1">
+              {formatScore(post.score)}
+            </span>
+          </div>
+          {hasVideo && (
+            <div className="flex items-center text-red-400">
+              <Play size={16} fill="currentColor" />
+            </div>
+          )}
+          {onBookmarkToggle && (
+            <Button
+              onClick={(e) => {
+                e?.stopPropagation();
+                onBookmarkToggle(post);
+              }}
+              className={`p-1.5 rounded-full ${
+                isBookmarked
+                  ? "text-orange-500 hover:text-orange-400"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+              title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            >
+              <Bookmark
+                size={16}
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="px-0 cursor-pointer" onClick={handlePostClick}>
+        <div className="px-3 mb-2">
+          <h2 className="text-white font-medium leading-tight text-sm">
+            {post.title}
+          </h2>
+        </div>
+
+        {/* Video content with inline player */}
+        {videoInfo && (
+          <div className="w-full mb-2 relative">
+            <VideoPlayer
+              videoInfo={videoInfo}
+              autoplay={false}
+              muted={true}
+              controls={true}
+              className={showFullVideo ? "max-h-[70vh]" : "max-h-96"}
+            />
+
+            {/* Expand button for videos */}
+            <Button
+              onClick={(e?: React.MouseEvent<Element>) => {
+                e?.stopPropagation();
+                setShowFullVideo((prev) => !prev);
+              }}
+              className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
+              title={showFullVideo ? "Collapse video" : "Expand video"}
+            >
+              <Maximize2 size={16} />
+            </Button>
+          </div>
+        )}
+
+        {/* Image content (only if no video) */}
+        {!videoInfo && imageUrl && (
+          <div className="w-full">
+            <img
+              src={imageUrl}
+              alt="Post content"
+              className="w-full object-cover max-h-96"
+            />
+          </div>
+        )}
+
+        {/* Text content */}
+        {post.selftext && (
+          <div className="px-3 mt-2">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {post.selftext.length > 200
+                ? `${post.selftext.slice(0, 200)}...`
+                : post.selftext}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between px-3 py-3">
+        <Button
+          onClick={() => onPostClick(post)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+        >
+          <MessageCircle size={20} />
+          <span className="text-sm font-medium">
+            {post.num_comments} comments
+          </span>
         </Button>
 
         <div className="flex items-center gap-1">
-          <Button
-            onClick={onShowBookmarks}
-            className="text-gray-400 hover:text-white"
-            title="View bookmarks"
+          <a
+            href={`https://reddit.com${post.permalink}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Bookmark size={22} />
-          </Button>
-          <Button
-            onClick={onShowSettings}
-            className="text-gray-400 hover:text-white"
-          >
-            <Settings size={22} />
-          </Button>
-          <Button
-            onClick={onRefresh}
-            disabled={loading}
-            className="text-gray-400 hover:text-white"
-          >
-            <RefreshCw size={22} className={loading ? "animate-spin" : ""} />
-          </Button>
+            <ExternalLink size={18} />
+            <span className="text-sm">Reddit</span>
+          </a>
+          {post.url !== `https://reddit.com${post.permalink}` && (
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={18} />
+              <span className="text-sm">{hasVideo ? "Video" : "Link"}</span>
+            </a>
+          )}
         </div>
       </div>
-
-      <div className="px-3 pb-3 space-y-3">
-        <Input
-          placeholder="Search posts..."
-          value={searchTerm}
-          onChange={onSearchChange}
-          className="w-full"
-        />
-
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <Select
-              value={subreddit}
-              onChange={onSubredditChange}
-              options={subredditOptions}
-              className="w-full"
-            />
-            {isFavorite && (
-              <Heart
-                size={16}
-                className="absolute right-8 top-1/2 transform -translate-y-1/2 text-red-500 pointer-events-none"
-                fill="currentColor"
-              />
-            )}
-          </div>
-          <Button
-            onClick={onFavoriteToggle}
-            className={`rounded-xl border transition-colors ${
-              isFavorite
-                ? "bg-red-600 border-red-500 text-white"
-                : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
-            }`}
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
-          </Button>
-          <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
-        </div>
-      </div>
-    </header>
+    </article>
   );
 };
 </file>
@@ -8784,6 +8841,148 @@ export default defineConfig({
     }),
   ],
 });
+</file>
+
+<file path="src/components/app/Header.tsx">
+import { RefreshCw, Settings, Bookmark, Heart, Home } from "lucide-react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+
+type HeaderProps = {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+  subreddit: string;
+  onSubredditChange: (subreddit: string) => void;
+  sort: string;
+  onSortChange: (sort: string) => void;
+  favoriteSubreddits: string[];
+  isFavorite: boolean;
+  onFavoriteToggle: () => void;
+  onRefresh: () => void;
+  onShowSettings: () => void;
+  onShowBookmarks: () => void;
+  onShowSidebar: () => void;
+  loading: boolean;
+};
+
+const SORT_OPTIONS = [
+  { value: "hot", label: "Hot" },
+  { value: "new", label: "New" },
+  { value: "top", label: "Top" },
+  { value: "rising", label: "Rising" },
+];
+
+export const Header = ({
+  searchTerm,
+  onSearchChange,
+  subreddit,
+  onSubredditChange,
+  sort,
+  onSortChange,
+  favoriteSubreddits,
+  isFavorite,
+  onFavoriteToggle,
+  onRefresh,
+  onShowSettings,
+  onShowBookmarks,
+  onShowSidebar,
+  loading,
+}: HeaderProps) => {
+  const subredditOptions = [
+    // Add Home option when user has favorites
+    ...(favoriteSubreddits.length > 0 ? [{ value: "home", label: "🏠 Home" }] : []),
+    { value: "all", label: "All" },
+    { value: "popular", label: "Popular" },
+    ...favoriteSubreddits.map((sub) => ({ value: sub, label: `r/${sub}` })),
+  ];
+
+  // Show different icon based on current selection
+  const getSubredditIcon = () => {
+    if (subreddit === "home") return <Home size={16} className="text-blue-500" />;
+    if (isFavorite) return <Heart size={16} className="text-red-500" fill="currentColor" />;
+    return null;
+  };
+
+  return (
+    <header className="sticky-header-safe bg-black border-b border-gray-800">
+      <div className="flex items-center justify-between p-3">
+        <Button
+          onClick={onShowSidebar}
+          className="text-orange-500 hover:text-orange-400 font-bold text-lg"
+          title="Open sidebar"
+        >
+          W
+        </Button>
+
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={onShowBookmarks}
+            className="text-gray-400 hover:text-white"
+            title="View bookmarks"
+          >
+            <Bookmark size={22} />
+          </Button>
+          <Button
+            onClick={onShowSettings}
+            className="text-gray-400 hover:text-white"
+          >
+            <Settings size={22} />
+          </Button>
+          <Button
+            onClick={onRefresh}
+            disabled={loading}
+            className="text-gray-400 hover:text-white"
+          >
+            <RefreshCw size={22} className={loading ? "animate-spin" : ""} />
+          </Button>
+        </div>
+      </div>
+
+      <div className="px-3 pb-3 space-y-3">
+        <Input
+          placeholder="Search posts..."
+          value={searchTerm}
+          onChange={onSearchChange}
+          className="w-full"
+        />
+
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <Select
+              value={subreddit}
+              onChange={onSubredditChange}
+              options={subredditOptions}
+              className="w-full"
+            />
+            {getSubredditIcon() && (
+              <div className="absolute right-8 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                {getSubredditIcon()}
+              </div>
+            )}
+          </div>
+          
+          {/* Only show favorite toggle for actual subreddits, not for home/all/popular */}
+          {!["home", "all", "popular"].includes(subreddit) && (
+            <Button
+              onClick={onFavoriteToggle}
+              className={`rounded-xl border transition-colors ${
+                isFavorite
+                  ? "bg-red-600 border-red-500 text-white"
+                  : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
+              }`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart size={18} fill={isFavorite ? "currentColor" : "none"} />
+            </Button>
+          )}
+          
+          <Select value={sort} onChange={onSortChange} options={SORT_OPTIONS} />
+        </div>
+      </div>
+    </header>
+  );
+};
 </file>
 
 <file path="src/index.css">
@@ -9767,7 +9966,7 @@ define(['./workbox-9dc17825'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.m1252jciiio"
+    "revision": "0.359e903ak28"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
