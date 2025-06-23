@@ -1,4 +1,4 @@
-// src/components/post/PostCard.tsx - Updated with multiple images support and proper typing
+// src/components/post/PostCard.tsx - Updated with smaller dots and no fullscreen video
 import { useState } from "react";
 import {
   ArrowUp,
@@ -6,7 +6,6 @@ import {
   ExternalLink,
   Bookmark,
   Play,
-  Maximize2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -87,7 +86,6 @@ export const PostCard = ({
   onSubredditClick,
   onBookmarkToggle,
 }: PostCardProps) => {
-  const [showFullVideo, setShowFullVideo] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const images = getPostImages(post);
@@ -185,28 +183,16 @@ export const PostCard = ({
           </h2>
         </div>
 
-        {/* Video content with inline player */}
+        {/* Video content with inline player (no fullscreen button) */}
         {videoInfo && (
-          <div className="w-full mb-2 relative">
+          <div className="w-full mb-2">
             <VideoPlayer
               videoInfo={videoInfo}
               autoplay={false}
               muted={true}
               controls={true}
-              className={showFullVideo ? "max-h-[70vh]" : "max-h-96"}
+              className="max-h-96"
             />
-
-            {/* Expand button for videos */}
-            <Button
-              onClick={(e?: React.MouseEvent<Element>) => {
-                e?.stopPropagation();
-                setShowFullVideo((prev) => !prev);
-              }}
-              className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2"
-              title={showFullVideo ? "Collapse video" : "Expand video"}
-            >
-              <Maximize2 size={16} />
-            </Button>
           </div>
         )}
 
@@ -250,7 +236,7 @@ export const PostCard = ({
                   {currentImageIndex + 1}/{images.length}
                 </div>
 
-                {/* Dots indicator */}
+                {/* Dots indicator - Made smaller */}
                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
                   {images.map((_, index) => (
                     <Button
@@ -259,7 +245,7 @@ export const PostCard = ({
                         e?.stopPropagation();
                         setCurrentImageIndex(index);
                       }}
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
                         index === currentImageIndex
                           ? "bg-white"
                           : "bg-white/50 hover:bg-white/70"

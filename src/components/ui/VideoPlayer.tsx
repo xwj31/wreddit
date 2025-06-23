@@ -1,13 +1,6 @@
-// src/components/ui/VideoPlayer.tsx
+// src/components/ui/VideoPlayer.tsx - Updated without fullscreen
 import { useState, useRef, useEffect } from "react";
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize2,
-  RotateCcw,
-} from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, RotateCcw } from "lucide-react";
 import { Button } from "./Button";
 import { formatDuration } from "../../utils/video";
 import type { VideoInfo } from "../../types";
@@ -91,15 +84,6 @@ export const VideoPlayer = ({
 
     video.currentTime = newTime;
     setCurrentTime(newTime);
-  };
-
-  const handleFullscreen = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (video.requestFullscreen) {
-      video.requestFullscreen();
-    }
   };
 
   const retry = () => {
@@ -247,13 +231,6 @@ export const VideoPlayer = ({
                   </span>
                 )}
               </div>
-
-              <Button
-                onClick={handleFullscreen}
-                className="text-white hover:text-gray-300"
-              >
-                <Maximize2 size={20} />
-              </Button>
             </div>
           </div>
         </div>

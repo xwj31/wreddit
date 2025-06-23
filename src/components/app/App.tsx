@@ -1,3 +1,4 @@
+// src/components/app/App.tsx - Updated to hide header in PostDetail
 import { useState } from "react";
 import { useSwipe } from "../../hooks/useSwipe";
 import { useNavigation } from "../../hooks/useNavigation";
@@ -100,6 +101,7 @@ export const App = () => {
     }
   });
 
+  // PostDetail page - no header, full screen
   if (selectedPost) {
     return (
       <PostDetail
@@ -115,6 +117,7 @@ export const App = () => {
     );
   }
 
+  // Bookmarks page - full screen modal
   if (showBookmarks) {
     return (
       <BookmarksModal
@@ -130,6 +133,7 @@ export const App = () => {
     );
   }
 
+  // Main feed page - with header
   return (
     <div className="min-h-screen bg-black text-white">
       <Sidebar

@@ -117,123 +117,6 @@ vite.config.ts
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/components/settings/HomeFeedSettings.tsx">
-import { Home, Calendar, TrendingUp, MessageCircle } from "lucide-react";
-import { Button } from "../ui/Button";
-
-export type HomeFeedSortOption = "new" | "score" | "comments";
-
-type HomeFeedSettingsProps = {
-  settings: {
-    sortBy: HomeFeedSortOption;
-  };
-  onSettingsChange: (settings: HomeFeedSettingsProps["settings"]) => void;
-};
-
-export const HomeFeedSettings = ({
-  settings,
-  onSettingsChange,
-}: HomeFeedSettingsProps) => {
-  const setSortBy = (sortBy: HomeFeedSortOption) => {
-    onSettingsChange({
-      ...settings,
-      sortBy,
-    });
-  };
-
-  const sortOptions = [
-    {
-      key: "new" as const,
-      icon: Calendar,
-      title: "Newest First",
-      description: "Sort posts by creation time (newest first)",
-      color: "text-blue-500",
-    },
-    {
-      key: "score" as const,
-      icon: TrendingUp,
-      title: "Most Upvoted",
-      description: "Sort posts by upvote score",
-      color: "text-green-500",
-    },
-    {
-      key: "comments" as const,
-      icon: MessageCircle,
-      title: "Most Comments",
-      description: "Sort posts by number of comments",
-      color: "text-purple-500",
-    },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-        <Home size={20} className="text-blue-500" />
-        Home Feed Settings
-      </h3>
-
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium text-gray-300">Sort Posts By</h4>
-
-        {sortOptions.map((option) => {
-          const Icon = option.icon;
-          const isSelected = settings.sortBy === option.key;
-
-          return (
-            <Button
-              key={option.key}
-              onClick={() => setSortBy(option.key)}
-              className={`w-full p-4 rounded-lg border transition-all ${
-                isSelected
-                  ? "bg-gray-700/50 border-orange-500 text-white"
-                  : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${
-                    isSelected ? "bg-orange-600" : "bg-gray-700"
-                  } ${option.color}`}
-                >
-                  <Icon size={20} />
-                </div>
-                <div className="text-left flex-1">
-                  <div className="font-medium">{option.title}</div>
-                  <div className="text-sm text-gray-400">
-                    {option.description}
-                  </div>
-                </div>
-                <div
-                  className={`w-4 h-4 rounded-full border-2 ${
-                    isSelected
-                      ? "bg-orange-500 border-orange-500"
-                      : "border-gray-600"
-                  }`}
-                >
-                  {isSelected && (
-                    <div className="w-2 h-2 bg-white rounded-full m-0.5" />
-                  )}
-                </div>
-              </div>
-            </Button>
-          );
-        })}
-      </div>
-
-      <div className="p-3 bg-blue-900/20 rounded-lg border border-blue-800/30">
-        <div className="text-blue-400 text-sm mb-1 font-medium">
-          About Home Feed
-        </div>
-        <div className="text-blue-300 text-xs">
-          Your Home Feed combines posts from all your favorite subreddits into a
-          single timeline. Choose how you want these posts to be sorted.
-        </div>
-      </div>
-    </div>
-  );
-};
-</file>
-
 <file path="dev-dist/registerSW.js">
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/dev-sw.js?dev-sw', { scope: '/', type: 'classic' })
 </file>
@@ -5212,6 +5095,123 @@ export const BookmarksModal = ({
 };
 </file>
 
+<file path="src/components/settings/HomeFeedSettings.tsx">
+import { Home, Calendar, TrendingUp, MessageCircle } from "lucide-react";
+import { Button } from "../ui/Button";
+
+export type HomeFeedSortOption = "new" | "score" | "comments";
+
+type HomeFeedSettingsProps = {
+  settings: {
+    sortBy: HomeFeedSortOption;
+  };
+  onSettingsChange: (settings: HomeFeedSettingsProps["settings"]) => void;
+};
+
+export const HomeFeedSettings = ({
+  settings,
+  onSettingsChange,
+}: HomeFeedSettingsProps) => {
+  const setSortBy = (sortBy: HomeFeedSortOption) => {
+    onSettingsChange({
+      ...settings,
+      sortBy,
+    });
+  };
+
+  const sortOptions = [
+    {
+      key: "new" as const,
+      icon: Calendar,
+      title: "Newest First",
+      description: "Sort posts by creation time (newest first)",
+      color: "text-blue-500",
+    },
+    {
+      key: "score" as const,
+      icon: TrendingUp,
+      title: "Most Upvoted",
+      description: "Sort posts by upvote score",
+      color: "text-green-500",
+    },
+    {
+      key: "comments" as const,
+      icon: MessageCircle,
+      title: "Most Comments",
+      description: "Sort posts by number of comments",
+      color: "text-purple-500",
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+        <Home size={20} className="text-blue-500" />
+        Home Feed Settings
+      </h3>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-300">Sort Posts By</h4>
+
+        {sortOptions.map((option) => {
+          const Icon = option.icon;
+          const isSelected = settings.sortBy === option.key;
+
+          return (
+            <Button
+              key={option.key}
+              onClick={() => setSortBy(option.key)}
+              className={`w-full p-4 rounded-lg border transition-all ${
+                isSelected
+                  ? "bg-gray-700/50 border-orange-500 text-white"
+                  : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    isSelected ? "bg-orange-600" : "bg-gray-700"
+                  } ${option.color}`}
+                >
+                  <Icon size={20} />
+                </div>
+                <div className="text-left flex-1">
+                  <div className="font-medium">{option.title}</div>
+                  <div className="text-sm text-gray-400">
+                    {option.description}
+                  </div>
+                </div>
+                <div
+                  className={`w-4 h-4 rounded-full border-2 ${
+                    isSelected
+                      ? "bg-orange-500 border-orange-500"
+                      : "border-gray-600"
+                  }`}
+                >
+                  {isSelected && (
+                    <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                  )}
+                </div>
+              </div>
+            </Button>
+          );
+        })}
+      </div>
+
+      <div className="p-3 bg-blue-900/20 rounded-lg border border-blue-800/30">
+        <div className="text-blue-400 text-sm mb-1 font-medium">
+          About Home Feed
+        </div>
+        <div className="text-blue-300 text-xs">
+          Your Home Feed combines posts from all your favorite subreddits into a
+          single timeline. Choose how you want these posts to be sorted.
+        </div>
+      </div>
+    </div>
+  );
+};
+</file>
+
 <file path="src/components/settings/VideoSettings.tsx">
 // src/components/settings/VideoSettings.tsx - Video-specific settings
 import { Play, Video, Volume2, VolumeX } from "lucide-react";
@@ -6887,202 +6887,6 @@ declare module "virtual:pwa-register" {
 </svg>
 </file>
 
-<file path="src/components/app/App.tsx">
-import { useState } from "react";
-import { useSwipe } from "../../hooks/useSwipe";
-import { useNavigation } from "../../hooks/useNavigation";
-import { useAppData } from "../../hooks/useAppData";
-import { storage } from "../../utils/storage";
-import { Header } from "./Header";
-import { PostFeed } from "../post/PostFeed";
-import { PostDetail } from "../post/PostDetail";
-import { Sidebar } from "../sidebar/Sidebar";
-import { SettingsModal } from "../settings/SettingsModal";
-import { BookmarksModal } from "../bookmarks/BookmarksModal";
-import type { RedditPost, BookmarkedPost } from "../../types";
-
-type Page = "feed" | "post" | "bookmarks";
-
-export const App = () => {
-  const [currentPage, setCurrentPage] = useState<Page>("feed");
-  const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showBookmarks, setShowBookmarks] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const {
-    posts,
-    loading,
-    error,
-    after,
-    bookmarks,
-    subreddit,
-    sort,
-    filters,
-    setSubreddit,
-    setSort,
-    setFilters,
-    fetchPosts,
-    loadMorePosts,
-    handleBookmarkToggle,
-    handleFavoriteToggle,
-  } = useAppData();
-
-  const navigateBack = () => {
-    if (currentPage === "post" || currentPage === "bookmarks") {
-      setCurrentPage("feed");
-      setSelectedPost(null);
-      setShowBookmarks(false);
-    }
-  };
-
-  const { pushState } = useNavigation(navigateBack);
-
-  const navigateToPost = (post: RedditPost) => {
-    setCurrentPage("post");
-    setSelectedPost(post);
-    setShowBookmarks(false);
-    pushState({ page: "post", postId: post.id });
-  };
-
-  const navigateToBookmarks = () => {
-    setCurrentPage("bookmarks");
-    setShowBookmarks(true);
-    setShowSidebar(false);
-    pushState({ page: "bookmarks" });
-  };
-
-  const handleBookmarkPostClick = (bookmark: BookmarkedPost) => {
-    const post: RedditPost = {
-      id: bookmark.id,
-      title: bookmark.title,
-      subreddit: bookmark.subreddit,
-      permalink: bookmark.permalink,
-      author: "unknown",
-      url: `https://reddit.com${bookmark.permalink}`,
-      score: 0,
-      num_comments: 0,
-      created_utc: Math.floor(bookmark.bookmarkedAt / 1000),
-      is_video: false,
-    };
-    navigateToPost(post);
-  };
-
-  const filteredPosts = posts.filter((post) => {
-    if (!searchTerm) return true;
-    return (
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.subreddit.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  const isFavorite = filters.favoriteSubreddits.includes(
-    subreddit.toLowerCase()
-  );
-  const isHomeFeed = subreddit === "home";
-
-  useSwipe(() => {
-    if (currentPage !== "feed") {
-      navigateBack();
-    } else if (!showSidebar) {
-      setShowSidebar(true);
-    }
-  });
-
-  if (selectedPost) {
-    return (
-      <PostDetail
-        post={selectedPost}
-        onBack={navigateBack}
-        onSubredditClick={(subredditName) => {
-          setSubreddit(subredditName);
-          setShowSidebar(false);
-          setShowBookmarks(false);
-        }}
-        onBookmarkToggle={handleBookmarkToggle}
-      />
-    );
-  }
-
-  if (showBookmarks) {
-    return (
-      <BookmarksModal
-        isOpen={showBookmarks}
-        onClose={navigateBack}
-        bookmarks={bookmarks}
-        onPostClick={handleBookmarkPostClick}
-        onBookmarkRemove={(postId) => {
-          storage.removeBookmark(postId);
-          // No need to call setBookmarks as it's handled by useAppData
-        }}
-      />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <Sidebar
-        isOpen={showSidebar}
-        onClose={() => setShowSidebar(false)}
-        currentSubreddit={subreddit}
-        onSubredditSelect={(subredditName) => {
-          setSubreddit(subredditName);
-          setShowSidebar(false);
-          setShowBookmarks(false);
-        }}
-        filters={filters}
-        onFiltersChange={setFilters}
-        onNavigateToBookmarks={navigateToBookmarks}
-      />
-
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
-
-      <Header
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        subreddit={subreddit}
-        onSubredditChange={setSubreddit}
-        sort={sort}
-        onSortChange={setSort}
-        favoriteSubreddits={filters.favoriteSubreddits}
-        isFavorite={isFavorite}
-        onFavoriteToggle={() => handleFavoriteToggle(subreddit)}
-        onRefresh={() => fetchPosts(true)}
-        onShowSettings={() => setShowSettings(true)}
-        onShowBookmarks={navigateToBookmarks}
-        onShowSidebar={() => setShowSidebar(true)}
-        loading={loading}
-      />
-
-      {/* Add padding to account for fixed header */}
-      <main style={{ paddingTop: "140px" }}>
-        <PostFeed
-          posts={filteredPosts}
-          loading={loading}
-          hasMore={!!after}
-          onPostClick={navigateToPost}
-          onSubredditClick={(subredditName) => {
-            setSubreddit(subredditName);
-            setShowSidebar(false);
-            setShowBookmarks(false);
-          }}
-          onBookmarkToggle={handleBookmarkToggle}
-          onLoadMore={loadMorePosts}
-          error={error || undefined}
-          isHomeFeed={isHomeFeed}
-        />
-      </main>
-    </div>
-  );
-};
-</file>
-
 <file path="src/components/post/PostDetail/CommentsList.tsx">
 import { useState } from "react";
 import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
@@ -7606,6 +7410,303 @@ export const PostFeed = ({
           <RefreshCw size={24} className="animate-spin text-orange-500" />
         </div>
       )}
+    </div>
+  );
+};
+</file>
+
+<file path="src/vite-env.d.ts">
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
+
+// Declare virtual modules for PWA
+declare module "virtual:pwa-register" {
+  export function registerSW(options?: {
+    immediate?: boolean;
+    onNeedRefresh?: () => void;
+    onOfflineReady?: () => void;
+    onRegistered?: (
+      registration: ServiceWorkerRegistration | undefined
+    ) => void;
+    onRegisterError?: (error: []) => void;
+  }): (reloadPage?: boolean) => Promise<void>;
+}
+</file>
+
+<file path="workers/reddit-api/package.json">
+{
+  "name": "reddit-api-worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240909.0",
+    "wrangler": "^4.20.0"
+  }
+}
+</file>
+
+<file path="index.html">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA Meta Tags -->
+    <title>WReddit - Modern Reddit Client</title>
+    <meta
+      name="description"
+      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
+    />
+    <meta name="theme-color" content="#ea580c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="WReddit" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="WReddit - Modern Reddit Client" />
+    <meta
+      property="og:description"
+      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
+    />
+    <meta property="og:image" content="/pwa-512x512.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="/" />
+    <meta property="twitter:title" content="WReddit - Modern Reddit Client" />
+    <meta
+      property="twitter:description"
+      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
+    />
+    <meta property="twitter:image" content="/pwa-512x512.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "types": ["vite-plugin-pwa/client"]
+  }
+}
+</file>
+
+<file path="src/components/app/App.tsx">
+import { useState } from "react";
+import { useSwipe } from "../../hooks/useSwipe";
+import { useNavigation } from "../../hooks/useNavigation";
+import { useAppData } from "../../hooks/useAppData";
+import { storage } from "../../utils/storage";
+import { Header } from "./Header";
+import { PostFeed } from "../post/PostFeed";
+import { PostDetail } from "../post/PostDetail";
+import { Sidebar } from "../sidebar/Sidebar";
+import { SettingsModal } from "../settings/SettingsModal";
+import { BookmarksModal } from "../bookmarks/BookmarksModal";
+import type { RedditPost, BookmarkedPost } from "../../types";
+
+type Page = "feed" | "post" | "bookmarks";
+
+export const App = () => {
+  const [currentPage, setCurrentPage] = useState<Page>("feed");
+  const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const {
+    posts,
+    loading,
+    error,
+    after,
+    bookmarks,
+    subreddit,
+    sort,
+    filters,
+    setSubreddit,
+    setSort,
+    setFilters,
+    fetchPosts,
+    loadMorePosts,
+    handleBookmarkToggle,
+    handleFavoriteToggle,
+  } = useAppData();
+
+  const navigateBack = () => {
+    if (currentPage === "post" || currentPage === "bookmarks") {
+      setCurrentPage("feed");
+      setSelectedPost(null);
+      setShowBookmarks(false);
+    }
+  };
+
+  const { pushState } = useNavigation(navigateBack);
+
+  const navigateToPost = (post: RedditPost) => {
+    setCurrentPage("post");
+    setSelectedPost(post);
+    setShowBookmarks(false);
+    pushState({ page: "post", postId: post.id });
+  };
+
+  const navigateToBookmarks = () => {
+    setCurrentPage("bookmarks");
+    setShowBookmarks(true);
+    setShowSidebar(false);
+    pushState({ page: "bookmarks" });
+  };
+
+  const handleBookmarkPostClick = (bookmark: BookmarkedPost) => {
+    const post: RedditPost = {
+      id: bookmark.id,
+      title: bookmark.title,
+      subreddit: bookmark.subreddit,
+      permalink: bookmark.permalink,
+      author: "unknown",
+      url: `https://reddit.com${bookmark.permalink}`,
+      score: 0,
+      num_comments: 0,
+      created_utc: Math.floor(bookmark.bookmarkedAt / 1000),
+      is_video: false,
+    };
+    navigateToPost(post);
+  };
+
+  const filteredPosts = posts.filter((post) => {
+    if (!searchTerm) return true;
+    return (
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.subreddit.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const isFavorite = filters.favoriteSubreddits.includes(
+    subreddit.toLowerCase()
+  );
+  const isHomeFeed = subreddit === "home";
+
+  useSwipe(() => {
+    if (currentPage !== "feed") {
+      navigateBack();
+    } else if (!showSidebar) {
+      setShowSidebar(true);
+    }
+  });
+
+  if (selectedPost) {
+    return (
+      <PostDetail
+        post={selectedPost}
+        onBack={navigateBack}
+        onSubredditClick={(subredditName) => {
+          setSubreddit(subredditName);
+          setShowSidebar(false);
+          setShowBookmarks(false);
+        }}
+        onBookmarkToggle={handleBookmarkToggle}
+      />
+    );
+  }
+
+  if (showBookmarks) {
+    return (
+      <BookmarksModal
+        isOpen={showBookmarks}
+        onClose={navigateBack}
+        bookmarks={bookmarks}
+        onPostClick={handleBookmarkPostClick}
+        onBookmarkRemove={(postId) => {
+          storage.removeBookmark(postId);
+          // No need to call setBookmarks as it's handled by useAppData
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Sidebar
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        currentSubreddit={subreddit}
+        onSubredditSelect={(subredditName) => {
+          setSubreddit(subredditName);
+          setShowSidebar(false);
+          setShowBookmarks(false);
+        }}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onNavigateToBookmarks={navigateToBookmarks}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      <Header
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        subreddit={subreddit}
+        onSubredditChange={setSubreddit}
+        sort={sort}
+        onSortChange={setSort}
+        favoriteSubreddits={filters.favoriteSubreddits}
+        isFavorite={isFavorite}
+        onFavoriteToggle={() => handleFavoriteToggle(subreddit)}
+        onRefresh={() => fetchPosts(true)}
+        onShowSettings={() => setShowSettings(true)}
+        onShowBookmarks={navigateToBookmarks}
+        onShowSidebar={() => setShowSidebar(true)}
+        loading={loading}
+      />
+
+      {/* Add padding to account for fixed header */}
+      <main style={{ paddingTop: "140px" }}>
+        <PostFeed
+          posts={filteredPosts}
+          loading={loading}
+          hasMore={!!after}
+          onPostClick={navigateToPost}
+          onSubredditClick={(subredditName) => {
+            setSubreddit(subredditName);
+            setShowSidebar(false);
+            setShowBookmarks(false);
+          }}
+          onBookmarkToggle={handleBookmarkToggle}
+          onLoadMore={loadMorePosts}
+          error={error || undefined}
+          isHomeFeed={isHomeFeed}
+        />
+      </main>
     </div>
   );
 };
@@ -8359,109 +8460,216 @@ export const useAppData = () => {
 };
 </file>
 
-<file path="src/vite-env.d.ts">
-/// <reference types="vite/client" />
-/// <reference types="vite-plugin-pwa/client" />
+<file path="src/utils/storage.ts">
+import type { FilterOptions, BookmarkedPost } from "../types";
 
-// Declare virtual modules for PWA
-declare module "virtual:pwa-register" {
-  export function registerSW(options?: {
-    immediate?: boolean;
-    onNeedRefresh?: () => void;
-    onOfflineReady?: () => void;
-    onRegistered?: (
-      registration: ServiceWorkerRegistration | undefined
-    ) => void;
-    onRegisterError?: (error: []) => void;
-  }): (reloadPage?: boolean) => Promise<void>;
-}
-</file>
+const KEYS = {
+  FILTERS: "wreddit-filters",
+  SUBREDDIT: "wreddit-subreddit",
+  SORT: "wreddit-sort",
+  BOOKMARKS: "wreddit-bookmarks",
+} as const;
 
-<file path="workers/reddit-api/package.json">
-{
-  "name": "reddit-api-worker",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev"
+const get = (key: string, fallback: unknown = null) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const set = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Fail silently
+  }
+};
+
+export const storage = {
+  getFilters: (): FilterOptions => get(KEYS.FILTERS, {
+    blockedSubreddits: [],
+    favoriteSubreddits: [],
+    keywords: [],
+    blockedKeywords: [],
+  }),
+  
+  saveFilters: (filters: FilterOptions) => set(KEYS.FILTERS, filters),
+  
+  getSubreddit: () => get(KEYS.SUBREDDIT, "all") as string,
+  
+  saveSubreddit: (subreddit: string) => set(KEYS.SUBREDDIT, subreddit),
+  
+  getSort: () => get(KEYS.SORT, "hot") as string,
+  
+  saveSort: (sort: string) => set(KEYS.SORT, sort),
+  
+  getBookmarks: (): BookmarkedPost[] => get(KEYS.BOOKMARKS, []),
+  
+  saveBookmarks: (bookmarks: BookmarkedPost[]) => set(KEYS.BOOKMARKS, bookmarks),
+  
+  addBookmark: (post: { id: string; title: string; subreddit: string; permalink: string }) => {
+    const bookmarks = storage.getBookmarks();
+    if (!bookmarks.find(b => b.id === post.id)) {
+      bookmarks.unshift({ ...post, bookmarkedAt: Date.now() });
+      storage.saveBookmarks(bookmarks);
+    }
   },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240909.0",
-    "wrangler": "^4.20.0"
-  }
-}
+  
+  removeBookmark: (postId: string) => {
+    const bookmarks = storage.getBookmarks().filter(b => b.id !== postId);
+    storage.saveBookmarks(bookmarks);
+  },
+  
+  isBookmarked: (postId: string) => storage.getBookmarks().some(b => b.id === postId),
+};
 </file>
 
-<file path="index.html">
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<file path="src/App.tsx">
+import { App } from "./components/app/App";
 
-    <!-- PWA Meta Tags -->
-    <title>WReddit - Modern Reddit Client</title>
-    <meta
-      name="description"
-      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
-    />
-    <meta name="theme-color" content="#ea580c" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="WReddit" />
-
-    <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="/" />
-    <meta property="og:title" content="WReddit - Modern Reddit Client" />
-    <meta
-      property="og:description"
-      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
-    />
-    <meta property="og:image" content="/pwa-512x512.png" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="/" />
-    <meta property="twitter:title" content="WReddit - Modern Reddit Client" />
-    <meta
-      property="twitter:description"
-      content="A modern, fast Reddit client built with React. Browse Reddit with a clean, mobile-friendly interface."
-    />
-    <meta property="twitter:image" content="/pwa-512x512.png" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+export default App;
 </file>
 
-<file path="tsconfig.json">
-{
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+<file path="workers/reddit-api/wrangler.toml">
+name = "reddit-api-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-16"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+REDDIT_USER_AGENT = "WReddit/1.0.0"
+
+[env.production]
+name = "reddit-api-worker"
+
+[env.staging]
+name = "reddit-api-worker-staging"
+
+[observability]
+enabled = true
+head_sampling_rate = 1 # optional. default = 1.
+
+[limits]
+cpu_ms = 30000  # Increased from 10000 to 30000ms
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+workers/reddit-api/.wrangler
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+      manifest: {
+        name: "WReddit - Reddit Client",
+        short_name: "WReddit",
+        description: "A modern Reddit client built with React and Vite",
+        theme_color: "#ea580c", // Orange-600
+        background_color: "#000000",
+        display: "standalone",
+        orientation: "portrait",
+        scope: "/",
+        start_url: "/",
+        icons: [
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/www\.reddit\.com\/.*\.json$/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "reddit-api",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.(jpg|jpeg|png|gif|webp)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "images",
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        enabled: true,
+      },
+    }),
   ],
-  "compilerOptions": {
-    "types": ["vite-plugin-pwa/client"]
-  }
-}
+});
 </file>
 
 <file path="src/components/post/PostCard.tsx">
-// src/components/post/PostCard.tsx - Updated with multiple images support
+// src/components/post/PostCard.tsx - Updated with multiple images support and proper typing
 import { useState } from "react";
 import {
   ArrowUp,
@@ -8487,6 +8695,20 @@ type PostCardProps = {
   onBookmarkToggle?: (post: RedditPost) => void;
 };
 
+// Define the media metadata item type based on your types.ts
+type MediaMetadataItem = {
+  status: string;
+  e: string;
+  m: string;
+  s: {
+    y: number;
+    x: number;
+    u?: string;
+    gif?: string;
+  };
+  id?: string;
+};
+
 // Helper function to extract all images from a post
 const getPostImages = (
   post: RedditPost
@@ -8508,17 +8730,17 @@ const getPostImages = (
 
   // Check for Reddit gallery
   if (post.is_gallery && post.media_metadata) {
-    Object.values(post.media_metadata).forEach((item: any) => { //TODO: i need a type here, not any
-      if (item.s?.u || item.s?.gif) {
+    Object.values(post.media_metadata).forEach((item: MediaMetadataItem) => {
+      const imageUrl = item.s?.u || item.s?.gif;
+      if (imageUrl) {
         images.push({
-          url: (item.s.u || item.s.gif).replace(/&amp;/g, "&"),
+          url: imageUrl.replace(/&amp;/g, "&"),
           width: item.s.x,
           height: item.s.y,
         });
       }
     });
   }
-
   // Fallback to single image
   if (images.length === 0) {
     const singleImage = getImageUrl(post);
@@ -8774,78 +8996,6 @@ export const PostCard = ({
 };
 </file>
 
-<file path="src/utils/storage.ts">
-import type { FilterOptions, BookmarkedPost } from "../types";
-
-const KEYS = {
-  FILTERS: "wreddit-filters",
-  SUBREDDIT: "wreddit-subreddit",
-  SORT: "wreddit-sort",
-  BOOKMARKS: "wreddit-bookmarks",
-} as const;
-
-const get = (key: string, fallback: unknown = null) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const set = (key: string, value: unknown) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Fail silently
-  }
-};
-
-export const storage = {
-  getFilters: (): FilterOptions => get(KEYS.FILTERS, {
-    blockedSubreddits: [],
-    favoriteSubreddits: [],
-    keywords: [],
-    blockedKeywords: [],
-  }),
-  
-  saveFilters: (filters: FilterOptions) => set(KEYS.FILTERS, filters),
-  
-  getSubreddit: () => get(KEYS.SUBREDDIT, "all") as string,
-  
-  saveSubreddit: (subreddit: string) => set(KEYS.SUBREDDIT, subreddit),
-  
-  getSort: () => get(KEYS.SORT, "hot") as string,
-  
-  saveSort: (sort: string) => set(KEYS.SORT, sort),
-  
-  getBookmarks: (): BookmarkedPost[] => get(KEYS.BOOKMARKS, []),
-  
-  saveBookmarks: (bookmarks: BookmarkedPost[]) => set(KEYS.BOOKMARKS, bookmarks),
-  
-  addBookmark: (post: { id: string; title: string; subreddit: string; permalink: string }) => {
-    const bookmarks = storage.getBookmarks();
-    if (!bookmarks.find(b => b.id === post.id)) {
-      bookmarks.unshift({ ...post, bookmarkedAt: Date.now() });
-      storage.saveBookmarks(bookmarks);
-    }
-  },
-  
-  removeBookmark: (postId: string) => {
-    const bookmarks = storage.getBookmarks().filter(b => b.id !== postId);
-    storage.saveBookmarks(bookmarks);
-  },
-  
-  isBookmarked: (postId: string) => storage.getBookmarks().some(b => b.id === postId),
-};
-</file>
-
-<file path="src/App.tsx">
-import { App } from "./components/app/App";
-
-export default App;
-</file>
-
 <file path="src/types.ts">
 // src/types.ts - Enhanced with gallery and multiple images support
 export interface RedditPost {
@@ -9038,140 +9188,43 @@ export interface VideoInfo {
 export type HomeFeedSortOption = "new" | "score" | "comments";
 </file>
 
-<file path="workers/reddit-api/wrangler.toml">
-name = "reddit-api-worker"
-main = "src/index.ts"
-compatibility_date = "2024-06-16"
-compatibility_flags = ["nodejs_compat"]
-
-[vars]
-REDDIT_USER_AGENT = "WReddit/1.0.0"
-
-[env.production]
-name = "reddit-api-worker"
-
-[env.staging]
-name = "reddit-api-worker-staging"
-
-[observability]
-enabled = true
-head_sampling_rate = 1 # optional. default = 1.
-
-[limits]
-cpu_ms = 30000  # Increased from 10000 to 30000ms
-</file>
-
-<file path=".gitignore">
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.env
-workers/reddit-api/.wrangler
-</file>
-
-<file path="vite.config.ts">
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import { VitePWA } from "vite-plugin-pwa";
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png"],
-      manifest: {
-        name: "WReddit - Reddit Client",
-        short_name: "WReddit",
-        description: "A modern Reddit client built with React and Vite",
-        theme_color: "#ea580c", // Orange-600
-        background_color: "#000000",
-        display: "standalone",
-        orientation: "portrait",
-        scope: "/",
-        start_url: "/",
-        icons: [
-          {
-            src: "pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/www\.reddit\.com\/.*\.json$/,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "reddit-api",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/.*\.(jpg|jpeg|png|gif|webp)$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "images",
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-            },
-          },
-        ],
-      },
-      devOptions: {
-        enabled: true,
-      },
-    }),
-  ],
-});
+<file path="package.json">
+{
+  "name": "wreddit",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler pages deploy ./dist",
+    "generate-pwa-assets": "pwa-assets-generator"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.10",
+    "lucide-react": "^0.515.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vite-pwa/assets-generator": "^1.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.0"
+  }
+}
 </file>
 
 <file path="src/components/app/Header.tsx">
@@ -9362,6 +9415,81 @@ export const Header = ({
     </header>
   );
 };
+</file>
+
+<file path="src/utils/index.ts">
+// src/utils/index.ts - Updated with video utilities export
+export const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp * 1000;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  return "Just now";
+};
+
+export const formatScore = (score: number): string => {
+  if (score >= 1000) {
+    return `${(score / 1000).toFixed(1)}k`;
+  }
+  return score.toString();
+};
+
+export const getImageUrl = (post: {
+  preview?: {
+    images?: Array<{
+      source: { url: string; width: number; height: number };
+    }>;
+  };
+  thumbnail?: string;
+}): string | null => {
+  if (post.preview?.images?.[0]?.source) {
+    return post.preview.images[0].source.url.replace(/&amp;/g, "&");
+  }
+
+  if (
+    post.thumbnail &&
+    post.thumbnail !== "self" &&
+    post.thumbnail !== "default" &&
+    post.thumbnail !== "nsfw" &&
+    post.thumbnail !== "spoiler"
+  ) {
+    return post.thumbnail;
+  }
+
+  return null;
+};
+
+// Alias for backward compatibility
+export const getHighQualityImage = getImageUrl;
+
+export const sharePost = async (post: {
+  title: string;
+  permalink: string;
+}): Promise<boolean> => {
+  const url = `https://reddit.com${post.permalink}`;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: post.title, url });
+      return true;
+    }
+
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+// Re-export video utilities
+export * from "./video";
 </file>
 
 <file path="src/index.css">
@@ -9586,120 +9714,6 @@ select:focus-visible {
 ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
-</file>
-
-<file path="package.json">
-{
-  "name": "wreddit",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy ./dist",
-    "generate-pwa-assets": "pwa-assets-generator"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.10",
-    "lucide-react": "^0.515.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.10"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.25.0",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "@vite-pwa/assets-generator": "^1.0.0",
-    "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^9.25.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^16.0.0",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5",
-    "vite-plugin-pwa": "^1.0.0"
-  }
-}
-</file>
-
-<file path="src/utils/index.ts">
-// src/utils/index.ts - Updated with video utilities export
-export const formatTimeAgo = (timestamp: number): string => {
-  const now = Date.now();
-  const diff = now - timestamp * 1000;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  return "Just now";
-};
-
-export const formatScore = (score: number): string => {
-  if (score >= 1000) {
-    return `${(score / 1000).toFixed(1)}k`;
-  }
-  return score.toString();
-};
-
-export const getImageUrl = (post: {
-  preview?: {
-    images?: Array<{
-      source: { url: string; width: number; height: number };
-    }>;
-  };
-  thumbnail?: string;
-}): string | null => {
-  if (post.preview?.images?.[0]?.source) {
-    return post.preview.images[0].source.url.replace(/&amp;/g, "&");
-  }
-
-  if (
-    post.thumbnail &&
-    post.thumbnail !== "self" &&
-    post.thumbnail !== "default" &&
-    post.thumbnail !== "nsfw" &&
-    post.thumbnail !== "spoiler"
-  ) {
-    return post.thumbnail;
-  }
-
-  return null;
-};
-
-// Alias for backward compatibility
-export const getHighQualityImage = getImageUrl;
-
-export const sharePost = async (post: {
-  title: string;
-  permalink: string;
-}): Promise<boolean> => {
-  const url = `https://reddit.com${post.permalink}`;
-
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: post.title, url });
-      return true;
-    }
-
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(url);
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-};
-
-// Re-export video utilities
-export * from "./video";
 </file>
 
 <file path="workers/reddit-api/src/index.ts">
@@ -10449,7 +10463,7 @@ define(['./workbox-9dc17825'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.ufueu1393o"
+    "revision": "0.7shobatbda"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
