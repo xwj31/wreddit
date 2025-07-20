@@ -78,7 +78,7 @@ const Comment = ({ comment, depth }: CommentProps) => {
             </div>
 
             {expanded && (
-              <div className="text-sm text-gray-200 mt-1 whitespace-pre-line">
+              <div className="text-sm text-gray-200 mt-1 whitespace-pre-line break-words overflow-wrap-anywhere">
                 {comment.body}
               </div>
             )}

@@ -262,7 +262,7 @@ export const PostCard = ({
         {/* Text content */}
         {post.selftext && (
           <div className="px-3 mt-2">
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <p className="text-gray-300 text-sm leading-relaxed break-words overflow-wrap-anywhere">
               {post.selftext.length > 200
                 ? `${post.selftext.slice(0, 200)}...`
                 : post.selftext}

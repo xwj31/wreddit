@@ -116,6 +116,11 @@ body {
   overflow-x: hidden;
 }
 
+/* Utility for breaking long URLs and preventing horizontal overflow */
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
 /* Image carousel styles for multiple images */
 .image-carousel {
   scroll-snap-type: x mandatory;

@@ -207,7 +207,7 @@ export const PostDetail = ({
           {post.selftext && (
             <div className="mb-3">
               <div
-                className={`text-gray-300 whitespace-pre-line ${
+                className={`text-gray-300 whitespace-pre-line break-words overflow-wrap-anywhere ${
                   !showFullText && post.selftext.length > 500
                     ? "max-h-60 overflow-hidden relative"
                     : ""
