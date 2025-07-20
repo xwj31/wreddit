@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
+import { LinkifiedText } from "../../utils/linkParser";
 import { Button } from "../ui/Button";
 import { VideoPlayer } from "../ui/VideoPlayer";
 import type { RedditPost } from "../../types";
@@ -21,6 +22,7 @@ type PostCardProps = {
   onPostClick: (post: RedditPost) => void;
   onSubredditClick?: (subreddit: string) => void;
   onBookmarkToggle?: (post: RedditPost) => void;
+  isRead?: boolean;
 };
 
 // Define the media metadata item type based on your types.ts
@@ -85,6 +87,7 @@ export const PostCard = ({
   onPostClick,
   onSubredditClick,
   onBookmarkToggle,
+  isRead = false,
 }: PostCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -262,7 +265,7 @@ export const PostCard = ({
                         e?.stopPropagation();
                         setCurrentImageIndex(index);
                       }}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                      className={`w-1 h-1 rounded-full transition-colors ${
                         index === currentImageIndex
                           ? "bg-white"
                           : "bg-white/50 hover:bg-white/70"
@@ -279,9 +282,12 @@ export const PostCard = ({
         {post.selftext && (
           <div className="px-3 mt-2">
             <p className="text-gray-300 text-sm leading-relaxed break-words overflow-wrap-anywhere">
-              {post.selftext.length > 200
-                ? `${post.selftext.slice(0, 200)}...`
-                : post.selftext}
+              <LinkifiedText
+                text={post.selftext.length > 200
+                  ? `${post.selftext.slice(0, 200)}...`
+                  : post.selftext}
+                linkClassName="text-blue-400 hover:text-blue-300 underline"
+              />
             </p>
           </div>
         )}

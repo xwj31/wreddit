@@ -213,9 +213,12 @@ export const PostDetail = ({
                     : ""
                 }`}
               >
-                {!showFullText && post.selftext.length > 500
-                  ? post.selftext.slice(0, 500) + "..."
-                  : post.selftext}
+                <LinkifiedText
+                  text={!showFullText && post.selftext.length > 500
+                    ? post.selftext.slice(0, 500) + "..."
+                    : post.selftext}
+                  linkClassName="text-blue-400 hover:text-blue-300 underline"
+                />
 
                 {!showFullText && post.selftext.length > 500 && (
                   <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent"></div>

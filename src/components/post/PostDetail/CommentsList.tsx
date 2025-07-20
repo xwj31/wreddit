@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
 import { formatTimeAgo, formatScore } from "../../../utils";
 import { Button } from "../../ui/Button";
+import { LinkifiedText } from "../../../utils/linkParser";
 import type { RedditComment } from "../../../types";
 
 type CommentsListProps = {
@@ -79,7 +80,10 @@ const Comment = ({ comment, depth }: CommentProps) => {
 
             {expanded && (
               <div className="text-sm text-gray-200 mt-1 whitespace-pre-line break-words overflow-wrap-anywhere">
-                {comment.body}
+                <LinkifiedText
+                  text={comment.body}
+                  linkClassName="text-blue-400 hover:text-blue-300 underline"
+                />
               </div>
             )}
 
