@@ -112,8 +112,20 @@ html {
 }
 
 /* Prevent horizontal scrolling */
-body {
+html, body {
   overflow-x: hidden;
+  max-width: 100%;
+}
+
+* {
+  max-width: 100vw;
+}
+
+/* Ensure main containers don't overflow */
+#root, .app, main {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Utility for breaking long URLs and preventing horizontal overflow */

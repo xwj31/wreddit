@@ -3,9 +3,9 @@ import React from "react";
 // Regex patterns for different link types
 const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\(([^)]+)\)/g;
 const URL_REGEX =
-  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 const PARTIAL_URL_REGEX =
-  /(?<![a-zA-Z0-9@:%._\+~#=])www\.[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  /(?<![a-zA-Z0-9@:%._+~#=])www\.[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
 
 type ParsedSegment = {
   type: "text" | "link";

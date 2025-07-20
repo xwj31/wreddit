@@ -255,7 +255,7 @@ export const PostDetail = ({
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ExternalLink size={18} />
-                <span className="break-all">
+                <span className="break-all max-w-[200px] inline-block overflow-hidden text-ellipsis">
                   {(() => {
                     try {
                       const url = new URL(post.url);

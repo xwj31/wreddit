@@ -189,7 +189,7 @@ export const useAppData = () => {
   useEffect(() => {
     fetchPosts(true);
     setAfter(null);
-  }, [subreddit, sort, filters]);
+  }, [subreddit, sort, filters, fetchPosts]);
 
   const loadMorePosts = useCallback(() => {
     // Don't allow load more for multi-subreddit feeds for now

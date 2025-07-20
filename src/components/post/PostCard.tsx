@@ -324,7 +324,7 @@ export const PostCard = ({
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink size={18} />
-              <span className="text-sm break-all">
+              <span className="text-sm break-all max-w-[200px] inline-block overflow-hidden text-ellipsis">
                 {(() => {
                   try {
                     const url = new URL(post.url);

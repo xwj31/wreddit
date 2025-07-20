@@ -1,23 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const READ_POSTS_KEY = 'reddit_read_posts';
 const MAX_READ_POSTS = 1000; // Limit storage size
 
 export const useReadPosts = () => {
-  const [readPosts, setReadPosts] = useState<Set<string>>(new Set());
-
-  // Load read posts from localStorage on mount
-  useEffect(() => {
+  const [readPosts, setReadPosts] = useState<Set<string>>(() => {
+    // Initialize from localStorage immediately
     try {
       const stored = localStorage.getItem(READ_POSTS_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        setReadPosts(new Set(parsed));
+        return new Set(parsed);
       }
     } catch (error) {
       console.error('Failed to load read posts:', error);
     }
-  }, []);
+    return new Set();
+  });
 
   // Mark a post as read
   const markAsRead = (postId: string) => {
