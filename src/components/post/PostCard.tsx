@@ -114,7 +114,11 @@ export const PostCard = ({
   };
 
   return (
-    <article className="bg-black border-b border-gray-900">
+    <article
+      className={`border-b border-gray-900 ${
+        isRead ? "bg-gray-900/50" : "bg-black"
+      }`}
+    >
       <div className="flex items-center justify-between p-3">
         <Button
           onClick={() => onSubredditClick?.(post.subreddit)}
@@ -126,10 +130,18 @@ export const PostCard = ({
             </span>
           </div>
           <div className="text-left">
-            <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
+            <div
+              className={`font-medium text-sm hover:text-orange-400 transition-colors ${
+                isRead ? "text-gray-400" : "text-white"
+              }`}
+            >
               r/{post.subreddit}
             </div>
-            <div className="text-gray-500 text-xs">
+            <div
+              className={`text-xs ${
+                isRead ? "text-gray-600" : "text-gray-500"
+              }`}
+            >
               u/{post.author} • {formatTimeAgo(post.created_utc)}
             </div>
           </div>
@@ -178,7 +190,11 @@ export const PostCard = ({
 
       <div className="px-0 cursor-pointer" onClick={handlePostClick}>
         <div className="px-3 mb-2">
-          <h2 className="text-white font-medium leading-tight text-sm">
+          <h2
+            className={`font-medium leading-tight text-sm ${
+              isRead ? "text-gray-400" : "text-white"
+            }`}
+          >
             {post.title}
           </h2>
         </div>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useSwipe } from "../../hooks/useSwipe";
 import { useNavigation } from "../../hooks/useNavigation";
 import { useAppData } from "../../hooks/useAppData";
+import { useReadPosts } from "../../hooks/useReadPosts";
 import { storage } from "../../utils/storage";
 import { Header } from "./Header";
 import { PostFeed } from "../post/PostFeed";
@@ -40,6 +41,8 @@ export const App = () => {
     handleFavoriteToggle,
   } = useAppData();
 
+  const { markAsRead, isRead } = useReadPosts();
+
   const navigateBack = () => {
     if (currentPage === "post" || currentPage === "bookmarks") {
       setCurrentPage("feed");
@@ -55,6 +58,7 @@ export const App = () => {
     setSelectedPost(post);
     setShowBookmarks(false);
     pushState({ page: "post", postId: post.id });
+    markAsRead(post.id);
   };
 
   const navigateToBookmarks = () => {
@@ -190,6 +194,7 @@ export const App = () => {
           onLoadMore={loadMorePosts}
           error={error || undefined}
           isHomeFeed={isHomeFeed}
+          isRead={isRead}
         />
       </main>
     </div>

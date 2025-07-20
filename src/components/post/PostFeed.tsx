@@ -13,6 +13,7 @@ type PostFeedProps = {
   onLoadMore?: () => void;
   error?: string;
   isHomeFeed?: boolean;
+  isRead?: (postId: string) => boolean;
 };
 
 export const PostFeed = ({
@@ -25,6 +26,7 @@ export const PostFeed = ({
   onLoadMore,
   error,
   isHomeFeed = false,
+  isRead,
 }: PostFeedProps) => {
   if (error) {
     return (
@@ -79,6 +81,7 @@ export const PostFeed = ({
           onPostClick={onPostClick}
           onSubredditClick={onSubredditClick}
           onBookmarkToggle={onBookmarkToggle}
+          isRead={isRead ? isRead(post.id) : false}
         />
       ))}
 
