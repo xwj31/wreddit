@@ -27,6 +27,7 @@ import { Button } from "../../ui/Button";
 import { VideoPlayer } from "../../ui/VideoPlayer";
 import { CommentsList } from "./CommentsList";
 import type { RedditPost, RedditComment } from "../../../types";
+import { LinkifiedText } from "../../../utils/linkParser";
 
 type PostDetailProps = {
   post: RedditPost;
@@ -214,9 +215,11 @@ export const PostDetail = ({
                 }`}
               >
                 <LinkifiedText
-                  text={!showFullText && post.selftext.length > 500
-                    ? post.selftext.slice(0, 500) + "..."
-                    : post.selftext}
+                  text={
+                    !showFullText && post.selftext.length > 500
+                      ? post.selftext.slice(0, 500) + "..."
+                      : post.selftext
+                  }
                   linkClassName="text-blue-400 hover:text-blue-300 underline"
                 />
 

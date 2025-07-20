@@ -43,7 +43,7 @@ export const parseTextWithLinks = (text: string): ParsedSegment[] => {
   URL_REGEX.lastIndex = 0;
   while ((match = URL_REGEX.exec(text)) !== null) {
     const inMarkdown = processedRanges.some(
-      ([start, end]) => match.index >= start && match.index < end
+      ([start, end]) => match!.index >= start && match!.index < end
     );
     if (!inMarkdown) {
       urlMatches.push({
@@ -61,9 +61,9 @@ export const parseTextWithLinks = (text: string): ParsedSegment[] => {
   while ((match = PARTIAL_URL_REGEX.exec(text)) !== null) {
     const inOtherMatch =
       processedRanges.some(
-        ([start, end]) => match.index >= start && match.index < end
+        ([start, end]) => match!.index >= start && match!.index < end
       ) ||
-      urlMatches.some((m) => match.index >= m.start && match.index < m.end);
+      urlMatches.some((m) => match!.index >= m.start && match!.index < m.end);
     if (!inOtherMatch) {
       partialUrlMatches.push({
         start: match.index,
