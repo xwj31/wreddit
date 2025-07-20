@@ -198,6 +198,7 @@ export const PostDetail = ({
                 src={imageUrl}
                 alt="Post content"
                 className="w-full object-contain max-h-[70vh] rounded-lg"
+                loading="eager"
               />
             </div>
           )}
@@ -251,7 +252,16 @@ export const PostDetail = ({
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ExternalLink size={18} />
-                <span>{hasVideo ? "Open Video" : "Open Link"}</span>
+                <span className="break-all">
+                  {(() => {
+                    try {
+                      const url = new URL(post.url);
+                      return `Open ${url.hostname}`;
+                    } catch {
+                      return hasVideo ? "Open Video" : "Open Link";
+                    }
+                  })()}
+                </span>
               </a>
             )}
           </div>

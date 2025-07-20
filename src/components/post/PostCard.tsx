@@ -203,6 +203,7 @@ export const PostCard = ({
               src={images[currentImageIndex].url}
               alt={`Post content ${currentImageIndex + 1} of ${images.length}`}
               className="w-full object-cover max-h-96"
+              loading="eager"
             />
 
             {/* Image navigation for multiple images */}
@@ -301,7 +302,16 @@ export const PostCard = ({
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink size={18} />
-              <span className="text-sm">{hasVideo ? "Video" : "Link"}</span>
+              <span className="text-sm break-all">
+                {(() => {
+                  try {
+                    const url = new URL(post.url);
+                    return url.hostname;
+                  } catch {
+                    return hasVideo ? "Video" : "Link";
+                  }
+                })()}
+              </span>
             </a>
           )}
         </div>
