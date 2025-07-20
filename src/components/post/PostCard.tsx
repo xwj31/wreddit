@@ -256,20 +256,21 @@ export const PostCard = ({
                   {currentImageIndex + 1}/{images.length}
                 </div>
 
-                {/* Dots indicator - Made smaller */}
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                {/* Dots indicator - Tiny dots */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-0.5">
                   {images.map((_, index) => (
-                    <Button
+                    <button
                       key={index}
-                      onClick={(e?: React.MouseEvent<Element>) => {
-                        e?.stopPropagation();
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setCurrentImageIndex(index);
                       }}
-                      className={`w-1 h-1 rounded-full transition-colors ${
+                      className={`w-0.5 h-0.5 rounded-full transition-colors ${
                         index === currentImageIndex
                           ? "bg-white"
                           : "bg-white/50 hover:bg-white/70"
                       }`}
+                      type="button"
                     />
                   ))}
                 </div>
