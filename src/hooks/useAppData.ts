@@ -162,11 +162,13 @@ export const useAppData = () => {
         setError(null);
 
         const currentAfter = afterToken !== undefined ? afterToken : after;
+        // Don't filter by favorites when viewing all/popular/specific subreddits
+        const filtersForRequest = { ...filters, favoriteSubreddits: [] };
         const data = await api.fetchPosts({
           subreddit,
           sort,
           after: !reset ? currentAfter || undefined : undefined,
-          filters,
+          filters: filtersForRequest,
         });
 
         if (reset) {
