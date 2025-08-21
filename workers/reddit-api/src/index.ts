@@ -132,7 +132,7 @@ function log(message: string, data?: LogData): void {
   }
 }
 
-// Cache helper functions
+// Cache helper functions - using fully-qualified URLs as required by Cloudflare Cache API
 function generateCacheKey(
   subreddit: string,
   sort: string,
@@ -140,41 +140,48 @@ function generateCacheKey(
   after: string,
   filters: FilterOptions
 ): string {
-  const filtersHash = JSON.stringify(filters);
-  const key = `posts:${subreddit}:${sort}:${limit}:${after || "none"}:${btoa(
-    filtersHash
-  )}`;
-  return key;
+  const filtersHash = btoa(JSON.stringify(filters));
+  const url = new URL('https://cache.wreddit.internal/posts');
+  url.searchParams.set('subreddit', subreddit);
+  url.searchParams.set('sort', sort);
+  url.searchParams.set('limit', limit);
+  url.searchParams.set('after', after || 'none');
+  url.searchParams.set('filters', filtersHash);
+  return url.toString();
 }
 
 function generateSubredditSearchCacheKey(query: string, limit: string): string {
-  return `search:${query}:${limit}`;
+  const url = new URL('https://cache.wreddit.internal/search');
+  url.searchParams.set('q', query);
+  url.searchParams.set('limit', limit);
+  return url.toString();
 }
 
 function generateSubredditInfoCacheKey(name: string): string {
-  return `info:${name}`;
+  const url = new URL('https://cache.wreddit.internal/info');
+  url.searchParams.set('name', name);
+  return url.toString();
 }
 
 function generateCommentsCacheKey(permalink: string): string {
-  // Remove leading slash and convert to cache key
-  const cleanPermalink = permalink.startsWith("/")
-    ? permalink.slice(1)
-    : permalink;
-  return `comments:${cleanPermalink}`;
+  const url = new URL('https://cache.wreddit.internal/comments');
+  url.searchParams.set('permalink', permalink);
+  return url.toString();
 }
 
 async function getCachedResponse(
   cache: Cache,
-  cacheKey: string,
+  cacheUrl: string,
   requestId: string
 ): Promise<Response | null> {
   try {
-    const cachedResponse = await cache.match(cacheKey);
+    const cacheRequest = new Request(cacheUrl);
+    const cachedResponse = await cache.match(cacheRequest);
     if (cachedResponse) {
-      log(`[${requestId}] Cache hit for key: ${cacheKey}`);
+      log(`[${requestId}] Cache hit for URL: ${cacheUrl}`);
       return cachedResponse;
     }
-    log(`[${requestId}] Cache miss for key: ${cacheKey}`);
+    log(`[${requestId}] Cache miss for URL: ${cacheUrl}`);
     return null;
   } catch (error) {
     log(`[${requestId}] Cache lookup error`, error as LogData);
@@ -184,13 +191,14 @@ async function getCachedResponse(
 
 async function setCachedResponse(
   cache: Cache,
-  cacheKey: string,
+  cacheUrl: string,
   response: Response,
   ttlSeconds: number,
   requestId: string,
   ctx: ExecutionContext
 ): Promise<void> {
   try {
+    const cacheRequest = new Request(cacheUrl);
     // Clone the response and add cache control headers
     const responseToCache = new Response(response.body, response);
     responseToCache.headers.set("Cache-Control", `s-maxage=${ttlSeconds}`);
@@ -198,8 +206,8 @@ async function setCachedResponse(
     responseToCache.headers.set("X-Cache-TTL", ttlSeconds.toString());
 
     // Use waitUntil to cache in background
-    ctx.waitUntil(cache.put(cacheKey, responseToCache));
-    log(`[${requestId}] Cached response with TTL: ${ttlSeconds}s`);
+    ctx.waitUntil(cache.put(cacheRequest, responseToCache));
+    log(`[${requestId}] Cached response with TTL: ${ttlSeconds}s for URL: ${cacheUrl}`);
   } catch (error) {
     log(`[${requestId}] Cache storage error`, error as LogData);
   }
@@ -376,15 +384,15 @@ async function handleSearchSubreddits(
   }
 
   // Generate cache key and check cache first
-  const cacheKey = generateSubredditSearchCacheKey(query, limit);
+  const cacheUrl = generateSubredditSearchCacheKey(query, limit);
   const cache = caches.default;
 
   // Try to get cached response
-  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  const cachedResponse = await getCachedResponse(cache, cacheUrl, requestId);
   if (cachedResponse) {
     const response = new Response(cachedResponse.body, cachedResponse);
     response.headers.set("X-Cache-Status", "HIT");
-    response.headers.set("X-Cache-Key", cacheKey);
+    response.headers.set("X-Cache-Key", cacheUrl);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
@@ -482,7 +490,7 @@ async function handleSearchSubreddits(
         headers: {
           "Content-Type": "application/json",
           "X-Cache-Status": "MISS",
-          "X-Cache-Key": cacheKey,
+          "X-Cache-Key": cacheUrl,
           ...corsHeaders,
         },
       }
@@ -491,7 +499,7 @@ async function handleSearchSubreddits(
     // Cache the response for 30 minutes (1800 seconds) - search results are less volatile
     await setCachedResponse(
       cache,
-      cacheKey,
+      cacheUrl,
       response.clone(),
       1800,
       requestId,
@@ -553,7 +561,7 @@ async function handleGetPosts(
   }
 
   // Generate cache key and check cache first
-  const cacheKey = generateCacheKey(
+  const cacheUrl = generateCacheKey(
     subreddit,
     sort,
     limit,
@@ -563,12 +571,12 @@ async function handleGetPosts(
   const cache = caches.default;
 
   // Try to get cached response
-  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  const cachedResponse = await getCachedResponse(cache, cacheUrl, requestId);
   if (cachedResponse) {
     // Add cache hit header for debugging
     const response = new Response(cachedResponse.body, cachedResponse);
     response.headers.set("X-Cache-Status", "HIT");
-    response.headers.set("X-Cache-Key", cacheKey);
+    response.headers.set("X-Cache-Key", cacheUrl);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
@@ -658,7 +666,7 @@ async function handleGetPosts(
       headers: {
         "Content-Type": "application/json",
         "X-Cache-Status": "MISS",
-        "X-Cache-Key": cacheKey,
+        "X-Cache-Key": cacheUrl,
         ...corsHeaders,
       },
     });
@@ -666,7 +674,7 @@ async function handleGetPosts(
     // Cache the response for 5 minutes (300 seconds)
     await setCachedResponse(
       cache,
-      cacheKey,
+      cacheUrl,
       response.clone(),
       300,
       requestId,
@@ -716,15 +724,15 @@ async function handleGetSubreddit(
   }
 
   // Generate cache key and check cache first
-  const cacheKey = generateSubredditInfoCacheKey(subredditName);
+  const cacheUrl = generateSubredditInfoCacheKey(subredditName);
   const cache = caches.default;
 
   // Try to get cached response
-  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  const cachedResponse = await getCachedResponse(cache, cacheUrl, requestId);
   if (cachedResponse) {
     const response = new Response(cachedResponse.body, cachedResponse);
     response.headers.set("X-Cache-Status", "HIT");
-    response.headers.set("X-Cache-Key", cacheKey);
+    response.headers.set("X-Cache-Key", cacheUrl);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
@@ -785,7 +793,7 @@ async function handleGetSubreddit(
         headers: {
           "Content-Type": "application/json",
           "X-Cache-Status": "MISS",
-          "X-Cache-Key": cacheKey,
+          "X-Cache-Key": cacheUrl,
           ...corsHeaders,
         },
       }
@@ -794,7 +802,7 @@ async function handleGetSubreddit(
     // Cache the response for 1 hour (3600 seconds) - subreddit info changes infrequently
     await setCachedResponse(
       cache,
-      cacheKey,
+      cacheUrl,
       responseObj.clone(),
       3600,
       requestId,
@@ -839,15 +847,15 @@ async function handleGetComments(
   }
 
   // Generate cache key and check cache first
-  const cacheKey = generateCommentsCacheKey(permalink);
+  const cacheUrl = generateCommentsCacheKey(permalink);
   const cache = caches.default;
 
   // Try to get cached response
-  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  const cachedResponse = await getCachedResponse(cache, cacheUrl, requestId);
   if (cachedResponse) {
     const response = new Response(cachedResponse.body, cachedResponse);
     response.headers.set("X-Cache-Status", "HIT");
-    response.headers.set("X-Cache-Key", cacheKey);
+    response.headers.set("X-Cache-Key", cacheUrl);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
@@ -896,7 +904,7 @@ async function handleGetComments(
           headers: {
             "Content-Type": "application/json",
             "X-Cache-Status": "MISS",
-            "X-Cache-Key": cacheKey,
+            "X-Cache-Key": cacheUrl,
             ...corsHeaders,
           },
         }
@@ -932,7 +940,7 @@ async function handleGetComments(
         headers: {
           "Content-Type": "application/json",
           "X-Cache-Status": "MISS",
-          "X-Cache-Key": cacheKey,
+          "X-Cache-Key": cacheUrl,
           ...corsHeaders,
         },
       }
@@ -941,7 +949,7 @@ async function handleGetComments(
     // Cache the response for 15 minutes (900 seconds) - comments change but not too frequently
     await setCachedResponse(
       cache,
-      cacheKey,
+      cacheUrl,
       responseObj.clone(),
       900,
       requestId,
@@ -970,7 +978,7 @@ async function handleGetComments(
         headers: {
           "Content-Type": "application/json",
           "X-Cache-Status": "ERROR",
-          "X-Cache-Key": cacheKey,
+          "X-Cache-Key": cacheUrl,
           ...corsHeaders,
         },
       }
