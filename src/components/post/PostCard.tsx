@@ -90,7 +90,6 @@ export const PostCard = ({
   isRead = false,
 }: PostCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [allImagesLoaded, setAllImagesLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -102,28 +101,11 @@ export const PostCard = ({
 
   // Preload all images on mount
   useEffect(() => {
-    if (hasMultipleImages && images.length > 0) {
-      let loadedCount = 0;
-      const totalImages = images.length;
-
+    if (hasMultipleImages) {
       images.forEach((image) => {
         const img = new Image();
-        img.onload = () => {
-          loadedCount++;
-          if (loadedCount === totalImages) {
-            setAllImagesLoaded(true);
-          }
-        };
-        img.onerror = () => {
-          loadedCount++;
-          if (loadedCount === totalImages) {
-            setAllImagesLoaded(true);
-          }
-        };
         img.src = image.url;
       });
-    } else {
-      setAllImagesLoaded(true);
     }
   }, [hasMultipleImages, images]);
 
