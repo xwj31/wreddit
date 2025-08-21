@@ -310,7 +310,7 @@ export const PostCard = ({
                         e.stopPropagation();
                         setCurrentImageIndex(index);
                       }}
-                      className={`w-0.5 h-0.5 rounded-full transition-colors ${
+                      className={`w-1 h-1 min-w-0 min-h-0 rounded-full transition-colors ${
                         index === currentImageIndex
                           ? "bg-white"
                           : "bg-white/50 hover:bg-white/70"
