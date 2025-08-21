@@ -1,5 +1,5 @@
 // src/components/post/PostCard.tsx - Updated with smaller dots and no fullscreen video
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowUp,
   MessageCircle,
@@ -90,7 +90,7 @@ export const PostCard = ({
   isRead = false,
 }: PostCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set([0]));
+  const [allImagesLoaded, setAllImagesLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -99,6 +99,33 @@ export const PostCard = ({
   const isBookmarked = storage.isBookmarked(post.id);
   const hasVideo = hasVideoContent(post);
   const hasMultipleImages = images.length > 1;
+
+  // Preload all images on mount
+  useEffect(() => {
+    if (hasMultipleImages && images.length > 0) {
+      let loadedCount = 0;
+      const totalImages = images.length;
+
+      images.forEach((image) => {
+        const img = new Image();
+        img.onload = () => {
+          loadedCount++;
+          if (loadedCount === totalImages) {
+            setAllImagesLoaded(true);
+          }
+        };
+        img.onerror = () => {
+          loadedCount++;
+          if (loadedCount === totalImages) {
+            setAllImagesLoaded(true);
+          }
+        };
+        img.src = image.url;
+      });
+    } else {
+      setAllImagesLoaded(true);
+    }
+  }, [hasMultipleImages, images]);
 
   // Handle clicking on the post (but not on interactive elements)
   const handlePostClick = (e: React.MouseEvent) => {
@@ -111,26 +138,12 @@ export const PostCard = ({
     }
   };
 
-  const preloadImage = (index: number) => {
-    if (!preloadedImages.has(index) && images[index]) {
-      const img = new Image();
-      img.src = images[index].url;
-      img.onload = () => {
-        setPreloadedImages((prev) => new Set(prev).add(index));
-      };
-    }
-  };
-
   const nextImage = () => {
-    const nextIndex = (currentImageIndex + 1) % images.length;
-    setCurrentImageIndex(nextIndex);
-    preloadImage((nextIndex + 1) % images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
-    setCurrentImageIndex(prevIndex);
-    preloadImage((prevIndex - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -143,15 +156,15 @@ export const PostCard = ({
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd || !hasMultipleImages) return;
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe && hasMultipleImages) {
+    if (isLeftSwipe) {
       nextImage();
-    }
-    if (isRightSwipe && hasMultipleImages) {
+    } else if (isRightSwipe) {
       prevImage();
     }
   };
@@ -257,18 +270,23 @@ export const PostCard = ({
 
         {/* Multiple images carousel */}
         {!videoInfo && images.length > 0 && (
-          <div 
+          <div
             className="w-full relative"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
-            <img
-              src={images[currentImageIndex].url}
-              alt={`Post content ${currentImageIndex + 1} of ${images.length}`}
-              className="w-full object-cover max-h-96"
-              loading="eager"
-            />
+            {images.map((image, index) => (
+              <img
+                key={index}
+                src={image.url}
+                alt={`Post content ${index + 1} of ${images.length}`}
+                className={`w-full object-cover max-h-96 ${
+                  index === currentImageIndex ? "block" : "hidden"
+                }`}
+                loading="eager"
+              />
+            ))}
 
             {/* Image navigation for multiple images */}
             {hasMultipleImages && (
@@ -302,20 +320,22 @@ export const PostCard = ({
                 </div>
 
                 {/* Dots indicator - Tiny dots */}
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
                   {images.map((_, index) => (
-                    <button
+                    <div
                       key={index}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentImageIndex(index);
                       }}
-                      className={`w-1 h-1 min-w-0 min-h-0 rounded-full transition-colors ${
+                      className={`w-1 h-1 rounded-full transition-colors cursor-pointer ${
                         index === currentImageIndex
                           ? "bg-white"
                           : "bg-white/50 hover:bg-white/70"
                       }`}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Go to image ${index + 1}`}
                     />
                   ))}
                 </div>
@@ -329,9 +349,11 @@ export const PostCard = ({
           <div className="px-3 mt-2">
             <p className="text-gray-300 text-sm leading-relaxed break-words overflow-wrap-anywhere">
               <LinkifiedText
-                text={post.selftext.length > 200
-                  ? `${post.selftext.slice(0, 200)}...`
-                  : post.selftext}
+                text={
+                  post.selftext.length > 200
+                    ? `${post.selftext.slice(0, 200)}...`
+                    : post.selftext
+                }
                 linkClassName="text-blue-400 hover:text-blue-300 underline"
               />
             </p>
