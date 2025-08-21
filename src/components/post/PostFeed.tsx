@@ -1,7 +1,9 @@
 import { RefreshCw, Home } from "lucide-react";
+import { useState, useEffect } from "react";
 import { PostCard } from "./PostCard";
 import { Button } from "../ui/Button";
-import type { RedditPost } from "../../types";
+import { api } from "../../api/reddit";
+import type { RedditPost, RedditComment } from "../../types";
 
 type PostFeedProps = {
   posts: RedditPost[];
@@ -28,6 +30,20 @@ export const PostFeed = ({
   isHomeFeed = false,
   isRead,
 }: PostFeedProps) => {
+  const [previewComments, setPreviewComments] = useState<Map<string, RedditComment[]>>(new Map());
+
+  // Preload comments when posts change
+  useEffect(() => {
+    if (posts.length > 0) {
+      const loadComments = async () => {
+        // Get permalinks for first 10 posts (to limit API calls)
+        const permalinks = posts.slice(0, 10).map(p => p.permalink);
+        const commentsMap = await api.fetchInitialComments(permalinks);
+        setPreviewComments(commentsMap);
+      };
+      loadComments();
+    }
+  }, [posts]);
   if (error) {
     return (
       <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">
@@ -82,6 +98,7 @@ export const PostFeed = ({
           onSubredditClick={onSubredditClick}
           onBookmarkToggle={onBookmarkToggle}
           isRead={isRead ? isRead(post.id) : false}
+          previewComments={previewComments.get(post.permalink) || []}
         />
       ))}
 

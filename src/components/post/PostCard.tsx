@@ -8,13 +8,15 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
 import { LinkifiedText } from "../../utils/linkParser";
 import { Button } from "../ui/Button";
 import { VideoPlayer } from "../ui/VideoPlayer";
-import type { RedditPost } from "../../types";
+import type { RedditPost, RedditComment } from "../../types";
 import { storage } from "../../utils/storage";
 
 type PostCardProps = {
@@ -23,6 +25,7 @@ type PostCardProps = {
   onSubredditClick?: (subreddit: string) => void;
   onBookmarkToggle?: (post: RedditPost) => void;
   isRead?: boolean;
+  previewComments?: RedditComment[];
 };
 
 // Define the media metadata item type based on your types.ts
@@ -88,10 +91,12 @@ export const PostCard = ({
   onSubredditClick,
   onBookmarkToggle,
   isRead = false,
+  previewComments = [],
 }: PostCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [showCommentPreview, setShowCommentPreview] = useState(false);
 
   const images = getPostImages(post);
   const videoInfo = getVideoInfo(post);
@@ -345,13 +350,19 @@ export const PostCard = ({
 
       <div className="flex items-center justify-between px-3 py-3">
         <Button
-          onClick={() => onPostClick(post)}
+          onClick={(e) => {
+            e?.stopPropagation();
+            setShowCommentPreview(!showCommentPreview);
+          }}
           className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
         >
           <MessageCircle size={20} />
           <span className="text-sm font-medium">
             {post.num_comments} comments
           </span>
+          {previewComments.length > 0 && (
+            showCommentPreview ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+          )}
         </Button>
 
         <div className="flex items-center gap-1">
@@ -388,6 +399,45 @@ export const PostCard = ({
           )}
         </div>
       </div>
+
+      {/* Comment Preview Section */}
+      {showCommentPreview && previewComments.length > 0 && (
+        <div className="border-t border-gray-800 bg-gray-900/50 animate-in slide-in-from-top-2 duration-200">
+          <div className="px-3 py-3 space-y-3">
+            {previewComments.map((comment) => (
+              <div key={comment.id} className="border-l-2 border-gray-700 pl-3">
+                <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                  <span className="font-medium">{comment.author}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <ArrowUp size={10} />
+                    {formatScore(comment.score)}
+                  </span>
+                  <span>•</span>
+                  <span>{formatTimeAgo(comment.created_utc)}</span>
+                </div>
+                <div className="text-sm text-gray-300">
+                  <LinkifiedText
+                    text={comment.body.length > 150 
+                      ? `${comment.body.slice(0, 150)}...` 
+                      : comment.body}
+                    linkClassName="text-blue-400 hover:text-blue-300 underline"
+                  />
+                </div>
+              </div>
+            ))}
+            
+            {post.num_comments > previewComments.length && (
+              <Button
+                onClick={() => onPostClick(post)}
+                className="text-sm text-blue-400 hover:text-blue-300 font-medium"
+              >
+                View all {post.num_comments} comments →
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </article>
   );
 };

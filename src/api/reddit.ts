@@ -114,6 +114,30 @@ export const api = {
     }
   },
 
+  fetchInitialComments: async (permalinks: string[]): Promise<Map<string, RedditComment[]>> => {
+    const commentsMap = new Map<string, RedditComment[]>();
+    
+    // Fetch comments for each post in parallel
+    const promises = permalinks.map(async (permalink) => {
+      try {
+        const comments = await api.fetchComments(permalink);
+        // Only take first 3 top-level comments for preview
+        const topComments = comments.slice(0, 3);
+        return { permalink, comments: topComments };
+      } catch (error) {
+        console.warn(`Failed to fetch comments for ${permalink}:`, error);
+        return { permalink, comments: [] };
+      }
+    });
+    
+    const results = await Promise.all(promises);
+    results.forEach(({ permalink, comments }) => {
+      commentsMap.set(permalink, comments);
+    });
+    
+    return commentsMap;
+  },
+
   searchSubreddits: async (query: string): Promise<{ name: string; display_name: string; subscribers: number; public_description: string }[]> => {
     if (!query.trim()) return [];
 
