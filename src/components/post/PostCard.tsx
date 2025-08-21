@@ -10,12 +10,14 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
 } from "lucide-react";
 import { formatTimeAgo, formatScore, getImageUrl } from "../../utils";
 import { getVideoInfo, hasVideoContent } from "../../utils/video";
 import { LinkifiedText } from "../../utils/linkParser";
 import { Button } from "../ui/Button";
 import { VideoPlayer } from "../ui/VideoPlayer";
+import { api } from "../../api/reddit";
 import type { RedditPost, RedditComment } from "../../types";
 import { storage } from "../../utils/storage";
 
@@ -97,12 +99,19 @@ export const PostCard = ({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [showCommentPreview, setShowCommentPreview] = useState(false);
+  const [loadedComments, setLoadedComments] = useState<RedditComment[]>(previewComments);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   const images = getPostImages(post);
   const videoInfo = getVideoInfo(post);
   const isBookmarked = storage.isBookmarked(post.id);
   const hasVideo = hasVideoContent(post);
   const hasMultipleImages = images.length > 1;
+
+  // Update loaded comments when previewComments prop changes
+  useEffect(() => {
+    setLoadedComments(previewComments);
+  }, [previewComments]);
 
   // Preload all images on mount
   useEffect(() => {
@@ -113,6 +122,27 @@ export const PostCard = ({
       });
     }
   }, [hasMultipleImages, images]);
+
+  // Load comments on demand if not preloaded
+  const handleCommentToggle = async (e: React.MouseEvent) => {
+    e?.stopPropagation();
+    
+    if (!showCommentPreview && loadedComments.length === 0 && post.num_comments > 0) {
+      // Need to load comments
+      setLoadingComments(true);
+      try {
+        const comments = await api.fetchComments(post.permalink);
+        const topComments = comments.slice(0, 3); // Take first 3 like preload
+        setLoadedComments(topComments);
+      } catch (error) {
+        console.warn('Failed to load comments:', error);
+      } finally {
+        setLoadingComments(false);
+      }
+    }
+    
+    setShowCommentPreview(!showCommentPreview);
+  };
 
   // Handle clicking on the post (but not on interactive elements)
   const handlePostClick = (e: React.MouseEvent) => {
@@ -350,19 +380,19 @@ export const PostCard = ({
 
       <div className="flex items-center justify-between px-3 py-3">
         <Button
-          onClick={(e) => {
-            e?.stopPropagation();
-            setShowCommentPreview(!showCommentPreview);
-          }}
+          onClick={handleCommentToggle}
           className="flex items-center gap-2 text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-800/50"
+          disabled={loadingComments}
         >
           <MessageCircle size={20} />
           <span className="text-sm font-medium">
             {post.num_comments} comments
           </span>
-          {previewComments.length > 0 && (
+          {loadingComments ? (
+            <RefreshCw size={16} className="animate-spin" />
+          ) : post.num_comments > 0 ? (
             showCommentPreview ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-          )}
+          ) : null}
         </Button>
 
         <div className="flex items-center gap-1">
@@ -401,10 +431,10 @@ export const PostCard = ({
       </div>
 
       {/* Comment Preview Section */}
-      {showCommentPreview && previewComments.length > 0 && (
+      {showCommentPreview && loadedComments.length > 0 && (
         <div className="border-t border-gray-800 bg-gray-900/50 animate-in slide-in-from-top-2 duration-200">
           <div className="px-3 py-3 space-y-3">
-            {previewComments.map((comment) => (
+            {loadedComments.map((comment) => (
               <div key={comment.id} className="border-l-2 border-gray-700 pl-3">
                 <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                   <span className="font-medium">{comment.author}</span>
@@ -427,7 +457,7 @@ export const PostCard = ({
               </div>
             ))}
             
-            {post.num_comments > previewComments.length && (
+            {post.num_comments > loadedComments.length && (
               <Button
                 onClick={() => onPostClick(post)}
                 className="text-sm text-blue-400 hover:text-blue-300 font-medium"
