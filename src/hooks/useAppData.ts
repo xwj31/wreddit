@@ -80,7 +80,8 @@ export const useAppData = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch from each subreddit concurrently
+        // Fetch from each subreddit with built-in spacing via the RequestQueue
+        // The API client already handles request spacing and caching
         const promises = subreddits.map(async (sub) => {
           try {
             const data = await api.fetchPosts({
@@ -96,6 +97,8 @@ export const useAppData = () => {
           }
         });
 
+        // Wait for all requests to complete
+        // The RequestQueue will handle spacing them appropriately
         const results = await Promise.all(promises);
         const allPosts = results.flat();
 

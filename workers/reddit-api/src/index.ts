@@ -84,6 +84,19 @@ interface FilterOptions {
   [key: string]: unknown; // Add index signature for flexibility
 }
 
+// Reddit API response types
+interface RedditCommentsResponse {
+  0: unknown; // Post data
+  1: {
+    data?: {
+      children?: Array<{
+        kind: string;
+        data: unknown;
+      }>;
+    };
+  };
+}
+
 // Enhanced logging function with proper TypeScript types
 type LogData =
   | string
@@ -116,6 +129,79 @@ function log(message: string, data?: LogData): void {
     }
   } else {
     console.log(`[${timestamp}] ${message}`);
+  }
+}
+
+// Cache helper functions
+function generateCacheKey(
+  subreddit: string,
+  sort: string,
+  limit: string,
+  after: string,
+  filters: FilterOptions
+): string {
+  const filtersHash = JSON.stringify(filters);
+  const key = `posts:${subreddit}:${sort}:${limit}:${after || "none"}:${btoa(
+    filtersHash
+  )}`;
+  return key;
+}
+
+function generateSubredditSearchCacheKey(query: string, limit: string): string {
+  return `search:${query}:${limit}`;
+}
+
+function generateSubredditInfoCacheKey(name: string): string {
+  return `info:${name}`;
+}
+
+function generateCommentsCacheKey(permalink: string): string {
+  // Remove leading slash and convert to cache key
+  const cleanPermalink = permalink.startsWith("/")
+    ? permalink.slice(1)
+    : permalink;
+  return `comments:${cleanPermalink}`;
+}
+
+async function getCachedResponse(
+  cache: Cache,
+  cacheKey: string,
+  requestId: string
+): Promise<Response | null> {
+  try {
+    const cachedResponse = await cache.match(cacheKey);
+    if (cachedResponse) {
+      log(`[${requestId}] Cache hit for key: ${cacheKey}`);
+      return cachedResponse;
+    }
+    log(`[${requestId}] Cache miss for key: ${cacheKey}`);
+    return null;
+  } catch (error) {
+    log(`[${requestId}] Cache lookup error`, error as LogData);
+    return null;
+  }
+}
+
+async function setCachedResponse(
+  cache: Cache,
+  cacheKey: string,
+  response: Response,
+  ttlSeconds: number,
+  requestId: string,
+  ctx: ExecutionContext
+): Promise<void> {
+  try {
+    // Clone the response and add cache control headers
+    const responseToCache = new Response(response.body, response);
+    responseToCache.headers.set("Cache-Control", `s-maxage=${ttlSeconds}`);
+    responseToCache.headers.set("X-Cached-At", new Date().toISOString());
+    responseToCache.headers.set("X-Cache-TTL", ttlSeconds.toString());
+
+    // Use waitUntil to cache in background
+    ctx.waitUntil(cache.put(cacheKey, responseToCache));
+    log(`[${requestId}] Cached response with TTL: ${ttlSeconds}s`);
+  } catch (error) {
+    log(`[${requestId}] Cache storage error`, error as LogData);
   }
 }
 
@@ -152,7 +238,11 @@ function hasVideoContent(post: RedditPost): boolean {
 }
 
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: unknown,
+    ctx: ExecutionContext
+  ): Promise<Response> {
     const requestId = crypto.randomUUID().substring(0, 8);
 
     log(`[${requestId}] Incoming request`, {
@@ -185,11 +275,18 @@ export default {
 
     try {
       if (path === "/api/posts") {
-        return await handleGetPosts(request, corsHeaders, requestId);
+        return await handleGetPosts(request, corsHeaders, requestId, ctx);
       } else if (path === "/api/subreddit") {
-        return await handleGetSubreddit(request, corsHeaders, requestId);
+        return await handleGetSubreddit(request, corsHeaders, requestId, ctx);
       } else if (path === "/api/search-subreddits") {
-        return await handleSearchSubreddits(request, corsHeaders, requestId);
+        return await handleSearchSubreddits(
+          request,
+          corsHeaders,
+          requestId,
+          ctx
+        );
+      } else if (path === "/api/comments") {
+        return await handleGetComments(request, corsHeaders, requestId, ctx);
       } else if (path === "/api/health") {
         return await handleHealthCheck(corsHeaders, requestId);
       }
@@ -251,7 +348,8 @@ async function handleHealthCheck(
 async function handleSearchSubreddits(
   request: Request,
   corsHeaders: Record<string, string>,
-  requestId: string
+  requestId: string,
+  ctx: ExecutionContext
 ): Promise<Response> {
   const url = new URL(request.url);
   const query = url.searchParams.get("q") || "";
@@ -277,6 +375,22 @@ async function handleSearchSubreddits(
     );
   }
 
+  // Generate cache key and check cache first
+  const cacheKey = generateSubredditSearchCacheKey(query, limit);
+  const cache = caches.default;
+
+  // Try to get cached response
+  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  if (cachedResponse) {
+    const response = new Response(cachedResponse.body, cachedResponse);
+    response.headers.set("X-Cache-Status", "HIT");
+    response.headers.set("X-Cache-Key", cacheKey);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
+
   try {
     // Use Reddit's search API to find subreddits
     const searchUrl = `https://www.reddit.com/api/search_reddit_names.json?query=${encodeURIComponent(
@@ -288,7 +402,7 @@ async function handleSearchSubreddits(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(searchUrl, {
+    const searchResponse = await fetch(searchUrl, {
       headers: {
         "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
         Accept: "application/json",
@@ -298,11 +412,11 @@ async function handleSearchSubreddits(
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`Reddit API error: ${response.status}`);
+    if (!searchResponse.ok) {
+      throw new Error(`Reddit API error: ${searchResponse.status}`);
     }
 
-    const data = (await response.json()) as { names: string[] };
+    const data = (await searchResponse.json()) as { names: string[] };
 
     // Get detailed info for each subreddit
     const subredditPromises = data.names
@@ -358,7 +472,8 @@ async function handleSearchSubreddits(
 
     log(`[${requestId}] Found ${subreddits.length} subreddits`);
 
-    return new Response(
+    // Create response with cache miss header
+    const response = new Response(
       JSON.stringify({
         subreddits,
         requestId,
@@ -366,10 +481,24 @@ async function handleSearchSubreddits(
       {
         headers: {
           "Content-Type": "application/json",
+          "X-Cache-Status": "MISS",
+          "X-Cache-Key": cacheKey,
           ...corsHeaders,
         },
       }
     );
+
+    // Cache the response for 30 minutes (1800 seconds) - search results are less volatile
+    await setCachedResponse(
+      cache,
+      cacheKey,
+      response.clone(),
+      1800,
+      requestId,
+      ctx
+    );
+
+    return response;
   } catch (error) {
     log(`[${requestId}] Error searching subreddits`, {
       error: error instanceof Error ? error.message : String(error),
@@ -387,7 +516,8 @@ async function handleSearchSubreddits(
 async function handleGetPosts(
   request: Request,
   corsHeaders: Record<string, string>,
-  requestId: string
+  requestId: string,
+  ctx: ExecutionContext
 ): Promise<Response> {
   const url = new URL(request.url);
   const subreddit = url.searchParams.get("subreddit") || "all";
@@ -422,6 +552,29 @@ async function handleGetPosts(
     }
   }
 
+  // Generate cache key and check cache first
+  const cacheKey = generateCacheKey(
+    subreddit,
+    sort,
+    limit,
+    after,
+    filterOptions
+  );
+  const cache = caches.default;
+
+  // Try to get cached response
+  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  if (cachedResponse) {
+    // Add cache hit header for debugging
+    const response = new Response(cachedResponse.body, cachedResponse);
+    response.headers.set("X-Cache-Status", "HIT");
+    response.headers.set("X-Cache-Key", cacheKey);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
+
   // Build Reddit API URL
   let redditUrl = `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`;
   if (after) {
@@ -435,7 +588,7 @@ async function handleGetPosts(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const response = await fetch(redditUrl, {
+    const redditResponse = await fetch(redditUrl, {
       headers: {
         "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
         Accept: "application/json",
@@ -446,22 +599,24 @@ async function handleGetPosts(
     clearTimeout(timeoutId);
 
     log(`[${requestId}] Reddit API response`, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
+      status: redditResponse.status,
+      statusText: redditResponse.statusText,
+      headers: Object.fromEntries(redditResponse.headers.entries()),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!redditResponse.ok) {
+      const errorText = await redditResponse.text();
       log(`[${requestId}] Reddit API error response`, {
-        status: response.status,
+        status: redditResponse.status,
         body: errorText,
       });
 
-      throw new Error(`Reddit API error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Reddit API error: ${redditResponse.status} - ${errorText}`
+      );
     }
 
-    const data: RedditResponse = await response.json();
+    const data: RedditResponse = await redditResponse.json();
 
     log(`[${requestId}] Reddit API data received`, {
       postsCount: data.data.children.length,
@@ -498,12 +653,27 @@ async function handleGetPosts(
       },
     };
 
-    return new Response(JSON.stringify(result), {
+    // Create response with cache miss header
+    const response = new Response(JSON.stringify(result), {
       headers: {
         "Content-Type": "application/json",
+        "X-Cache-Status": "MISS",
+        "X-Cache-Key": cacheKey,
         ...corsHeaders,
       },
     });
+
+    // Cache the response for 5 minutes (300 seconds)
+    await setCachedResponse(
+      cache,
+      cacheKey,
+      response.clone(),
+      300,
+      requestId,
+      ctx
+    );
+
+    return response;
   } catch (error) {
     log(`[${requestId}] Error fetching from Reddit`, {
       error: error instanceof Error ? error.message : String(error),
@@ -521,7 +691,8 @@ async function handleGetPosts(
 async function handleGetSubreddit(
   request: Request,
   corsHeaders: Record<string, string>,
-  requestId: string
+  requestId: string,
+  ctx: ExecutionContext
 ): Promise<Response> {
   const url = new URL(request.url);
   const subredditName = url.searchParams.get("name");
@@ -544,11 +715,27 @@ async function handleGetSubreddit(
     );
   }
 
+  // Generate cache key and check cache first
+  const cacheKey = generateSubredditInfoCacheKey(subredditName);
+  const cache = caches.default;
+
+  // Try to get cached response
+  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  if (cachedResponse) {
+    const response = new Response(cachedResponse.body, cachedResponse);
+    response.headers.set("X-Cache-Status", "HIT");
+    response.headers.set("X-Cache-Key", cacheKey);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
+
   const aboutUrl = `https://www.reddit.com/r/${subredditName}/about.json`;
   log(`[${requestId}] Fetching subreddit info from: ${aboutUrl}`);
 
   try {
-    const response = await fetch(aboutUrl, {
+    const subredditResponse = await fetch(aboutUrl, {
       headers: {
         "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
         Accept: "application/json",
@@ -556,14 +743,14 @@ async function handleGetSubreddit(
     });
 
     log(`[${requestId}] Subreddit API response`, {
-      status: response.status,
-      statusText: response.statusText,
+      status: subredditResponse.status,
+      statusText: subredditResponse.statusText,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!subredditResponse.ok) {
+      const errorText = await subredditResponse.text();
       log(`[${requestId}] Subreddit API error`, {
-        status: response.status,
+        status: subredditResponse.status,
         body: errorText,
       });
 
@@ -583,10 +770,13 @@ async function handleGetSubreddit(
       );
     }
 
-    const data = (await response.json()) as { data: Record<string, unknown> };
+    const data = (await subredditResponse.json()) as {
+      data: Record<string, unknown>;
+    };
     log(`[${requestId}] Subreddit data received successfully`);
 
-    return new Response(
+    // Create response with cache miss header
+    const responseObj = new Response(
       JSON.stringify({
         ...data.data,
         requestId,
@@ -594,16 +784,197 @@ async function handleGetSubreddit(
       {
         headers: {
           "Content-Type": "application/json",
+          "X-Cache-Status": "MISS",
+          "X-Cache-Key": cacheKey,
           ...corsHeaders,
         },
       }
     );
+
+    // Cache the response for 1 hour (3600 seconds) - subreddit info changes infrequently
+    await setCachedResponse(
+      cache,
+      cacheKey,
+      responseObj.clone(),
+      3600,
+      requestId,
+      ctx
+    );
+
+    return responseObj;
   } catch (error) {
     log(`[${requestId}] Error fetching subreddit info`, {
       error: error instanceof Error ? error.message : String(error),
       subreddit: subredditName,
     });
     throw error;
+  }
+}
+
+async function handleGetComments(
+  request: Request,
+  corsHeaders: Record<string, string>,
+  requestId: string,
+  ctx: ExecutionContext
+): Promise<Response> {
+  const url = new URL(request.url);
+  const permalink = url.searchParams.get("permalink");
+
+  log(`[${requestId}] Comments request for: ${permalink}`);
+
+  if (!permalink) {
+    return new Response(
+      JSON.stringify({
+        error: "Permalink is required",
+        requestId,
+      }),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
+  }
+
+  // Generate cache key and check cache first
+  const cacheKey = generateCommentsCacheKey(permalink);
+  const cache = caches.default;
+
+  // Try to get cached response
+  const cachedResponse = await getCachedResponse(cache, cacheKey, requestId);
+  if (cachedResponse) {
+    const response = new Response(cachedResponse.body, cachedResponse);
+    response.headers.set("X-Cache-Status", "HIT");
+    response.headers.set("X-Cache-Key", cacheKey);
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
+
+  // Build Reddit API URL for comments
+  const commentsUrl = `https://www.reddit.com${permalink}.json`;
+  log(`[${requestId}] Fetching comments from: ${commentsUrl}`);
+
+  try {
+    // Fetch from Reddit API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const commentsResponse = await fetch(commentsUrl, {
+      headers: {
+        "User-Agent": "WReddit/1.0.0 (by /u/wreddit_app)",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    log(`[${requestId}] Reddit comments API response`, {
+      status: commentsResponse.status,
+      statusText: commentsResponse.statusText,
+    });
+
+    if (!commentsResponse.ok) {
+      const errorText = await commentsResponse.text();
+      log(`[${requestId}] Reddit comments API error`, {
+        status: commentsResponse.status,
+        body: errorText,
+      });
+
+      // Return empty comments array on error to avoid breaking the UI
+      const errorResponse = new Response(
+        JSON.stringify({
+          comments: [],
+          error: `Reddit API error: ${commentsResponse.status}`,
+          requestId,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Cache-Status": "MISS",
+            "X-Cache-Key": cacheKey,
+            ...corsHeaders,
+          },
+        }
+      );
+
+      return errorResponse;
+    }
+
+    const data = await commentsResponse.json() as RedditCommentsResponse;
+
+    // Extract comments from Reddit response
+    const comments: unknown[] = [];
+    if (data?.[1]?.data?.children) {
+      const children = data[1].data.children;
+      for (const child of children) {
+        if (child.kind === "t1") {
+          comments.push(child.data);
+        }
+      }
+    }
+
+    log(`[${requestId}] Comments processed`, {
+      commentsCount: comments.length,
+    });
+
+    // Create response with cache miss header
+    const responseObj = new Response(
+      JSON.stringify({
+        comments,
+        requestId,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Cache-Status": "MISS",
+          "X-Cache-Key": cacheKey,
+          ...corsHeaders,
+        },
+      }
+    );
+
+    // Cache the response for 15 minutes (900 seconds) - comments change but not too frequently
+    await setCachedResponse(
+      cache,
+      cacheKey,
+      responseObj.clone(),
+      900,
+      requestId,
+      ctx
+    );
+
+    return responseObj;
+  } catch (error) {
+    log(`[${requestId}] Error fetching comments`, {
+      error: error instanceof Error ? error.message : String(error),
+      permalink,
+    });
+
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout - Reddit API took too long to respond");
+    }
+
+    // Return empty comments array on error
+    return new Response(
+      JSON.stringify({
+        comments: [],
+        error: "Failed to fetch comments",
+        requestId,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Cache-Status": "ERROR",
+          "X-Cache-Key": cacheKey,
+          ...corsHeaders,
+        },
+      }
+    );
   }
 }
 
