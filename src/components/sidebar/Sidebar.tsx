@@ -97,6 +97,34 @@ export const Sidebar = ({
             )}
 
             <Button
+              onClick={() => handleSubredditClick("all")}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left mb-2 ${
+                currentSubreddit === "all"
+                  ? "bg-orange-600/20 text-orange-400 border border-orange-600/40"
+                  : "text-gray-300 hover:bg-gray-800"
+              }`}
+            >
+              <div className="w-[18px] h-[18px] rounded-full bg-orange-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">A</span>
+              </div>
+              <span>All</span>
+            </Button>
+
+            <Button
+              onClick={() => handleSubredditClick("popular")}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left mb-2 ${
+                currentSubreddit === "popular"
+                  ? "bg-purple-600/20 text-purple-400 border border-purple-600/40"
+                  : "text-gray-300 hover:bg-gray-800"
+              }`}
+            >
+              <div className="w-[18px] h-[18px] rounded-full bg-purple-500 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">P</span>
+              </div>
+              <span>Popular</span>
+            </Button>
+
+            <Button
               onClick={() => {
                 onNavigateToBookmarks?.();
                 onClose();

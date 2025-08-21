@@ -85,7 +85,7 @@ export const PostFeed = ({
         />
       ))}
 
-      {hasMore && !loading && !isHomeFeed && (
+      {hasMore && !loading && (
         <div className="p-4">
           <Button
             onClick={onLoadMore}

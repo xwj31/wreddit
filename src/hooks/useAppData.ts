@@ -11,6 +11,7 @@ export const useAppData = () => {
   const [error, setError] = useState<string | null>(null);
   const [after, setAfter] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
+  const [homeFeedPage, setHomeFeedPage] = useState(0);
 
   const [subreddit, setSubreddit] = useState(() => storage.getSubreddit());
   const [sort, setSort] = useState(() => storage.getSort());
@@ -75,11 +76,13 @@ export const useAppData = () => {
 
   // Function to fetch from multiple subreddits and combine results
   const fetchMultipleSubreddits = useCallback(
-    async (subreddits: string[], reset = false, afterToken?: string) => {
+    async (subreddits: string[], reset = false, page?: number) => {
       try {
         setLoading(true);
         setError(null);
 
+        const currentPage = page !== undefined ? page : homeFeedPage;
+        
         // Fetch from each subreddit with built-in spacing via the RequestQueue
         // The API client already handles request spacing and caching
         const promises = subreddits.map(async (sub) => {
@@ -87,7 +90,7 @@ export const useAppData = () => {
             const data = await api.fetchPosts({
               subreddit: sub,
               sort,
-              after: !reset && afterToken ? afterToken : undefined,
+              after: !reset && currentPage > 0 ? `t3_page${currentPage}` : undefined,
               filters: { ...filters, favoriteSubreddits: [] }, // Don't filter by favorites when fetching individual subs
             });
             return data.posts;
@@ -112,10 +115,11 @@ export const useAppData = () => {
         const sortedPosts = sortPostsForHomeFeed(uniquePosts);
 
         // Limit to reasonable number of posts
-        const limitedPosts = sortedPosts.slice(0, reset ? 25 : 50);
+        const limitedPosts = sortedPosts.slice(0, 25);
 
         if (reset) {
           setPosts(limitedPosts);
+          setHomeFeedPage(0);
         } else {
           setPosts((prev) => {
             const combined = [...prev, ...limitedPosts];
@@ -124,13 +128,13 @@ export const useAppData = () => {
               (post, index, self) =>
                 index === self.findIndex((p) => p.id === post.id)
             );
-            return sortPostsForHomeFeed(uniqueCombined);
+            return uniqueCombined;
           });
+          setHomeFeedPage(currentPage + 1);
         }
 
-        // For multi-subreddit feeds, we don't have a reliable "after" token
-        // so we'll disable infinite scroll for now
-        setAfter(null);
+        // Set a fake after token to enable Load More button
+        setAfter(limitedPosts.length > 0 ? "has_more" : null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         setError(errorMessage);
@@ -138,7 +142,7 @@ export const useAppData = () => {
         setLoading(false);
       }
     },
-    [sort, filters, sortPostsForHomeFeed]
+    [sort, filters, sortPostsForHomeFeed, homeFeedPage]
   );
 
   const fetchPosts = useCallback(
@@ -148,7 +152,7 @@ export const useAppData = () => {
         return fetchMultipleSubreddits(
           filters.favoriteSubreddits,
           reset,
-          afterToken
+          reset ? 0 : undefined
         );
       }
 
@@ -183,7 +187,6 @@ export const useAppData = () => {
       subreddit,
       sort,
       filters,
-      after,
       shouldUseFavoritesFeed,
       fetchMultipleSubreddits,
     ]
@@ -195,15 +198,17 @@ export const useAppData = () => {
   }, [subreddit, sort, filters, fetchPosts]);
 
   const loadMorePosts = useCallback(() => {
-    // Don't allow load more for multi-subreddit feeds for now
     if (shouldUseFavoritesFeed()) {
+      if (!loading) {
+        fetchMultipleSubreddits(filters.favoriteSubreddits, false, homeFeedPage + 1);
+      }
       return;
     }
 
     if (after && !loading) {
       fetchPosts(false, after);
     }
-  }, [after, loading, fetchPosts, shouldUseFavoritesFeed]);
+  }, [after, loading, fetchPosts, shouldUseFavoritesFeed, filters.favoriteSubreddits, homeFeedPage, fetchMultipleSubreddits]);
 
   const handleBookmarkToggle = useCallback((post: RedditPost) => {
     if (storage.isBookmarked(post.id)) {
@@ -234,7 +239,7 @@ export const useAppData = () => {
     posts,
     loading,
     error,
-    after: shouldUseFavoritesFeed() ? null : after, // Disable infinite scroll for multi-subreddit
+    after,
     bookmarks,
     subreddit,
     sort,

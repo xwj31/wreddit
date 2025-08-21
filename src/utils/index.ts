@@ -70,3 +70,7 @@ export const sharePost = async (post: {
 
 // Re-export video utilities
 export * from "./video";
+
+// Re-export link parser utilities
+export { parseTextWithLinks } from "./linkParserUtils";
+export { LinkifiedText } from "./linkParser";

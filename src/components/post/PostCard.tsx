@@ -90,6 +90,9 @@ export const PostCard = ({
   isRead = false,
 }: PostCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set([0]));
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const images = getPostImages(post);
   const videoInfo = getVideoInfo(post);
@@ -108,12 +111,49 @@ export const PostCard = ({
     }
   };
 
+  const preloadImage = (index: number) => {
+    if (!preloadedImages.has(index) && images[index]) {
+      const img = new Image();
+      img.src = images[index].url;
+      img.onload = () => {
+        setPreloadedImages((prev) => new Set(prev).add(index));
+      };
+    }
+  };
+
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    const nextIndex = (currentImageIndex + 1) % images.length;
+    setCurrentImageIndex(nextIndex);
+    preloadImage((nextIndex + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
+    setCurrentImageIndex(prevIndex);
+    preloadImage((prevIndex - 1 + images.length) % images.length);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && hasMultipleImages) {
+      nextImage();
+    }
+    if (isRightSwipe && hasMultipleImages) {
+      prevImage();
+    }
   };
 
   return (
@@ -217,7 +257,12 @@ export const PostCard = ({
 
         {/* Multiple images carousel */}
         {!videoInfo && images.length > 0 && (
-          <div className="w-full relative">
+          <div 
+            className="w-full relative"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <img
               src={images[currentImageIndex].url}
               alt={`Post content ${currentImageIndex + 1} of ${images.length}`}
