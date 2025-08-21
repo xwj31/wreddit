@@ -99,7 +99,8 @@ export const PostCard = ({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [showCommentPreview, setShowCommentPreview] = useState(false);
-  const [loadedComments, setLoadedComments] = useState<RedditComment[]>(previewComments);
+  const [loadedComments, setLoadedComments] =
+    useState<RedditComment[]>(previewComments);
   const [loadingComments, setLoadingComments] = useState(false);
 
   const images = getPostImages(post);
@@ -124,10 +125,14 @@ export const PostCard = ({
   }, [hasMultipleImages, images]);
 
   // Load comments on demand if not preloaded
-  const handleCommentToggle = async (e: React.MouseEvent) => {
+  const handleCommentToggle = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    
-    if (!showCommentPreview && loadedComments.length === 0 && post.num_comments > 0) {
+
+    if (
+      !showCommentPreview &&
+      loadedComments.length === 0 &&
+      post.num_comments > 0
+    ) {
       // Need to load comments
       setLoadingComments(true);
       try {
@@ -135,12 +140,12 @@ export const PostCard = ({
         const topComments = comments.slice(0, 3); // Take first 3 like preload
         setLoadedComments(topComments);
       } catch (error) {
-        console.warn('Failed to load comments:', error);
+        console.warn("Failed to load comments:", error);
       } finally {
         setLoadingComments(false);
       }
     }
-    
+
     setShowCommentPreview(!showCommentPreview);
   };
 
@@ -391,7 +396,11 @@ export const PostCard = ({
           {loadingComments ? (
             <RefreshCw size={16} className="animate-spin" />
           ) : post.num_comments > 0 ? (
-            showCommentPreview ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+            showCommentPreview ? (
+              <ChevronUp size={16} />
+            ) : (
+              <ChevronDown size={16} />
+            )
           ) : null}
         </Button>
 
@@ -448,15 +457,17 @@ export const PostCard = ({
                 </div>
                 <div className="text-sm text-gray-300">
                   <LinkifiedText
-                    text={comment.body.length > 150 
-                      ? `${comment.body.slice(0, 150)}...` 
-                      : comment.body}
+                    text={
+                      comment.body.length > 150
+                        ? `${comment.body.slice(0, 150)}...`
+                        : comment.body
+                    }
                     linkClassName="text-blue-400 hover:text-blue-300 underline"
                   />
                 </div>
               </div>
             ))}
-            
+
             {post.num_comments > loadedComments.length && (
               <Button
                 onClick={() => onPostClick(post)}
