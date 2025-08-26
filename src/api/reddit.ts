@@ -106,6 +106,8 @@ export const api = {
   },
 
   async getPostComments(postId: string): Promise<RedditComment[]> {
+    console.log(`[CLIENT] Fetching comments for post ${postId}`);
+    
     const response = await fetch(`${WORKER_URL}/api/posts/${postId}/comments`, {
       headers: {
         Accept: 'application/json',
@@ -113,11 +115,19 @@ export const api = {
     });
 
     if (!response.ok) {
-      console.warn(`Failed to fetch comments for ${postId}: ${response.status}`);
+      console.warn(`[CLIENT] Failed to fetch comments for ${postId}: ${response.status}`);
+      const errorText = await response.text();
+      console.warn(`[CLIENT] Error response: ${errorText}`);
       return [];
     }
 
     const data = await response.json() as { comments: RedditComment[] };
+    console.log(`[CLIENT] Retrieved ${data.comments.length} comments for post ${postId}`);
+    
+    if (data.comments.length > 0) {
+      console.log(`[CLIENT] First comment preview: ${data.comments[0].body.substring(0, 100)}...`);
+    }
+    
     return data.comments;
   },
 
@@ -140,6 +150,7 @@ export const api = {
   },
 
   async fetchInitialComments(permalinks: string[]): Promise<Map<string, RedditComment[]>> {
+    console.log(`[CLIENT] Fetching initial comments for ${permalinks.length} posts`);
     const commentsMap = new Map<string, RedditComment[]>();
     
     for (const permalink of permalinks) {
@@ -149,23 +160,24 @@ export const api = {
         const commentsIndex = parts.findIndex(part => part === 'comments');
         const postId = commentsIndex !== -1 && commentsIndex + 1 < parts.length ? parts[commentsIndex + 1] : '';
         
+        console.log(`[CLIENT] Processing permalink: ${permalink} -> postId: ${postId}`);
+        
         if (postId) {
           const comments = await this.getPostComments(postId);
-          commentsMap.set(permalink, comments.slice(0, 3));
-          // Only log if there are actually comments or if there's an issue
-          if (comments.length === 0 && permalinks.length === 1) {
-            console.log(`No comments found for post ${postId}`);
-          }
+          const limitedComments = comments.slice(0, 3);
+          commentsMap.set(permalink, limitedComments);
+          console.log(`[CLIENT] Stored ${limitedComments.length} comments for ${permalink} (from ${comments.length} total)`);
         } else {
-          console.warn(`Could not extract post ID from permalink: ${permalink}`);
+          console.warn(`[CLIENT] Could not extract post ID from permalink: ${permalink}`);
           commentsMap.set(permalink, []);
         }
       } catch (error) {
-        console.warn(`Failed to fetch comments for ${permalink}:`, error);
+        console.warn(`[CLIENT] Failed to fetch comments for ${permalink}:`, error);
         commentsMap.set(permalink, []);
       }
     }
     
+    console.log(`[CLIENT] Completed initial comment fetching. Total permalinks processed: ${commentsMap.size}`);
     return commentsMap;
   },
 

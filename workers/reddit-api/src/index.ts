@@ -93,6 +93,8 @@ async function fetchRedditComments(
   limit = 10
 ): Promise<RedditComment[]> {
   const url = `https://www.reddit.com${permalink}.json`;
+  
+  console.log(`[REDDIT] Fetching comments from: ${url}`);
 
   const response = await fetch(url, {
     headers: {
@@ -103,7 +105,7 @@ async function fetchRedditComments(
 
   if (!response.ok) {
     console.error(
-      `Failed to fetch comments for ${permalink}: ${response.status}`
+      `[REDDIT] Failed to fetch comments for ${permalink}: ${response.status}`
     );
     return [];
   }
@@ -111,17 +113,32 @@ async function fetchRedditComments(
   const data = (await response.json()) as Array<unknown>;
   const comments: RedditComment[] = [];
 
+  console.log(`[REDDIT] Raw comment data structure:`, {
+    dataLength: data.length,
+    hasSecondElement: !!data?.[1],
+    secondElementType: typeof data[1],
+  });
+
   if (data?.[1] && typeof data[1] === "object" && "data" in data[1]) {
     const commentData = data[1] as {
       data: { children: Array<{ kind: string; data: RedditComment }> };
     };
+    
+    console.log(`[REDDIT] Comment children count: ${commentData.data.children.length}`);
+    
     for (const child of commentData.data.children.slice(0, limit)) {
       if (child.kind === "t1") {
         comments.push(child.data);
+        console.log(`[REDDIT] Added comment by ${child.data.author}: ${child.data.body.substring(0, 50)}...`);
+      } else {
+        console.log(`[REDDIT] Skipped non-comment child with kind: ${child.kind}`);
       }
     }
+  } else {
+    console.log(`[REDDIT] No valid comment data found in response`);
   }
 
+  console.log(`[REDDIT] Returning ${comments.length} comments for ${permalink}`);
   return comments;
 }
 
@@ -170,7 +187,7 @@ function convertRedditCommentToDb(
   comment: RedditComment,
   postId: string
 ): DbComment {
-  return {
+  const dbComment = {
     id: comment.id,
     post_id: postId,
     author: comment.author,
@@ -183,6 +200,10 @@ function convertRedditCommentToDb(
     depth: comment.depth || 0,
     updated_at: new Date(),
   };
+  
+  console.log(`[CONVERT] Converting comment ${comment.id} for post ${postId}: author=${comment.author}, depth=${comment.depth || 0}, body_length=${comment.body.length}`);
+  
+  return dbComment;
 }
 
 export default {
@@ -290,18 +311,26 @@ export default {
               console.log(`[${userId}] Successfully stored ${dbPosts.length} posts for r/${subreddit}`);
               
               // Fetch comments for all posts
+              console.log(`[${userId}] Starting to fetch comments for ${redditPosts.length} posts`);
               for (const post of redditPosts) {
                 try {
+                  console.log(`[${userId}] Fetching comments for post ${post.id} (${post.title.substring(0, 50)}...)`);
                   const comments = await fetchRedditComments(post.permalink, 10);
+                  console.log(`[${userId}] Reddit API returned ${comments.length} comments for post ${post.id}`);
+                  
                   if (comments.length > 0) {
                     const dbComments = comments.map(c => convertRedditCommentToDb(c, post.id));
+                    console.log(`[${userId}] Converted ${dbComments.length} comments to DB format for post ${post.id}`);
                     await db.upsertComments(dbComments);
-                    console.log(`[${userId}] Stored ${dbComments.length} comments for post ${post.id}`);
+                    console.log(`[${userId}] Successfully stored ${dbComments.length} comments for post ${post.id}`);
+                  } else {
+                    console.log(`[${userId}] No comments to store for post ${post.id}`);
                   }
                 } catch (error) {
                   console.error(`[${userId}] Error fetching comments for post ${post.id}:`, error);
                 }
               }
+              console.log(`[${userId}] Finished fetching comments for all posts`);
             } else {
               console.log(`[${userId}] No posts returned from Reddit for r/${subreddit}`);
             }
@@ -324,13 +353,25 @@ export default {
       const commentsMatch = path.match(/^\/api\/posts\/([^/]+)\/comments$/);
       if (commentsMatch && request.method === "GET") {
         const postId = commentsMatch[1];
-        const comments = await db.getPostComments(postId);
-        return new Response(JSON.stringify({ comments }), {
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        });
+        console.log(`[API] Getting comments for post ${postId}`);
+        try {
+          const comments = await db.getPostComments(postId);
+          console.log(`[API] Retrieved ${comments.length} comments for post ${postId}`);
+          return new Response(JSON.stringify({ comments }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        } catch (error) {
+          console.error(`[API] Error getting comments for post ${postId}:`, error);
+          return new Response(JSON.stringify({ comments: [] }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        }
       }
 
       // Load more comments (fetch fresh from Reddit)

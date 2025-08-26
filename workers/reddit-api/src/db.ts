@@ -169,17 +169,32 @@ export const db = {
   },
 
   async getPostComments(postId: string, limit = 10): Promise<DbComment[]> {
+    console.log(`[DB] Getting comments for post ${postId} with limit ${limit}`);
+    
     const result = await sql`
       SELECT * FROM comments
       WHERE post_id = ${postId} AND depth = 0
       ORDER BY score DESC
       LIMIT ${limit}
     `;
+    
+    console.log(`[DB] Found ${result.length} comments for post ${postId}`);
+    if (result.length > 0) {
+      console.log(`[DB] First comment preview: ${result[0].body?.substring(0, 100)}...`);
+    }
+    
     return result as DbComment[];
   },
 
   async upsertComments(comments: DbComment[]): Promise<void> {
-    if (comments.length === 0) return;
+    if (comments.length === 0) {
+      console.log(`[DB] No comments to upsert, returning`);
+      return;
+    }
+
+    console.log(`[DB] Upserting ${comments.length} comments`);
+    console.log(`[DB] Comment post_ids: ${comments.map(c => c.post_id).join(', ')}`);
+    console.log(`[DB] Comment depths: ${comments.map(c => c.depth).join(', ')}`);
 
     const values = comments.map((c) => ({
       id: c.id,
@@ -193,20 +208,26 @@ export const db = {
       updated_at: new Date(),
     }));
 
-    await sql`
-      INSERT INTO comments (
-        id, post_id, author, body, score, created_utc,
-        parent_id, depth, updated_at
-      )
-      SELECT * FROM jsonb_populate_recordset(
-        NULL::comments,
-        ${JSON.stringify(values)}::jsonb
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        score = EXCLUDED.score,
-        body = EXCLUDED.body,
-        updated_at = NOW()
-    `;
+    try {
+      await sql`
+        INSERT INTO comments (
+          id, post_id, author, body, score, created_utc,
+          parent_id, depth, updated_at
+        )
+        SELECT * FROM jsonb_populate_recordset(
+          NULL::comments,
+          ${JSON.stringify(values)}::jsonb
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          score = EXCLUDED.score,
+          body = EXCLUDED.body,
+          updated_at = NOW()
+      `;
+      console.log(`[DB] Successfully upserted ${comments.length} comments`);
+    } catch (error) {
+      console.error(`[DB] Error upserting comments:`, error);
+      throw error;
+    }
   },
 
   async getAllUniqueSubreddits(): Promise<string[]> {
