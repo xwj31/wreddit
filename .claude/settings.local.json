@@ -10,7 +10,8 @@
       "Bash(npx tsc:*)",
       "mcp__Neon__list_projects",
       "mcp__Neon__list_organizations",
-      "mcp__Neon__run_sql"
+      "mcp__Neon__run_sql",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

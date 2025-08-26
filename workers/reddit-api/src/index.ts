@@ -206,6 +206,42 @@ function convertRedditCommentToDb(
   return dbComment;
 }
 
+function convertDbPostToReddit(dbPost: DbPost): RedditPost {
+  return {
+    id: dbPost.id,
+    title: dbPost.title,
+    author: dbPost.author,
+    subreddit: dbPost.subreddit,
+    url: dbPost.url,
+    permalink: dbPost.permalink,
+    score: dbPost.score,
+    num_comments: dbPost.num_comments,
+    created_utc: dbPost.created_utc,
+    thumbnail: dbPost.thumbnail_url || undefined,
+    preview: dbPost.preview_image_url ? {
+      images: [{
+        source: { 
+          url: dbPost.preview_image_url,
+          width: 0,
+          height: 0
+        }
+      }]
+    } : undefined,
+    selftext: dbPost.selftext || undefined,
+    is_video: dbPost.is_video,
+    media: dbPost.video_url ? {
+      reddit_video: {
+        fallback_url: dbPost.video_url
+      }
+    } : undefined,
+    secure_media: dbPost.video_url ? {
+      reddit_video: {
+        fallback_url: dbPost.video_url
+      }
+    } : undefined,
+  };
+}
+
 export default {
   async fetch(request: Request): Promise<Response> {
     if (request.method === "OPTIONS") {
@@ -236,8 +272,9 @@ export default {
         const userId = userMatch[1];
         console.log(`[${userId}] Getting user posts from database`);
         try {
-          const posts = await db.getUserPosts(userId);
-          console.log(`[${userId}] Retrieved ${posts.length} posts from database`);
+          const dbPosts = await db.getUserPosts(userId);
+          console.log(`[${userId}] Retrieved ${dbPosts.length} posts from database`);
+          const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
             headers: {
               "Content-Type": "application/json",
@@ -256,8 +293,9 @@ export default {
         const userId = homeFeedMatch[1];
         console.log(`[${userId}] Getting user home feed from database`);
         try {
-          const posts = await db.getUserHomeFeed(userId);
-          console.log(`[${userId}] Retrieved ${posts.length} posts for home feed`);
+          const dbPosts = await db.getUserHomeFeed(userId);
+          console.log(`[${userId}] Retrieved ${dbPosts.length} posts for home feed`);
+          const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
             headers: {
               "Content-Type": "application/json",
