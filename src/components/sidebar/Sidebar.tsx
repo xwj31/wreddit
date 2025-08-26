@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  X,
-  Heart,
-  Plus,
-  Bookmark,
-  Home,
-  Loader2,
-} from "lucide-react";
+import { X, Heart, Plus, Bookmark, Home, Loader2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -143,7 +136,6 @@ export const Sidebar = ({
                   value={newSubreddit}
                   onChange={setNewSubreddit}
                   onEnter={handleAddFavorite}
-                  disabled={subredditLoading}
                   className="flex-1"
                 />
                 <Button
