@@ -1,6 +1,8 @@
-import { neon } from '@neondatabase/serverless';
+import { neon } from "@neondatabase/serverless";
 
-const sql = neon('postgresql://neondb_owner:npg_b6r0RxemqMUw@ep-snowy-hat-ab1xoq6a-pooler.eu-west-2.aws.neon.tech/wreddit?sslmode=require&channel_binding=require');
+const sql = neon(
+  "postgresql://neondb_owner:npg_b6r0RxemqMUw@ep-snowy-hat-ab1xoq6a-pooler.eu-west-2.aws.neon.tech/wreddit?sslmode=require&channel_binding=require"
+);
 
 export type User = {
   id: string;
@@ -61,7 +63,11 @@ export const db = {
       ORDER BY created_at DESC
     `;
     const subreddits = result.map((row) => row.subreddit as string);
-    console.log(`[DB] Found ${subreddits.length} subreddits for user: ${subreddits.join(', ')}`);
+    console.log(
+      `[DB] Found ${subreddits.length} subreddits for user: ${subreddits.join(
+        ", "
+      )}`
+    );
     return subreddits;
   },
 
@@ -72,7 +78,9 @@ export const db = {
       VALUES (${userId}, ${subreddit.toLowerCase()}, NOW())
       ON CONFLICT (user_id, subreddit) DO NOTHING
     `;
-    console.log(`[DB] Successfully added subreddit ${subreddit} for user ${userId}`);
+    console.log(
+      `[DB] Successfully added subreddit ${subreddit} for user ${userId}`
+    );
   },
 
   async removeUserSubreddit(userId: string, subreddit: string): Promise<void> {
@@ -84,23 +92,31 @@ export const db = {
 
   async getUserPosts(userId: string): Promise<DbPost[]> {
     console.log(`[DB] Getting posts for user ${userId}`);
-    const subreddits = await this.getUserSubreddits(userId);
-    console.log(`[DB] User has ${subreddits.length} subreddits: ${subreddits.join(', ')}`);
-    
-    if (subreddits.length === 0) {
-      console.log(`[DB] No subreddits for user, returning empty array`);
-      return [];
-    }
 
-    console.log(`[DB] Querying posts for subreddits: ${subreddits.join(', ')}`);
     const result = await sql`
-      SELECT * FROM posts
-      WHERE subreddit = ANY(${subreddits})
-      ORDER BY created_utc DESC
+      SELECT p.* FROM posts p
+      INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+      WHERE us.user_id = ${userId}
+      ORDER BY p.created_utc DESC
       LIMIT 100
     `;
-    
+
     console.log(`[DB] Query returned ${result.length} posts`);
+    return result as DbPost[];
+  },
+
+  async getUserHomeFeed(userId: string): Promise<DbPost[]> {
+    console.log(`[DB] Getting home feed for user ${userId}`);
+
+    const result = await sql`
+      SELECT p.* FROM posts p
+      INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+      WHERE us.user_id = ${userId}
+      ORDER BY p.created_utc DESC
+      LIMIT 25
+    `;
+
+    console.log(`[DB] Home feed query returned ${result.length} posts`);
     return result as DbPost[];
   },
 
@@ -109,9 +125,9 @@ export const db = {
       console.log(`[DB] No posts to upsert, returning`);
       return;
     }
-    
+
     console.log(`[DB] Upserting ${posts.length} posts`);
-    const values = posts.map(p => ({
+    const values = posts.map((p) => ({
       id: p.id,
       subreddit: p.subreddit,
       title: p.title,
@@ -126,7 +142,7 @@ export const db = {
       selftext: p.selftext,
       is_video: p.is_video,
       video_url: p.video_url,
-      updated_at: new Date()
+      updated_at: new Date(),
     }));
 
     try {
@@ -165,7 +181,7 @@ export const db = {
   async upsertComments(comments: DbComment[]): Promise<void> {
     if (comments.length === 0) return;
 
-    const values = comments.map(c => ({
+    const values = comments.map((c) => ({
       id: c.id,
       post_id: c.post_id,
       author: c.author,
@@ -174,7 +190,7 @@ export const db = {
       created_utc: c.created_utc,
       parent_id: c.parent_id,
       depth: c.depth || 0,
-      updated_at: new Date()
+      updated_at: new Date(),
     }));
 
     await sql`
@@ -247,6 +263,10 @@ export const db = {
     `;
 
     await sql`
+      CREATE INDEX IF NOT EXISTS idx_posts_subreddit_created_utc ON posts(subreddit, created_utc DESC)
+    `;
+
+    await sql`
       CREATE TABLE IF NOT EXISTS comments (
         id TEXT PRIMARY KEY,
         post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -267,5 +287,5 @@ export const db = {
     await sql`
       CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id)
     `;
-  }
+  },
 };

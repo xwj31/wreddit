@@ -61,7 +61,7 @@ export const PostDetail = ({
     };
 
     fetchComments();
-  }, [post.permalink]);
+  }, [post.id, post.permalink]);
 
   const handleShare = async () => {
     const success = await sharePost(post);

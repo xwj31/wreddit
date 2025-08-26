@@ -229,6 +229,26 @@ export default {
         }
       }
 
+      // Get user's home feed (25 most recent posts from favorited subreddits)
+      const homeFeedMatch = path.match(/^\/api\/users\/([^/]+)\/home-feed$/);
+      if (homeFeedMatch && request.method === "GET") {
+        const userId = homeFeedMatch[1];
+        console.log(`[${userId}] Getting user home feed from database`);
+        try {
+          const posts = await db.getUserHomeFeed(userId);
+          console.log(`[${userId}] Retrieved ${posts.length} posts for home feed`);
+          return new Response(JSON.stringify({ posts }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        } catch (error) {
+          console.error(`[${userId}] Error getting user home feed:`, error);
+          throw error;
+        }
+      }
+
       // Get user's subreddits
       const subredditsMatch = path.match(/^\/api\/users\/([^/]+)\/subreddits$/);
       if (subredditsMatch && request.method === "GET") {
@@ -269,16 +289,17 @@ export default {
               await db.upsertPosts(dbPosts);
               console.log(`[${userId}] Successfully stored ${dbPosts.length} posts for r/${subreddit}`);
               
-              // Fetch comments for first 10 posts
-              for (const post of redditPosts.slice(0, 10)) {
+              // Fetch comments for all posts
+              for (const post of redditPosts) {
                 try {
                   const comments = await fetchRedditComments(post.permalink, 10);
                   if (comments.length > 0) {
                     const dbComments = comments.map(c => convertRedditCommentToDb(c, post.id));
                     await db.upsertComments(dbComments);
+                    console.log(`[${userId}] Stored ${dbComments.length} comments for post ${post.id}`);
                   }
                 } catch (error) {
-                  console.error(`Error fetching comments for post ${post.id}:`, error);
+                  console.error(`[${userId}] Error fetching comments for post ${post.id}:`, error);
                 }
               }
             } else {
@@ -387,8 +408,8 @@ export default {
             await db.upsertPosts(dbPosts);
             console.log(`Stored ${dbPosts.length} posts for r/${subreddit}`);
 
-            // Fetch comments for each post
-            for (const post of redditPosts.slice(0, 10)) {
+            // Fetch comments for all posts (not just first 10)
+            for (const post of redditPosts) {
               try {
                 const comments = await fetchRedditComments(post.permalink, 10);
                 if (comments.length > 0) {

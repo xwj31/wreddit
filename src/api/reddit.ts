@@ -38,6 +38,25 @@ export const api = {
     return data.posts;
   },
 
+  async getUserHomeFeed(userId: string): Promise<RedditPost[]> {
+    console.log(`[API] Fetching home feed for user ${userId}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/home-feed`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API] Failed to fetch home feed: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to fetch home feed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as { posts: RedditPost[] };
+    console.log(`[API] Retrieved ${data.posts.length} posts from home feed`);
+    return data.posts;
+  },
+
   async getUserSubreddits(userId: string): Promise<string[]> {
     const response = await fetch(`${WORKER_URL}/api/users/${userId}/subreddits`, {
       headers: {
@@ -125,10 +144,21 @@ export const api = {
     
     for (const permalink of permalinks) {
       try {
-        const postId = permalink.split('/').slice(-3, -2)[0] || '';
+        // Extract post ID from permalink like /r/subreddit/comments/POST_ID/title/
+        const parts = permalink.split('/');
+        const commentsIndex = parts.findIndex(part => part === 'comments');
+        const postId = commentsIndex !== -1 && commentsIndex + 1 < parts.length ? parts[commentsIndex + 1] : '';
+        
         if (postId) {
           const comments = await this.getPostComments(postId);
           commentsMap.set(permalink, comments.slice(0, 3));
+          // Only log if there are actually comments or if there's an issue
+          if (comments.length === 0 && permalinks.length === 1) {
+            console.log(`No comments found for post ${postId}`);
+          }
+        } else {
+          console.warn(`Could not extract post ID from permalink: ${permalink}`);
+          commentsMap.set(permalink, []);
         }
       } catch (error) {
         console.warn(`Failed to fetch comments for ${permalink}:`, error);

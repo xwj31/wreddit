@@ -1,8 +1,6 @@
 import { RefreshCw, Home } from "lucide-react";
-import { useState, useEffect } from "react";
 import { PostCard } from "./PostCard";
 import { Button } from "../ui/Button";
-import { api } from "../../api/reddit";
 import type { RedditPost, RedditComment } from "../../types";
 
 type PostFeedProps = {
@@ -30,39 +28,9 @@ export const PostFeed = ({
   isHomeFeed = false,
   isRead,
 }: PostFeedProps) => {
-  const [previewComments, setPreviewComments] = useState<Map<string, RedditComment[]>>(new Map());
-  const [loadedPostCount, setLoadedPostCount] = useState(0);
-
-  // Progressively load comments for new posts
-  useEffect(() => {
-    if (posts.length > 0 && posts.length !== loadedPostCount) {
-      const loadComments = async () => {
-        // Determine which posts are new
-        const startIndex = loadedPostCount;
-        const endIndex = Math.min(posts.length, startIndex + 10); // Load 10 at a time
-        
-        if (startIndex < endIndex) {
-          const newPosts = posts.slice(startIndex, endIndex);
-          const permalinks = newPosts.map(p => p.permalink);
-          
-          // Fetch comments for new posts
-          const newCommentsMap = await api.fetchInitialComments(permalinks);
-          
-          // Merge with existing comments
-          setPreviewComments(prev => {
-            const merged = new Map(prev);
-            newCommentsMap.forEach((comments, permalink) => {
-              merged.set(permalink, comments);
-            });
-            return merged;
-          });
-          
-          setLoadedPostCount(endIndex);
-        }
-      };
-      loadComments();
-    }
-  }, [posts, loadedPostCount]);
+  // Comment preview loading disabled to prevent API spam
+  // Comments are now only loaded when user clicks on individual posts
+  const previewComments = new Map<string, RedditComment[]>();
   if (error) {
     return (
       <div className="p-4 bg-red-900/20 border border-red-700/40 text-red-400 mx-3 mt-4 rounded-xl">

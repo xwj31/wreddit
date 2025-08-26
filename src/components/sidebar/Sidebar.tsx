@@ -5,6 +5,7 @@ import {
   Plus,
   Bookmark,
   Home,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -17,6 +18,7 @@ type SidebarProps = {
   favoriteSubreddits: string[];
   onFavoriteToggle: (subreddit: string) => Promise<void>;
   onNavigateToBookmarks?: () => void;
+  subredditLoading?: boolean;
 };
 
 export const Sidebar = ({
@@ -27,6 +29,7 @@ export const Sidebar = ({
   favoriteSubreddits,
   onFavoriteToggle,
   onNavigateToBookmarks,
+  subredditLoading = false,
 }: SidebarProps) => {
   const [newSubreddit, setNewSubreddit] = useState("");
 
@@ -133,20 +136,34 @@ export const Sidebar = ({
               Favorites
             </h3>
 
-            <div className="mb-3 flex gap-2">
-              <Input
-                placeholder="Add subreddit..."
-                value={newSubreddit}
-                onChange={setNewSubreddit}
-                onEnter={handleAddFavorite}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleAddFavorite}
-                className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-              >
-                <Plus size={16} />
-              </Button>
+            <div className="mb-3 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add subreddit..."
+                  value={newSubreddit}
+                  onChange={setNewSubreddit}
+                  onEnter={handleAddFavorite}
+                  disabled={subredditLoading}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleAddFavorite}
+                  disabled={subredditLoading}
+                  className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {subredditLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Plus size={16} />
+                  )}
+                </Button>
+              </div>
+              {subredditLoading && (
+                <div className="text-sm text-blue-400 flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Adding subreddit and fetching posts...</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1">

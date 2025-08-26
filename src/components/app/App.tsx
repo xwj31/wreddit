@@ -107,6 +107,7 @@ export const App = () => {
   const {
     posts,
     loading,
+    subredditLoading,
     error,
     bookmarks,
     subreddits,
@@ -228,6 +229,7 @@ export const App = () => {
         favoriteSubreddits={subreddits}
         onFavoriteToggle={handleFavoriteToggle}
         onNavigateToBookmarks={navigateToBookmarks}
+        subredditLoading={subredditLoading}
       />
 
       <SettingsModal
@@ -323,7 +325,7 @@ export const App = () => {
           onBookmarkToggle={handleBookmarkToggle}
           onLoadMore={() => {}}
           error={error || undefined}
-          isHomeFeed={false}
+          isHomeFeed={selectedSubreddit === 'home'}
           isRead={isRead}
         />
       </main>
