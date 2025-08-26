@@ -1,51 +1,128 @@
-// src/components/app/App.tsx - Updated to hide header in PostDetail
-import { useState } from "react";
-import { useSwipe } from "../../hooks/useSwipe";
-import { useNavigation } from "../../hooks/useNavigation";
-import { useAppData } from "../../hooks/useAppData";
-import { useReadPosts } from "../../hooks/useReadPosts";
-import { storage } from "../../utils/storage";
-import { Header } from "./Header";
-import { PostFeed } from "../post/PostFeed";
-import { PostDetail } from "../post/PostDetail";
-import { Sidebar } from "../sidebar/Sidebar";
-import { SettingsModal } from "../settings/SettingsModal";
-import { BookmarksModal } from "../bookmarks/BookmarksModal";
-import type { RedditPost, BookmarkedPost } from "../../types";
+// src/components/app/App.tsx - Updated with authentication
+import { useState } from 'react';
+import { useSwipe } from '../../hooks/useSwipe';
+import { useNavigation } from '../../hooks/useNavigation';
+import { useAppData } from '../../hooks/useAppData';
+import { useAuth } from '../../hooks/useAuth';
+import { useReadPosts } from '../../hooks/useReadPosts';
+import { storage } from '../../utils/storage';
+import { PostFeed } from '../post/PostFeed';
+import { PostDetail } from '../post/PostDetail';
+import { Sidebar } from '../sidebar/Sidebar';
+import { SettingsModal } from '../settings/SettingsModal';
+import { BookmarksModal } from '../bookmarks/BookmarksModal';
+import type { RedditPost, BookmarkedPost } from '../../types';
 
-type Page = "feed" | "post" | "bookmarks";
+type Page = 'feed' | 'post' | 'bookmarks';
+
+const LoginScreen = ({ onLogin }: { onLogin: (uuid?: string) => Promise<string> }) => {
+  const [existingUuid, setExistingUuid] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleNewUser = async () => {
+    setLoading(true);
+    try {
+      await onLogin();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExistingUser = async () => {
+    if (!existingUuid.trim()) return;
+    setLoading(true);
+    try {
+      await onLogin(existingUuid.trim());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">Welcome to WReddit</h1>
+          <p className="text-gray-400">A minimal Reddit client</p>
+        </div>
+
+        <div className="bg-gray-900 rounded-lg p-6 space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">New User</h2>
+            <button
+              onClick={handleNewUser}
+              disabled={loading}
+              className="w-full py-3 px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Creating...' : 'Create New Account'}
+            </button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-900 text-gray-500">OR</span>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Existing User</h2>
+            <input
+              type="text"
+              placeholder="Enter your UUID"
+              value={existingUuid}
+              onChange={(e) => setExistingUuid(e.target.value)}
+              className="w-full px-4 py-2 bg-black rounded-lg border border-gray-700 focus:border-orange-500 focus:outline-none mb-2"
+            />
+            <button
+              onClick={handleExistingUser}
+              disabled={loading || !existingUuid.trim()}
+              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Logging in...' : 'Login with UUID'}
+            </button>
+          </div>
+
+          <div className="text-sm text-gray-500 mt-4">
+            <p>Note: Save your UUID to login again later</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const App = () => {
-  const [currentPage, setCurrentPage] = useState<Page>("feed");
+  const [currentPage, setCurrentPage] = useState<Page>('feed');
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState('');
+
+  const { userId, loading: authLoading, isAuthenticated, login, logout } = useAuth();
 
   const {
     posts,
     loading,
     error,
-    after,
     bookmarks,
-    subreddit,
-    sort,
-    filters,
-    setSubreddit,
-    setSort,
-    setFilters,
-    fetchPosts,
-    loadMorePosts,
+    subreddits,
+    selectedSubreddit,
+    setSelectedSubreddit,
+    refreshPosts,
     handleBookmarkToggle,
     handleFavoriteToggle,
-  } = useAppData();
+    isFavorite,
+  } = useAppData(userId);
 
   const { markAsRead, isRead } = useReadPosts();
 
   const navigateBack = () => {
-    if (currentPage === "post" || currentPage === "bookmarks") {
-      setCurrentPage("feed");
+    if (currentPage === 'post' || currentPage === 'bookmarks') {
+      setCurrentPage('feed');
       setSelectedPost(null);
       setShowBookmarks(false);
     }
@@ -54,18 +131,18 @@ export const App = () => {
   const { pushState } = useNavigation(navigateBack);
 
   const navigateToPost = (post: RedditPost) => {
-    setCurrentPage("post");
+    setCurrentPage('post');
     setSelectedPost(post);
     setShowBookmarks(false);
-    pushState({ page: "post", postId: post.id });
+    pushState({ page: 'post', postId: post.id });
     markAsRead(post.id);
   };
 
   const navigateToBookmarks = () => {
-    setCurrentPage("bookmarks");
+    setCurrentPage('bookmarks');
     setShowBookmarks(true);
     setShowSidebar(false);
-    pushState({ page: "bookmarks" });
+    pushState({ page: 'bookmarks' });
   };
 
   const handleBookmarkPostClick = (bookmark: BookmarkedPost) => {
@@ -74,7 +151,7 @@ export const App = () => {
       title: bookmark.title,
       subreddit: bookmark.subreddit,
       permalink: bookmark.permalink,
-      author: "unknown",
+      author: 'unknown',
       url: `https://reddit.com${bookmark.permalink}`,
       score: 0,
       num_comments: 0,
@@ -92,18 +169,18 @@ export const App = () => {
     );
   });
 
-  const isFavorite = filters.favoriteSubreddits.includes(
-    subreddit.toLowerCase()
-  );
-  const isHomeFeed = subreddit === "home";
-
   useSwipe(() => {
-    if (currentPage !== "feed") {
+    if (currentPage !== 'feed') {
       navigateBack();
     } else if (!showSidebar) {
       setShowSidebar(true);
     }
   });
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={login} />;
+  }
 
   // PostDetail page - no header, full screen
   if (selectedPost) {
@@ -112,7 +189,7 @@ export const App = () => {
         post={selectedPost}
         onBack={navigateBack}
         onSubredditClick={(subredditName) => {
-          setSubreddit(subredditName);
+          setSelectedSubreddit(subredditName);
           setShowSidebar(false);
           setShowBookmarks(false);
         }}
@@ -131,7 +208,6 @@ export const App = () => {
         onPostClick={handleBookmarkPostClick}
         onBookmarkRemove={(postId) => {
           storage.removeBookmark(postId);
-          // No need to call setBookmarks as it's handled by useAppData
         }}
       />
     );
@@ -143,57 +219,111 @@ export const App = () => {
       <Sidebar
         isOpen={showSidebar}
         onClose={() => setShowSidebar(false)}
-        currentSubreddit={subreddit}
+        currentSubreddit={selectedSubreddit}
         onSubredditSelect={(subredditName) => {
-          setSubreddit(subredditName);
+          setSelectedSubreddit(subredditName);
           setShowSidebar(false);
           setShowBookmarks(false);
         }}
-        filters={filters}
-        onFiltersChange={setFilters}
+        favoriteSubreddits={subreddits}
+        onFavoriteToggle={handleFavoriteToggle}
         onNavigateToBookmarks={navigateToBookmarks}
       />
 
       <SettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        filters={filters}
-        onFiltersChange={setFilters}
+        filters={{ favoriteSubreddits: subreddits, blockedSubreddits: [], keywords: [], blockedKeywords: [] }}
+        onFiltersChange={() => {}}
       />
 
-      <Header
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        subreddit={subreddit}
-        onSubredditChange={setSubreddit}
-        sort={sort}
-        onSortChange={setSort}
-        favoriteSubreddits={filters.favoriteSubreddits}
-        isFavorite={isFavorite}
-        onFavoriteToggle={() => handleFavoriteToggle(subreddit)}
-        onRefresh={() => fetchPosts(true)}
-        onShowSettings={() => setShowSettings(true)}
-        onShowBookmarks={navigateToBookmarks}
-        onShowSidebar={() => setShowSidebar(true)}
-        loading={loading}
-      />
+      <div className="sticky top-0 z-40 bg-black">
+        <div className="px-4 py-3 border-b border-gray-800">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setShowSidebar(true)}
+              className="p-2 text-gray-400 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">ID: {userId?.substring(0, 8)}</span>
+              <button
+                onClick={logout}
+                className="p-2 text-gray-400 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={refreshPosts}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-white disabled:opacity-50"
+              >
+                <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={navigateToBookmarks}
+                className="p-2 text-gray-400 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-      {/* Add padding to account for fixed header */}
-      <main style={{ paddingTop: "140px" }}>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedSubreddit}
+              onChange={(e) => setSelectedSubreddit(e.target.value)}
+              className="bg-gray-900 text-white px-3 py-1 rounded-lg flex-1"
+            >
+              <option value="all">All Posts</option>
+              {subreddits.map((sub) => (
+                <option key={sub} value={sub}>
+                  r/{sub}
+                </option>
+              ))}
+            </select>
+
+            {selectedSubreddit !== 'all' && (
+              <button
+                onClick={() => handleFavoriteToggle(selectedSubreddit)}
+                className={`p-2 ${isFavorite(selectedSubreddit) ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-400`}
+              >
+                <svg className="w-5 h-5" fill={isFavorite(selectedSubreddit) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <main className="pt-2">
         <PostFeed
           posts={filteredPosts}
-          loading={loading}
-          hasMore={!!after}
+          loading={loading || authLoading}
+          hasMore={false}
           onPostClick={navigateToPost}
           onSubredditClick={(subredditName) => {
-            setSubreddit(subredditName);
+            setSelectedSubreddit(subredditName);
             setShowSidebar(false);
             setShowBookmarks(false);
           }}
           onBookmarkToggle={handleBookmarkToggle}
-          onLoadMore={loadMorePosts}
+          onLoadMore={() => {}}
           error={error || undefined}
-          isHomeFeed={isHomeFeed}
+          isHomeFeed={false}
           isRead={isRead}
         />
       </main>

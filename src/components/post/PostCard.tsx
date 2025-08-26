@@ -136,7 +136,7 @@ export const PostCard = ({
       // Need to load comments
       setLoadingComments(true);
       try {
-        const comments = await api.fetchComments(post.permalink);
+        const comments = await api.getPostComments(post.id);
         const topComments = comments.slice(0, 3); // Take first 3 like preload
         setLoadedComments(topComments);
       } catch (error) {

@@ -8,15 +8,14 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import type { FilterOptions } from "../../types";
 
 type SidebarProps = {
   isOpen: boolean;
   onClose: () => void;
   currentSubreddit: string;
   onSubredditSelect: (subreddit: string) => void;
-  filters: FilterOptions;
-  onFiltersChange: (filters: FilterOptions) => void;
+  favoriteSubreddits: string[];
+  onFavoriteToggle: (subreddit: string) => Promise<void>;
   onNavigateToBookmarks?: () => void;
 };
 
@@ -25,35 +24,27 @@ export const Sidebar = ({
   onClose,
   currentSubreddit,
   onSubredditSelect,
-  filters,
-  onFiltersChange,
+  favoriteSubreddits,
+  onFavoriteToggle,
   onNavigateToBookmarks,
 }: SidebarProps) => {
   const [newSubreddit, setNewSubreddit] = useState("");
 
-  const handleAddFavorite = () => {
+  const handleAddFavorite = async () => {
     if (newSubreddit.trim()) {
       const cleanSubreddit = newSubreddit
         .replace(/^r\//, "")
         .toLowerCase()
         .trim();
-      if (!filters.favoriteSubreddits.includes(cleanSubreddit)) {
-        onFiltersChange({
-          ...filters,
-          favoriteSubreddits: [...filters.favoriteSubreddits, cleanSubreddit],
-        });
+      if (!favoriteSubreddits.includes(cleanSubreddit)) {
+        await onFavoriteToggle(cleanSubreddit);
       }
       setNewSubreddit("");
     }
   };
 
-  const handleRemoveFavorite = (subreddit: string) => {
-    onFiltersChange({
-      ...filters,
-      favoriteSubreddits: filters.favoriteSubreddits.filter(
-        (sub) => sub !== subreddit
-      ),
-    });
+  const handleRemoveFavorite = async (subreddit: string) => {
+    await onFavoriteToggle(subreddit);
   };
 
   const handleSubredditClick = (subreddit: string) => {
@@ -82,7 +73,7 @@ export const Sidebar = ({
             </h3>
 
             {/* Home option - only show if user has favorites */}
-            {filters.favoriteSubreddits.length > 0 && (
+            {favoriteSubreddits.length > 0 && (
               <Button
                 onClick={() => handleSubredditClick("home")}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg text-left mb-2 ${
@@ -159,12 +150,12 @@ export const Sidebar = ({
             </div>
 
             <div className="space-y-1">
-              {filters.favoriteSubreddits.length === 0 ? (
+              {favoriteSubreddits.length === 0 ? (
                 <div className="text-gray-500 text-sm text-center py-4">
                   No favorite subreddits yet
                 </div>
               ) : (
-                filters.favoriteSubreddits.map((sub) => {
+                favoriteSubreddits.map((sub) => {
                   const isActive = currentSubreddit === sub;
 
                   return (

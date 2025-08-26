@@ -55,7 +55,7 @@ export const PostDetail = ({
   useEffect(() => {
     const fetchComments = async () => {
       setLoadingComments(true);
-      const fetchedComments = await api.fetchComments(post.permalink);
+      const fetchedComments = await api.getPostComments(post.id);
       setComments(fetchedComments);
       setLoadingComments(false);
     };

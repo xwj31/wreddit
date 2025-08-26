@@ -1,176 +1,154 @@
-import type { FilterOptions, PostsApiResponse, RedditComment } from "../types";
-import { apiCache, backoff, RequestQueue } from "../utils/cache";
+import type { RedditPost, RedditComment } from '../types';
 
 const WORKER_URL = import.meta.env.VITE_WORKER_URL;
 
-// Create a request queue to space out multiple subreddit requests
-const requestQueue = new RequestQueue(500); // 500ms delay between requests
-
-type FetchPostsParams = {
-  subreddit: string;
-  sort: string;
-  after?: string;
-  filters: FilterOptions;
-};
-
 export const api = {
-  fetchPosts: async ({ subreddit, sort, after, filters }: FetchPostsParams): Promise<PostsApiResponse> => {
-    const url = new URL(`${WORKER_URL}/api/posts`);
-    url.searchParams.append("subreddit", subreddit);
-    url.searchParams.append("sort", sort);
-    url.searchParams.append("limit", "25");
-    
-    if (after) {
-      url.searchParams.append("after", after);
+  async createUser(): Promise<string> {
+    const response = await fetch(`${WORKER_URL}/api/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create user: ${response.status}`);
     }
 
-    const requestKey = `posts:${subreddit}:${sort}:${after || 'none'}:${JSON.stringify(filters)}`;
-    
-    // Use request queue and retry logic for posts
-    return requestQueue.add(async () => {
-      let attempts = 0;
-      const maxAttempts = 3;
-      
-      while (attempts < maxAttempts) {
-        try {
-          // Use cache with deduplication
-          const result = await apiCache.deduplicate<PostsApiResponse>(
-            requestKey,
-            async () => {
-              const response = await fetch(url.toString(), {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                },
-                body: JSON.stringify(filters),
-              });
-
-              if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`API Error: ${response.status} - ${errorText}`);
-              }
-
-              return response.json();
-            },
-            5 * 60 * 1000 // 5 minute cache TTL for posts
-          );
-          
-          // Reset backoff on success
-          backoff.reset(requestKey);
-          return result;
-        } catch (error) {
-          attempts++;
-          const err = error instanceof Error ? error : new Error(String(error));
-          
-          // Check if we should retry
-          if (attempts < maxAttempts && backoff.shouldRetry(requestKey, err)) {
-            console.warn(`Retrying request (attempt ${attempts + 1}/${maxAttempts}) for ${subreddit}:`, err.message);
-            await backoff.delay(requestKey);
-            continue;
-          }
-          
-          throw err;
-        }
-      }
-      
-      throw new Error(`Failed to fetch posts after ${maxAttempts} attempts`);
-    });
+    const data = await response.json() as { userId: string };
+    return data.userId;
   },
 
-  fetchComments: async (permalink: string): Promise<RedditComment[]> => {
-    const requestKey = `comments:${permalink}`;
+  async getUserPosts(userId: string): Promise<RedditPost[]> {
+    console.log(`[API] Fetching posts for user ${userId}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/posts`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API] Failed to fetch posts: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to fetch posts: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as { posts: RedditPost[] };
+    console.log(`[API] Retrieved ${data.posts.length} posts from database`);
+    return data.posts;
+  },
+
+  async getUserSubreddits(userId: string): Promise<string[]> {
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/subreddits`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch subreddits: ${response.status}`);
+    }
+
+    const data = await response.json() as { subreddits: string[] };
+    return data.subreddits;
+  },
+
+  async addUserSubreddit(userId: string, subreddit: string): Promise<void> {
+    console.log(`[API] Adding subreddit ${subreddit} for user ${userId}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/subreddits`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'add', subreddit }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API] Failed to add subreddit: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to add subreddit: ${response.status} - ${errorText}`);
+    }
     
-    try {
-      // Use cache with deduplication for comments
-      const result = await apiCache.deduplicate<{ comments: RedditComment[] }>(
-        requestKey,
-        async () => {
-          const url = new URL(`${WORKER_URL}/api/comments`);
-          url.searchParams.append("permalink", permalink);
+    console.log(`[API] Successfully added subreddit ${subreddit}`);
+  },
 
-          const response = await fetch(url.toString(), {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          });
+  async removeUserSubreddit(userId: string, subreddit: string): Promise<void> {
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/subreddits`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'remove', subreddit }),
+    });
 
-          if (!response.ok) {
-            // Don't throw for comments, just return empty array
-            console.warn(`Comments fetch failed for ${permalink}:`, response.status);
-            return { comments: [] };
-          }
+    if (!response.ok) {
+      throw new Error(`Failed to remove subreddit: ${response.status}`);
+    }
+  },
 
-          return response.json();
-        },
-        15 * 60 * 1000 // 15 minute cache TTL for comments
-      );
-      
-      return result.comments || [];
-    } catch (error) {
-      console.warn(`Error fetching comments for ${permalink}:`, error);
+  async getPostComments(postId: string): Promise<RedditComment[]> {
+    const response = await fetch(`${WORKER_URL}/api/posts/${postId}/comments`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch comments for ${postId}: ${response.status}`);
       return [];
     }
+
+    const data = await response.json() as { comments: RedditComment[] };
+    return data.comments;
   },
 
-  fetchInitialComments: async (permalinks: string[]): Promise<Map<string, RedditComment[]>> => {
+  async loadMoreComments(postId: string, permalink: string): Promise<RedditComment[]> {
+    const response = await fetch(`${WORKER_URL}/api/posts/${postId}/comments/more`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ permalink }),
+    });
+
+    if (!response.ok) {
+      console.warn(`Failed to load more comments for ${postId}: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json() as { comments: RedditComment[] };
+    return data.comments;
+  },
+
+  async fetchInitialComments(permalinks: string[]): Promise<Map<string, RedditComment[]>> {
     const commentsMap = new Map<string, RedditComment[]>();
     
-    // Fetch comments for each post in parallel
-    const promises = permalinks.map(async (permalink) => {
+    for (const permalink of permalinks) {
       try {
-        const comments = await api.fetchComments(permalink);
-        // Only take first 3 top-level comments for preview
-        const topComments = comments.slice(0, 3);
-        return { permalink, comments: topComments };
+        const postId = permalink.split('/').slice(-3, -2)[0] || '';
+        if (postId) {
+          const comments = await this.getPostComments(postId);
+          commentsMap.set(permalink, comments.slice(0, 3));
+        }
       } catch (error) {
         console.warn(`Failed to fetch comments for ${permalink}:`, error);
-        return { permalink, comments: [] };
+        commentsMap.set(permalink, []);
       }
-    });
-    
-    const results = await Promise.all(promises);
-    results.forEach(({ permalink, comments }) => {
-      commentsMap.set(permalink, comments);
-    });
+    }
     
     return commentsMap;
   },
 
-  searchSubreddits: async (query: string): Promise<{ name: string; display_name: string; subscribers: number; public_description: string }[]> => {
-    if (!query.trim()) return [];
+  async initDatabase(): Promise<void> {
+    const response = await fetch(`${WORKER_URL}/api/admin/init-db`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    const requestKey = `search-subreddits:${query}`;
-    
-    try {
-      // Use cache with deduplication for subreddit searches
-      const result = await apiCache.deduplicate<{ subreddits: { name: string; display_name: string; subscribers: number; public_description: string }[] }>(
-        requestKey,
-        async () => {
-          const url = new URL(`${WORKER_URL}/api/search-subreddits`);
-          url.searchParams.append("q", query);
-          url.searchParams.append("limit", "20");
-
-          const response = await fetch(url.toString(), {
-            headers: {
-              Accept: "application/json",
-            },
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Search failed: ${response.status}`);
-          }
-
-          return response.json();
-        },
-        30 * 60 * 1000 // 30 minute cache TTL for subreddit searches
-      );
-      
-      return result.subreddits || [];
-    } catch (error) {
-      console.error(`Error searching subreddits for "${query}":`, error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to initialize database: ${response.status}`);
     }
   },
 };

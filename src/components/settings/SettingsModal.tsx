@@ -1,12 +1,17 @@
-// src/components/settings/SettingsModal.tsx - Enhanced with home feed settings and cache management
-import { useState, useEffect } from "react";
-import { Plus, X, Settings, Video, Home, Database, Trash2, RefreshCw } from "lucide-react";
+// src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
+import { useState } from "react";
+import {
+  Plus,
+  X,
+  Settings,
+  Video,
+  Home,
+} from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
 import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
-import { cacheManager } from "../../utils/cache";
 import type { FilterOptions } from "../../types";
 
 type SettingsModalProps = {
@@ -104,28 +109,9 @@ export const SettingsModal = ({
   filters,
   onFiltersChange,
 }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState<"filters" | "video" | "home" | "cache">(
-    "filters"
-  );
-  
-  const [cacheStats, setCacheStats] = useState(() => cacheManager.getStats());
-
-  // Refresh cache stats when cache tab is active
-  useEffect(() => {
-    if (activeTab === "cache" && isOpen) {
-      const updateStats = () => setCacheStats(cacheManager.getStats());
-      updateStats();
-      
-      // Update stats every 2 seconds when cache tab is active
-      const interval = setInterval(updateStats, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [activeTab, isOpen]);
-
-  const handleClearCache = () => {
-    cacheManager.clear();
-    setCacheStats(cacheManager.getStats());
-  };
+  const [activeTab, setActiveTab] = useState<
+    "filters" | "video" | "home"
+  >("filters");
 
   // Load video settings from localStorage or use defaults
   const [videoSettings, setVideoSettings] = useState<VideoSettingsType>(() => {
@@ -198,7 +184,6 @@ export const SettingsModal = ({
     { id: "filters" as const, label: "Filters", icon: Settings },
     { id: "video" as const, label: "Video", icon: Video },
     { id: "home" as const, label: "Home Feed", icon: Home },
-    { id: "cache" as const, label: "Cache", icon: Database },
   ];
 
   return (
@@ -297,81 +282,6 @@ export const SettingsModal = ({
             settings={homeFeedSettings}
             onSettingsChange={handleHomeFeedSettingsChange}
           />
-        )}
-
-        {activeTab === "cache" && (
-          <div className="space-y-6">
-            <div className="bg-gray-800/50 rounded-lg p-4">
-              <h3 className="font-medium mb-4 text-gray-300 flex items-center gap-2">
-                <Database size={18} />
-                Cache Statistics
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-orange-400">{cacheStats.hits}</div>
-                  <div className="text-sm text-gray-400">Cache Hits</div>
-                </div>
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-blue-400">{cacheStats.misses}</div>
-                  <div className="text-sm text-gray-400">Cache Misses</div>
-                </div>
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-green-400">{cacheStats.hitRatio}</div>
-                  <div className="text-sm text-gray-400">Hit Ratio</div>
-                </div>
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-purple-400">{cacheStats.cacheSize}</div>
-                  <div className="text-sm text-gray-400">Cached Items</div>
-                </div>
-              </div>
-              
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-lg font-semibold text-yellow-400">{cacheStats.requests}</div>
-                  <div className="text-sm text-gray-400">Total Requests</div>
-                </div>
-                <div className="bg-gray-900/50 rounded-lg p-3">
-                  <div className="text-lg font-semibold text-cyan-400">{cacheStats.deduplicated}</div>
-                  <div className="text-sm text-gray-400">Deduplicated</div>
-                </div>
-              </div>
-
-              <div className="mt-4 text-xs text-gray-500">
-                <p>• Cache hits: Requests served from cache (faster)</p>
-                <p>• Cache misses: Requests that required API calls</p>
-                <p>• Deduplicated: Identical concurrent requests that were combined</p>
-                <p>• Higher hit ratio = fewer Reddit API calls = less chance of rate limiting</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-300 flex items-center gap-2">
-                <RefreshCw size={18} />
-                Cache Management
-              </h3>
-              
-              <Button
-                onClick={handleClearCache}
-                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg transition-colors"
-              >
-                <Trash2 size={16} />
-                Clear All Cache
-              </Button>
-              
-              <div className="text-sm text-gray-400 space-y-2">
-                <p><strong>When to clear cache:</strong></p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>If you're seeing stale/old content</li>
-                  <li>If posts aren't updating as expected</li>
-                  <li>To free up browser memory</li>
-                  <li>After changing filter settings</li>
-                </ul>
-                <p className="mt-3">
-                  <strong>Note:</strong> Clearing cache will temporarily increase API requests until the cache rebuilds, but ensures you see the freshest content.
-                </p>
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </Modal>

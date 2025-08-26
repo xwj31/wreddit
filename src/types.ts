@@ -1,4 +1,9 @@
 // src/types.ts - Enhanced with gallery and multiple images support
+
+export interface User {
+  id: string;
+  created_at?: Date;
+}
 export interface RedditPost {
   id: string;
   title: string;

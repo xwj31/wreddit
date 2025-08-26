@@ -1,216 +1,76 @@
-import { useState, useEffect, useCallback } from "react";
-import { api } from "../api/reddit";
-import { storage } from "../utils/storage";
-import type { RedditPost, FilterOptions, BookmarkedPost } from "../types";
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '../api/reddit';
+import { storage } from '../utils/storage';
+import type { RedditPost, BookmarkedPost } from '../types';
 
-type HomeFeedSortOption = "new" | "score" | "comments";
-
-export const useAppData = () => {
+export const useAppData = (userId: string | null) => {
   const [posts, setPosts] = useState<RedditPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [after, setAfter] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
-  const [homeFeedPage, setHomeFeedPage] = useState(0);
-
-  const [subreddit, setSubreddit] = useState(() => storage.getSubreddit());
-  const [sort, setSort] = useState(() => storage.getSort());
-  const [filters, setFilters] = useState<FilterOptions>(() =>
-    storage.getFilters()
-  );
+  const [subreddits, setSubreddits] = useState<string[]>([]);
+  const [selectedSubreddit, setSelectedSubreddit] = useState<string>('all');
 
   useEffect(() => {
     setBookmarks(storage.getBookmarks());
   }, []);
 
-  useEffect(() => {
-    storage.saveFilters(filters);
-  }, [filters]);
-
-  useEffect(() => {
-    storage.saveSubreddit(subreddit);
-  }, [subreddit]);
-
-  useEffect(() => {
-    storage.saveSort(sort);
-  }, [sort]);
-
-  // Get home feed settings
-  const getHomeFeedSettings = useCallback((): {
-    sortBy: HomeFeedSortOption;
-  } => {
+  const fetchPosts = useCallback(async () => {
+    if (!userId) return;
+    
     try {
-      const saved = localStorage.getItem("wreddit-home-feed-settings");
-      return saved
-        ? JSON.parse(saved)
-        : { sortBy: "new" as HomeFeedSortOption };
-    } catch {
-      return { sortBy: "new" as HomeFeedSortOption };
+      setLoading(true);
+      setError(null);
+      console.log(`[${userId}] Fetching posts from API...`);
+      const fetchedPosts = await api.getUserPosts(userId);
+      console.log(`[${userId}] API returned ${fetchedPosts.length} posts`);
+      
+      // Filter posts by selected subreddit if not 'all'
+      const filteredPosts = selectedSubreddit === 'all' 
+        ? fetchedPosts 
+        : fetchedPosts.filter(p => p.subreddit.toLowerCase() === selectedSubreddit.toLowerCase());
+      
+      console.log(`[${userId}] After filtering by '${selectedSubreddit}': ${filteredPosts.length} posts`);
+      setPosts(filteredPosts);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`[${userId}] Error fetching posts:`, errorMessage);
+      setError(errorMessage);
+      setPosts([]);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [userId, selectedSubreddit]);
 
-  // Helper function to determine if we should use multi-subreddit feed
-  const shouldUseFavoritesFeed = useCallback(() => {
-    return subreddit === "home" && filters.favoriteSubreddits.length > 0;
-  }, [subreddit, filters.favoriteSubreddits]);
-
-  // Sort posts according to home feed settings
-  const sortPostsForHomeFeed = useCallback(
-    (posts: RedditPost[]): RedditPost[] => {
-      const settings = getHomeFeedSettings();
-
-      return [...posts].sort((a, b) => {
-        switch (settings.sortBy) {
-          case "score":
-            return b.score - a.score;
-          case "comments":
-            return b.num_comments - a.num_comments;
-          case "new":
-          default:
-            return b.created_utc - a.created_utc;
-        }
-      });
-    },
-    [getHomeFeedSettings]
-  );
-
-  // Function to fetch from multiple subreddits and combine results
-  const fetchMultipleSubreddits = useCallback(
-    async (subreddits: string[], reset = false, page?: number) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const currentPage = page !== undefined ? page : homeFeedPage;
-        
-        // Fetch from each subreddit with built-in spacing via the RequestQueue
-        // The API client already handles request spacing and caching
-        const promises = subreddits.map(async (sub) => {
-          try {
-            const data = await api.fetchPosts({
-              subreddit: sub,
-              sort,
-              after: !reset && currentPage > 0 ? `t3_page${currentPage}` : undefined,
-              filters: { ...filters, favoriteSubreddits: [] }, // Don't filter by favorites when fetching individual subs
-            });
-            return data.posts;
-          } catch (err) {
-            console.warn(`Failed to fetch from r/${sub}:`, err);
-            return [];
-          }
-        });
-
-        // Wait for all requests to complete
-        // The RequestQueue will handle spacing them appropriately
-        const results = await Promise.all(promises);
-        const allPosts = results.flat();
-
-        // Remove duplicates
-        const uniquePosts = allPosts.filter(
-          (post, index, self) =>
-            index === self.findIndex((p) => p.id === post.id)
-        );
-
-        // Sort according to home feed settings
-        const sortedPosts = sortPostsForHomeFeed(uniquePosts);
-
-        // Limit to reasonable number of posts
-        const limitedPosts = sortedPosts.slice(0, 25);
-
-        if (reset) {
-          setPosts(limitedPosts);
-          setHomeFeedPage(0);
-        } else {
-          setPosts((prev) => {
-            const combined = [...prev, ...limitedPosts];
-            // Remove duplicates again after combining
-            const uniqueCombined = combined.filter(
-              (post, index, self) =>
-                index === self.findIndex((p) => p.id === post.id)
-            );
-            return uniqueCombined;
-          });
-          setHomeFeedPage(currentPage + 1);
-        }
-
-        // Set a fake after token to enable Load More button
-        setAfter(limitedPosts.length > 0 ? "has_more" : null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [sort, filters, sortPostsForHomeFeed, homeFeedPage]
-  );
-
-  const fetchPosts = useCallback(
-    async (reset = false, afterToken?: string) => {
-      // Check if we should use the favorites feed
-      if (shouldUseFavoritesFeed()) {
-        return fetchMultipleSubreddits(
-          filters.favoriteSubreddits,
-          reset,
-          reset ? 0 : undefined
-        );
-      }
-
-      // Original single subreddit logic
-      try {
-        setLoading(true);
-        setError(null);
-
-        const currentAfter = afterToken !== undefined ? afterToken : after;
-        // Don't filter by favorites when viewing all/popular/specific subreddits
-        const filtersForRequest = { ...filters, favoriteSubreddits: [] };
-        const data = await api.fetchPosts({
-          subreddit,
-          sort,
-          after: !reset ? currentAfter || undefined : undefined,
-          filters: filtersForRequest,
-        });
-
-        if (reset) {
-          setPosts(data.posts);
-        } else {
-          setPosts((prev) => [...prev, ...data.posts]);
-        }
-
-        setAfter(data.after || null);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      subreddit,
-      sort,
-      filters,
-      shouldUseFavoritesFeed,
-      fetchMultipleSubreddits,
-    ]
-  );
+  const fetchSubreddits = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      const userSubreddits = await api.getUserSubreddits(userId);
+      setSubreddits(userSubreddits);
+    } catch (err) {
+      console.error('Failed to fetch subreddits:', err);
+      setSubreddits([]);
+    }
+  }, [userId]);
 
   useEffect(() => {
-    fetchPosts(true);
-    setAfter(null);
-  }, [subreddit, sort, filters, fetchPosts]);
-
-  const loadMorePosts = useCallback(() => {
-    if (shouldUseFavoritesFeed()) {
-      if (!loading) {
-        fetchMultipleSubreddits(filters.favoriteSubreddits, false, homeFeedPage + 1);
-      }
-      return;
+    if (userId) {
+      fetchPosts();
+      fetchSubreddits();
     }
+  }, [userId, fetchPosts, fetchSubreddits]);
 
-    if (after && !loading) {
-      fetchPosts(false, after);
+  // Refetch posts when subreddits list changes
+  useEffect(() => {
+    if (userId && subreddits.length >= 0) {
+      fetchPosts();
     }
-  }, [after, loading, fetchPosts, shouldUseFavoritesFeed, filters.favoriteSubreddits, homeFeedPage, fetchMultipleSubreddits]);
+  }, [subreddits.length, fetchPosts, userId]);
+
+  const refreshPosts = useCallback(() => {
+    return fetchPosts();
+  }, [fetchPosts]);
 
   const handleBookmarkToggle = useCallback((post: RedditPost) => {
     if (storage.isBookmarked(post.id)) {
@@ -221,37 +81,49 @@ export const useAppData = () => {
     setBookmarks(storage.getBookmarks());
   }, []);
 
-  const handleFavoriteToggle = useCallback(
-    (subredditName: string) => {
-      const currentFavorites = filters.favoriteSubreddits;
-      const isCurrentlyFavorite = currentFavorites.includes(
-        subredditName.toLowerCase()
-      );
+  const handleFavoriteToggle = useCallback(async (subredditName: string) => {
+    if (!userId) return;
+    
+    try {
+      const isCurrentlyFavorite = subreddits.includes(subredditName.toLowerCase());
+      
+      console.log(`[${userId}] Toggling subreddit: ${subredditName}, currently favorite: ${isCurrentlyFavorite}`);
+      
+      if (isCurrentlyFavorite) {
+        console.log(`[${userId}] Removing subreddit: ${subredditName}`);
+        await api.removeUserSubreddit(userId, subredditName);
+        setSubreddits(prev => prev.filter(s => s !== subredditName.toLowerCase()));
+      } else {
+        console.log(`[${userId}] Adding subreddit: ${subredditName}`);
+        await api.addUserSubreddit(userId, subredditName);
+        console.log(`[${userId}] Successfully added subreddit to database`);
+        setSubreddits(prev => [...prev, subredditName.toLowerCase()]);
+      }
+      
+      console.log(`[${userId}] Refreshing posts after subreddit toggle`);
+      // Refresh posts to get updated list
+      await fetchPosts();
+      console.log(`[${userId}] Posts refresh completed`);
+    } catch (err) {
+      console.error(`[${userId}] Failed to toggle favorite:`, err);
+    }
+  }, [userId, subreddits, fetchPosts]);
 
-      const newFavorites = isCurrentlyFavorite
-        ? currentFavorites.filter((fav) => fav !== subredditName.toLowerCase())
-        : [...currentFavorites, subredditName.toLowerCase()];
-
-      setFilters({ ...filters, favoriteSubreddits: newFavorites });
-    },
-    [filters]
-  );
+  const isFavorite = useCallback((subredditName: string): boolean => {
+    return subreddits.includes(subredditName.toLowerCase());
+  }, [subreddits]);
 
   return {
     posts,
     loading,
     error,
-    after,
     bookmarks,
-    subreddit,
-    sort,
-    filters,
-    setSubreddit,
-    setSort,
-    setFilters,
-    fetchPosts,
-    loadMorePosts,
+    subreddits,
+    selectedSubreddit,
+    setSelectedSubreddit,
+    refreshPosts,
     handleBookmarkToggle,
     handleFavoriteToggle,
+    isFavorite,
   };
 };
