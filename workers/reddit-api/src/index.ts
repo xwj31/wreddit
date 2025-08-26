@@ -213,13 +213,20 @@ export default {
       const userMatch = path.match(/^\/api\/users\/([^/]+)\/posts$/);
       if (userMatch && request.method === "GET") {
         const userId = userMatch[1];
-        const posts = await db.getUserPosts(userId);
-        return new Response(JSON.stringify({ posts }), {
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        });
+        console.log(`[${userId}] Getting user posts from database`);
+        try {
+          const posts = await db.getUserPosts(userId);
+          console.log(`[${userId}] Retrieved ${posts.length} posts from database`);
+          return new Response(JSON.stringify({ posts }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        } catch (error) {
+          console.error(`[${userId}] Error getting user posts:`, error);
+          throw error;
+        }
       }
 
       // Get user's subreddits
@@ -246,17 +253,21 @@ export default {
         console.log(`[${userId}] Processing ${action} for subreddit: ${subreddit}`);
 
         if (action === "add") {
+          console.log(`[${userId}] Adding subreddit to database: ${subreddit}`);
           await db.addUserSubreddit(userId, subreddit);
+          console.log(`[${userId}] Successfully added subreddit to database`);
           
           // Immediately fetch posts for the new subreddit
           try {
-            console.log(`Fetching posts for newly added subreddit: r/${subreddit}`);
+            console.log(`[${userId}] Fetching posts for newly added subreddit: r/${subreddit}`);
             const redditPosts = await fetchRedditPosts(subreddit, 25);
+            console.log(`[${userId}] Reddit API returned ${redditPosts.length} posts for r/${subreddit}`);
             
             if (redditPosts.length > 0) {
               const dbPosts = redditPosts.map(convertRedditPostToDb);
+              console.log(`[${userId}] Upserting ${dbPosts.length} posts to database for r/${subreddit}`);
               await db.upsertPosts(dbPosts);
-              console.log(`Stored ${dbPosts.length} posts for r/${subreddit}`);
+              console.log(`[${userId}] Successfully stored ${dbPosts.length} posts for r/${subreddit}`);
               
               // Fetch comments for first 10 posts
               for (const post of redditPosts.slice(0, 10)) {
@@ -270,9 +281,11 @@ export default {
                   console.error(`Error fetching comments for post ${post.id}:`, error);
                 }
               }
+            } else {
+              console.log(`[${userId}] No posts returned from Reddit for r/${subreddit}`);
             }
           } catch (error) {
-            console.error(`Error fetching posts for subreddit ${subreddit}:`, error);
+            console.error(`[${userId}] Error fetching posts for subreddit ${subreddit}:`, error);
           }
         } else if (action === "remove") {
           await db.removeUserSubreddit(userId, subreddit);

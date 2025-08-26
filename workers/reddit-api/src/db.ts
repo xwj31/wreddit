@@ -54,20 +54,25 @@ export const db = {
   },
 
   async getUserSubreddits(userId: string): Promise<string[]> {
+    console.log(`[DB] Getting subreddits for user ${userId}`);
     const result = await sql`
       SELECT subreddit FROM user_subreddits
       WHERE user_id = ${userId}
       ORDER BY created_at DESC
     `;
-    return result.map((row) => row.subreddit as string);
+    const subreddits = result.map((row) => row.subreddit as string);
+    console.log(`[DB] Found ${subreddits.length} subreddits for user: ${subreddits.join(', ')}`);
+    return subreddits;
   },
 
   async addUserSubreddit(userId: string, subreddit: string): Promise<void> {
+    console.log(`[DB] Adding subreddit ${subreddit} for user ${userId}`);
     await sql`
       INSERT INTO user_subreddits (user_id, subreddit, created_at)
       VALUES (${userId}, ${subreddit.toLowerCase()}, NOW())
       ON CONFLICT (user_id, subreddit) DO NOTHING
     `;
+    console.log(`[DB] Successfully added subreddit ${subreddit} for user ${userId}`);
   },
 
   async removeUserSubreddit(userId: string, subreddit: string): Promise<void> {
@@ -78,11 +83,16 @@ export const db = {
   },
 
   async getUserPosts(userId: string): Promise<DbPost[]> {
+    console.log(`[DB] Getting posts for user ${userId}`);
     const subreddits = await this.getUserSubreddits(userId);
+    console.log(`[DB] User has ${subreddits.length} subreddits: ${subreddits.join(', ')}`);
+    
     if (subreddits.length === 0) {
+      console.log(`[DB] No subreddits for user, returning empty array`);
       return [];
     }
 
+    console.log(`[DB] Querying posts for subreddits: ${subreddits.join(', ')}`);
     const result = await sql`
       SELECT * FROM posts
       WHERE subreddit = ANY(${subreddits})
@@ -90,12 +100,17 @@ export const db = {
       LIMIT 100
     `;
     
+    console.log(`[DB] Query returned ${result.length} posts`);
     return result as DbPost[];
   },
 
   async upsertPosts(posts: DbPost[]): Promise<void> {
-    if (posts.length === 0) return;
+    if (posts.length === 0) {
+      console.log(`[DB] No posts to upsert, returning`);
+      return;
+    }
     
+    console.log(`[DB] Upserting ${posts.length} posts`);
     const values = posts.map(p => ({
       id: p.id,
       subreddit: p.subreddit,
@@ -110,24 +125,31 @@ export const db = {
       preview_image_url: p.preview_image_url,
       selftext: p.selftext,
       is_video: p.is_video,
-      video_url: p.video_url
+      video_url: p.video_url,
+      updated_at: new Date()
     }));
 
-    await sql`
-      INSERT INTO posts (
-        id, subreddit, title, author, url, permalink, score,
-        num_comments, created_utc, thumbnail_url, preview_image_url,
-        selftext, is_video, video_url, updated_at
-      )
-      SELECT * FROM jsonb_populate_recordset(
-        NULL::posts,
-        ${JSON.stringify(values)}::jsonb
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        score = EXCLUDED.score,
-        num_comments = EXCLUDED.num_comments,
-        updated_at = NOW()
-    `;
+    try {
+      await sql`
+        INSERT INTO posts (
+          id, subreddit, title, author, url, permalink, score,
+          num_comments, created_utc, thumbnail_url, preview_image_url,
+          selftext, is_video, video_url, updated_at
+        )
+        SELECT * FROM jsonb_populate_recordset(
+          NULL::posts,
+          ${JSON.stringify(values)}::jsonb
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          score = EXCLUDED.score,
+          num_comments = EXCLUDED.num_comments,
+          updated_at = NOW()
+      `;
+      console.log(`[DB] Successfully upserted ${posts.length} posts`);
+    } catch (error) {
+      console.error(`[DB] Error upserting posts:`, error);
+      throw error;
+    }
   },
 
   async getPostComments(postId: string, limit = 10): Promise<DbComment[]> {
@@ -151,7 +173,8 @@ export const db = {
       score: c.score,
       created_utc: c.created_utc,
       parent_id: c.parent_id,
-      depth: c.depth || 0
+      depth: c.depth || 0,
+      updated_at: new Date()
     }));
 
     await sql`
