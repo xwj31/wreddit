@@ -39,23 +39,31 @@ const LoginScreen = ({
   const handleExistingUser = async () => {
     const uuid = existingUuid.trim();
     if (!uuid) return;
-    
+
     setError("");
-    
+
     // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(uuid)) {
-      setError('Please enter a valid UUID format (e.g., 550e8400-e29b-41d4-a716-446655440000)');
+      setError(
+        "Please enter a valid UUID format (e.g., 550e8400-e29b-41d4-a716-446655440000)"
+      );
       return;
     }
-    
+
     setLoading(true);
     try {
       await onLogin(uuid);
     } catch (err) {
       if (err instanceof Error) {
-        if (err.message.includes('Invalid user ID') || err.message.includes('UUID format')) {
-          setError('Invalid UUID format. Please check your UUID and try again.');
+        if (
+          err.message.includes("Invalid user ID") ||
+          err.message.includes("UUID format")
+        ) {
+          setError(
+            "Invalid UUID format. Please check your UUID and try again."
+          );
         } else {
           setError(err.message);
         }
@@ -149,6 +157,7 @@ export const App = () => {
   const {
     posts,
     loading,
+    refreshing,
     error,
     bookmarks,
     subreddits,
@@ -342,11 +351,18 @@ export const App = () => {
 
               <button
                 onClick={refreshPosts}
-                disabled={loading}
+                disabled={loading || refreshing}
                 className="p-2 text-gray-400 hover:text-white disabled:opacity-50"
+                title={
+                  refreshing
+                    ? "Refreshing posts from Reddit..."
+                    : "Refresh posts"
+                }
               >
                 <svg
-                  className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                  className={`w-5 h-5 ${
+                    loading || refreshing ? "animate-spin" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

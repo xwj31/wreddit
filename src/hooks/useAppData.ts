@@ -6,6 +6,7 @@ import type { RedditPost, BookmarkedPost } from '../types';
 export const useAppData = (userId: string | null) => {
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [subredditLoading, setSubredditLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
@@ -76,9 +77,27 @@ export const useAppData = (userId: string | null) => {
     }
   }, [userId, selectedSubreddit, fetchPosts]);
 
-  const refreshPosts = useCallback(() => {
-    return fetchPosts();
-  }, [fetchPosts]);
+  const refreshPosts = useCallback(async () => {
+    if (!userId) return;
+    
+    setRefreshing(true);
+    try {
+      // First trigger manual refresh of posts from Reddit
+      console.log(`[${userId}] Triggering manual refresh of posts from Reddit...`);
+      await api.refreshUserPosts(userId);
+      console.log(`[${userId}] Manual refresh completed, now fetching updated posts...`);
+    } catch (err) {
+      console.warn(`[${userId}] Manual refresh failed, continuing with regular fetch:`, err);
+      // Continue with regular fetch even if manual refresh fails
+    }
+    
+    // Then fetch the updated posts from the database
+    try {
+      await fetchPosts();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchPosts, userId]);
 
   const handleBookmarkToggle = useCallback((post: RedditPost) => {
     if (storage.isBookmarked(post.id)) {
@@ -127,6 +146,7 @@ export const useAppData = (userId: string | null) => {
   return {
     posts,
     loading,
+    refreshing,
     subredditLoading,
     error,
     bookmarks,

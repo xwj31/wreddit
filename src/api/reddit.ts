@@ -241,4 +241,23 @@ export const api = {
     
     console.log(`[API] Successfully set filter preference to ${filter}`);
   },
+
+  async refreshUserPosts(userId: string): Promise<void> {
+    console.log(`[API] Manually refreshing posts for user ${userId}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/refresh-posts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API] Failed to refresh posts: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to refresh posts: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json() as { success: boolean; message: string };
+    console.log(`[API] ${data.message}`);
+  },
 };

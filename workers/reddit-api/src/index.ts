@@ -732,6 +732,59 @@ export default {
         }
       }
 
+      // Manual refresh posts for user
+      const manualRefreshMatch = path.match(/^\/api\/users\/([^/]+)\/refresh-posts$/);
+      if (manualRefreshMatch && request.method === "POST") {
+        const userId = manualRefreshMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
+        console.log(`[${userId}] Manual refresh posts requested`);
+        
+        try {
+          await this.updateSubredditPosts(env, userId);
+          
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: "Posts refreshed successfully" 
+          }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        } catch (error) {
+          console.error(`[${userId}] Manual refresh failed:`, error);
+          return new Response(
+            JSON.stringify({ 
+              error: "Failed to refresh posts", 
+              message: error instanceof Error ? error.message : String(error) 
+            }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+      }
+
       // Initialize database schema (admin endpoint)
       if (path === "/api/admin/init-db" && request.method === "POST") {
         await db.initSchema();
@@ -768,37 +821,54 @@ export default {
     }
   },
 
-  async scheduled(
-    _controller: ScheduledController,
-    env: WorkerEnv
+  async updateSubredditPosts(
+    env: WorkerEnv,
+    targetUserId?: string
   ): Promise<void> {
-    console.log(
-      "Starting scheduled update of Reddit posts with per-user filters"
-    );
-    console.log(
-      `Environment check - DATABASE_URL exists: ${!!env?.DATABASE_URL}`
-    );
+    const logPrefix = targetUserId ? `[Manual-${targetUserId}]` : "[Scheduled]";
+    console.log(`${logPrefix} Starting update of Reddit posts with per-user filters`);
+    console.log(`${logPrefix} Environment check - DATABASE_URL exists: ${!!env?.DATABASE_URL}`);
 
     try {
       // Use environment-aware database connection
       const dbEnv = createDbWithEnv(env);
 
-      // Get all user filter preferences
-      const allFilterPreferences = await dbEnv.getAllUserFilterPreferences();
-      console.log(
-        `Found ${allFilterPreferences.length} users with filter preferences`
-      );
+      let allFilterPreferences;
+      let allSubreddits;
+
+      if (targetUserId) {
+        // Manual update for specific user
+        console.log(`${logPrefix} Updating posts for specific user: ${targetUserId}`);
+        
+        // Get user's subreddits
+        const userSubreddits = await dbEnv.getUserSubreddits(targetUserId);
+        console.log(`${logPrefix} Found ${userSubreddits.length} subreddits for user`);
+        
+        if (userSubreddits.length === 0) {
+          console.log(`${logPrefix} No subreddits found for user, nothing to update`);
+          return;
+        }
+        
+        // Get user's filter preference
+        const userPreference = await dbEnv.getUserFilterPreference(targetUserId);
+        const userFilter = userPreference?.reddit_sort_filter || "hot";
+        
+        allFilterPreferences = [{ reddit_sort_filter: userFilter }];
+        allSubreddits = userSubreddits;
+      } else {
+        // Scheduled update for all users
+        allFilterPreferences = await dbEnv.getAllUserFilterPreferences();
+        allSubreddits = await dbEnv.getAllUniqueSubreddits();
+      }
+
+      console.log(`${logPrefix} Found ${allFilterPreferences.length} filter preferences`);
+      console.log(`${logPrefix} Found ${allSubreddits.length} unique subreddits`);
 
       // Group subreddits by filter preference to minimize API calls
       const subredditsByFilter = new Map<string, Set<string>>();
 
-      // Get all unique subreddits and determine which filters are needed
-      const allSubreddits = await dbEnv.getAllUniqueSubreddits();
-      console.log(`Found ${allSubreddits.length} unique subreddits`);
-
       // For each subreddit, determine which filters we need to fetch
       for (const subreddit of allSubreddits) {
-        // Get all users who follow this subreddit and their filter preferences
         const filtersNeeded = new Set<string>();
 
         // Add default 'hot' filter for users without preferences
@@ -819,7 +889,7 @@ export default {
       }
 
       console.log(
-        `Will fetch posts using filters: ${Array.from(
+        `${logPrefix} Will fetch posts using filters: ${Array.from(
           subredditsByFilter.keys()
         ).join(", ")}`
       );
@@ -827,12 +897,12 @@ export default {
       // Fetch posts for each filter/subreddit combination
       for (const [filter, subreddits] of subredditsByFilter.entries()) {
         console.log(
-          `Processing ${subreddits.size} subreddits with ${filter} filter`
+          `${logPrefix} Processing ${subreddits.size} subreddits with ${filter} filter`
         );
 
         for (const subreddit of subreddits) {
           try {
-            console.log(`Fetching ${filter} posts for r/${subreddit}`);
+            console.log(`${logPrefix} Fetching ${filter} posts for r/${subreddit}`);
             const redditPosts = await fetchRedditPosts(
               subreddit,
               25,
@@ -843,7 +913,7 @@ export default {
               const dbPosts = redditPosts.map(convertRedditPostToDb);
               await dbEnv.upsertPosts(dbPosts);
               console.log(
-                `Stored ${dbPosts.length} ${filter} posts for r/${subreddit}`
+                `${logPrefix} Stored ${dbPosts.length} ${filter} posts for r/${subreddit}`
               );
 
               // Fetch comments for all posts
@@ -859,12 +929,12 @@ export default {
                     );
                     await dbEnv.upsertComments(dbComments);
                     console.log(
-                      `Stored ${dbComments.length} comments for post ${post.id}`
+                      `${logPrefix} Stored ${dbComments.length} comments for post ${post.id}`
                     );
                   }
                 } catch (error) {
                   console.error(
-                    `Error fetching comments for post ${post.id}:`,
+                    `${logPrefix} Error fetching comments for post ${post.id}:`,
                     error
                   );
                 }
@@ -872,17 +942,24 @@ export default {
             }
           } catch (error) {
             console.error(
-              `Error processing ${filter} posts for subreddit ${subreddit}:`,
+              `${logPrefix} Error processing ${filter} posts for subreddit ${subreddit}:`,
               error
             );
           }
         }
       }
 
-      console.log("Scheduled update completed successfully");
+      console.log(`${logPrefix} Update completed successfully`);
     } catch (error) {
-      console.error("Scheduled update failed:", error);
+      console.error(`${logPrefix} Update failed:`, error);
       throw error;
     }
+  },
+
+  async scheduled(
+    _controller: ScheduledController,
+    env: WorkerEnv
+  ): Promise<void> {
+    await this.updateSubredditPosts(env);
   },
 };
