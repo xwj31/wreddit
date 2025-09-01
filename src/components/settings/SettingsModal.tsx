@@ -23,6 +23,7 @@ export type SettingsModalProps = {
   filters: FilterOptions;
   onFiltersChange: (filters: FilterOptions) => void;
   userId?: string;
+  onRefreshPosts?: () => void;
 };
 
 type FilterListProps = {
@@ -117,6 +118,7 @@ export const SettingsModal = ({
   filters,
   onFiltersChange,
   userId,
+  onRefreshPosts,
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<
     "filters" | "video" | "home" | "reddit"
@@ -227,6 +229,12 @@ export const SettingsModal = ({
     try {
       await api.setUserFilterPreference(userId, newSettings.redditFilter);
       setRedditFilterSettings(newSettings);
+      
+      // Trigger a refresh to fetch posts with the new filter
+      if (onRefreshPosts) {
+        console.log(`[${userId}] Filter changed to ${newSettings.redditFilter}, triggering refresh...`);
+        onRefreshPosts();
+      }
     } catch (error) {
       console.error('Failed to update Reddit filter preference:', error);
       // TODO: Show error notification to user

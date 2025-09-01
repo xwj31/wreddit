@@ -292,6 +292,7 @@ export const App = () => {
         }}
         onFiltersChange={() => {}}
         userId={userId || undefined}
+        onRefreshPosts={refreshPosts}
       />
 
       <div className="sticky top-0 z-40 bg-black">

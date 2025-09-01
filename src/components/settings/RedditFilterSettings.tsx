@@ -112,7 +112,7 @@ export const RedditFilterSettings = ({
         </div>
         <div className="text-orange-300 text-xs">
           This setting determines which posts are fetched from Reddit for your subscribed subreddits.
-          Changes take effect during the next daily update at 1am.
+          When you change this setting, your posts will automatically refresh to show content from the new filter.
         </div>
       </div>
     </div>
