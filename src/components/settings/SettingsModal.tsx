@@ -17,7 +17,7 @@ import { RedditFilterSettings, type RedditFilterOption } from "./RedditFilterSet
 import { api } from "../../api/reddit";
 import type { FilterOptions } from "../../types";
 
-type SettingsModalProps = {
+export type SettingsModalProps = {
   isOpen: boolean;
   onClose: () => void;
   filters: FilterOptions;

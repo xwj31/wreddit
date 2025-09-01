@@ -3,7 +3,6 @@ import {
   type DbPost,
   type DbComment,
   type WorkerEnv,
-  type UserFilterPreference,
 } from "./db";
 
 interface RedditPost {
@@ -75,25 +74,27 @@ const corsHeaders = {
 async function fetchRedditPosts(
   subreddit: string,
   limit = 25,
-  sortFilter: 'hot' | 'top' | 'new' = 'hot'
+  sortFilter: "hot" | "top" | "new" = "hot"
 ): Promise<RedditPost[]> {
   let url: string;
-  
+
   switch (sortFilter) {
-    case 'hot':
+    case "hot":
       url = `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;
       break;
-    case 'top':
+    case "top":
       url = `https://www.reddit.com/r/${subreddit}/top.json?limit=${limit}&t=day`;
       break;
-    case 'new':
+    case "new":
       url = `https://www.reddit.com/r/${subreddit}/new.json?limit=${limit}`;
       break;
     default:
       url = `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`;
   }
 
-  console.log(`[REDDIT] Fetching ${sortFilter} posts from r/${subreddit}: ${url}`);
+  console.log(
+    `[REDDIT] Fetching ${sortFilter} posts from r/${subreddit}: ${url}`
+  );
 
   const response = await fetch(url, {
     headers: {
@@ -103,7 +104,9 @@ async function fetchRedditPosts(
   });
 
   if (!response.ok) {
-    console.error(`Failed to fetch ${sortFilter} posts from r/${subreddit}: ${response.status}`);
+    console.error(
+      `Failed to fetch ${sortFilter} posts from r/${subreddit}: ${response.status}`
+    );
     return [];
   }
 
@@ -477,13 +480,15 @@ export default {
       }
 
       // Get user's filter preference
-      const filterPreferenceMatch = path.match(/^\/api\/users\/([^/]+)\/filter-preferences$/);
+      const filterPreferenceMatch = path.match(
+        /^\/api\/users\/([^/]+)\/filter-preferences$/
+      );
       if (filterPreferenceMatch && request.method === "GET") {
         const userId = filterPreferenceMatch[1];
         console.log(`[${userId}] Getting filter preference`);
         try {
           const preference = await db.getUserFilterPreference(userId);
-          const filter = preference?.reddit_sort_filter || 'hot'; // Default to 'hot' if no preference
+          const filter = preference?.reddit_sort_filter || "hot"; // Default to 'hot' if no preference
           return new Response(JSON.stringify({ filter }), {
             headers: {
               "Content-Type": "application/json",
@@ -492,7 +497,7 @@ export default {
           });
         } catch (error) {
           console.error(`[${userId}] Error getting filter preference:`, error);
-          return new Response(JSON.stringify({ filter: 'hot' }), {
+          return new Response(JSON.stringify({ filter: "hot" }), {
             headers: {
               "Content-Type": "application/json",
               ...corsHeaders,
@@ -505,21 +510,28 @@ export default {
       if (filterPreferenceMatch && request.method === "PUT") {
         const userId = filterPreferenceMatch[1];
         try {
-          const { filter } = (await request.json()) as { filter: 'hot' | 'top' | 'new' };
-          
-          if (!['hot', 'top', 'new'].includes(filter)) {
-            return new Response(JSON.stringify({ error: 'Invalid filter. Must be hot, top, or new' }), {
-              status: 400,
-              headers: {
-                "Content-Type": "application/json",
-                ...corsHeaders,
-              },
-            });
+          const { filter } = (await request.json()) as {
+            filter: "hot" | "top" | "new";
+          };
+
+          if (!["hot", "top", "new"].includes(filter)) {
+            return new Response(
+              JSON.stringify({
+                error: "Invalid filter. Must be hot, top, or new",
+              }),
+              {
+                status: 400,
+                headers: {
+                  "Content-Type": "application/json",
+                  ...corsHeaders,
+                },
+              }
+            );
           }
-          
+
           console.log(`[${userId}] Setting filter preference to ${filter}`);
           await db.setUserFilterPreference(userId, filter);
-          
+
           return new Response(JSON.stringify({ success: true, filter }), {
             headers: {
               "Content-Type": "application/json",
@@ -528,13 +540,16 @@ export default {
           });
         } catch (error) {
           console.error(`[${userId}] Error setting filter preference:`, error);
-          return new Response(JSON.stringify({ error: 'Failed to set filter preference' }), {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          });
+          return new Response(
+            JSON.stringify({ error: "Failed to set filter preference" }),
+            {
+              status: 500,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
         }
       }
 
@@ -628,7 +643,9 @@ export default {
     _controller: ScheduledController,
     env: WorkerEnv
   ): Promise<void> {
-    console.log("Starting scheduled update of Reddit posts with per-user filters");
+    console.log(
+      "Starting scheduled update of Reddit posts with per-user filters"
+    );
     console.log(
       `Environment check - DATABASE_URL exists: ${!!env?.DATABASE_URL}`
     );
@@ -639,11 +656,13 @@ export default {
 
       // Get all user filter preferences
       const allFilterPreferences = await dbEnv.getAllUserFilterPreferences();
-      console.log(`Found ${allFilterPreferences.length} users with filter preferences`);
+      console.log(
+        `Found ${allFilterPreferences.length} users with filter preferences`
+      );
 
       // Group subreddits by filter preference to minimize API calls
       const subredditsByFilter = new Map<string, Set<string>>();
-      
+
       // Get all unique subreddits and determine which filters are needed
       const allSubreddits = await dbEnv.getAllUniqueSubreddits();
       console.log(`Found ${allSubreddits.length} unique subreddits`);
@@ -652,10 +671,10 @@ export default {
       for (const subreddit of allSubreddits) {
         // Get all users who follow this subreddit and their filter preferences
         const filtersNeeded = new Set<string>();
-        
+
         // Add default 'hot' filter for users without preferences
-        filtersNeeded.add('hot');
-        
+        filtersNeeded.add("hot");
+
         // Add filters from user preferences
         for (const preference of allFilterPreferences) {
           filtersNeeded.add(preference.reddit_sort_filter);
@@ -670,26 +689,41 @@ export default {
         }
       }
 
-      console.log(`Will fetch posts using filters: ${Array.from(subredditsByFilter.keys()).join(', ')}`);
+      console.log(
+        `Will fetch posts using filters: ${Array.from(
+          subredditsByFilter.keys()
+        ).join(", ")}`
+      );
 
       // Fetch posts for each filter/subreddit combination
       for (const [filter, subreddits] of subredditsByFilter.entries()) {
-        console.log(`Processing ${subreddits.size} subreddits with ${filter} filter`);
-        
+        console.log(
+          `Processing ${subreddits.size} subreddits with ${filter} filter`
+        );
+
         for (const subreddit of subreddits) {
           try {
             console.log(`Fetching ${filter} posts for r/${subreddit}`);
-            const redditPosts = await fetchRedditPosts(subreddit, 25, filter as 'hot' | 'top' | 'new');
+            const redditPosts = await fetchRedditPosts(
+              subreddit,
+              25,
+              filter as "hot" | "top" | "new"
+            );
 
             if (redditPosts.length > 0) {
               const dbPosts = redditPosts.map(convertRedditPostToDb);
               await dbEnv.upsertPosts(dbPosts);
-              console.log(`Stored ${dbPosts.length} ${filter} posts for r/${subreddit}`);
+              console.log(
+                `Stored ${dbPosts.length} ${filter} posts for r/${subreddit}`
+              );
 
               // Fetch comments for all posts
               for (const post of redditPosts) {
                 try {
-                  const comments = await fetchRedditComments(post.permalink, 10);
+                  const comments = await fetchRedditComments(
+                    post.permalink,
+                    10
+                  );
                   if (comments.length > 0) {
                     const dbComments = comments.map((c) =>
                       convertRedditCommentToDb(c, post.id)
@@ -708,7 +742,10 @@ export default {
               }
             }
           } catch (error) {
-            console.error(`Error processing ${filter} posts for subreddit ${subreddit}:`, error);
+            console.error(
+              `Error processing ${filter} posts for subreddit ${subreddit}:`,
+              error
+            );
           }
         }
       }
