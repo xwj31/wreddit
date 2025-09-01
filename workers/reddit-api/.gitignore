@@ -1,5 +1,5 @@
 # Development environment files containing sensitive data
-dev.env
+.dev.env
 .env
 .env.local
 
