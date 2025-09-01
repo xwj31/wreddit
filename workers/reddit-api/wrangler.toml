@@ -9,6 +9,11 @@ crons = ["0 1 * * *"]
 [vars]
 REDDIT_USER_AGENT = "WReddit/1.0.0"
 
+# Development environment configuration
+[env.development]
+name = "reddit-api-worker-dev"
+vars = { REDDIT_USER_AGENT = "WReddit/1.0.0" }
+
 [env.production]
 name = "reddit-api-worker"
 

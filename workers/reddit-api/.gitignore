@@ -1,0 +1,13 @@
+# Development environment files containing sensitive data
+dev.env
+.env
+.env.local
+
+# Wrangler
+.wrangler/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log

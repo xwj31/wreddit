@@ -55,6 +55,13 @@ export type DbComment = {
   updated_at: Date;
 };
 
+export type UserFilterPreference = {
+  user_id: string;
+  reddit_sort_filter: 'hot' | 'top' | 'new';
+  created_at: Date;
+  updated_at: Date;
+};
+
 // Legacy db object - will throw errors if DATABASE_URL secret is not configured
 // Use createDbWithEnv(env) instead for proper secret handling
 const createLegacyDbError = (methodName: string) => {
@@ -374,6 +381,54 @@ export const createDbWithEnv = (env?: WorkerEnv) => {
       await envSql`
         CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id)
       `;
+
+      await envSql`
+        CREATE TABLE IF NOT EXISTS user_filter_preferences (
+          user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+          reddit_sort_filter TEXT NOT NULL DEFAULT 'hot' CHECK (reddit_sort_filter IN ('hot', 'top', 'new')),
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `;
+    },
+
+    async getUserFilterPreference(userId: string): Promise<UserFilterPreference | null> {
+      console.log(`[DB] Getting filter preference for user ${userId}`);
+      const result = await envSql`
+        SELECT * FROM user_filter_preferences
+        WHERE user_id = ${userId}
+      `;
+      
+      if (result.length === 0) {
+        console.log(`[DB] No filter preference found for user ${userId}, returning null`);
+        return null;
+      }
+      
+      const preference = result[0] as UserFilterPreference;
+      console.log(`[DB] Found filter preference for user ${userId}: ${preference.reddit_sort_filter}`);
+      return preference;
+    },
+
+    async setUserFilterPreference(userId: string, filter: 'hot' | 'top' | 'new'): Promise<void> {
+      console.log(`[DB] Setting filter preference for user ${userId} to ${filter}`);
+      await envSql`
+        INSERT INTO user_filter_preferences (user_id, reddit_sort_filter, created_at, updated_at)
+        VALUES (${userId}, ${filter}, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE SET
+          reddit_sort_filter = EXCLUDED.reddit_sort_filter,
+          updated_at = NOW()
+      `;
+      console.log(`[DB] Successfully set filter preference for user ${userId} to ${filter}`);
+    },
+
+    async getAllUserFilterPreferences(): Promise<UserFilterPreference[]> {
+      console.log(`[DB] Getting all user filter preferences`);
+      const result = await envSql`
+        SELECT * FROM user_filter_preferences
+        ORDER BY created_at DESC
+      `;
+      console.log(`[DB] Found ${result.length} user filter preferences`);
+      return result as UserFilterPreference[];
     },
   };
 };

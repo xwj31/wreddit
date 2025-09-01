@@ -193,4 +193,41 @@ export const api = {
       throw new Error(`Failed to initialize database: ${response.status}`);
     }
   },
+
+  async getUserFilterPreference(userId: string): Promise<'hot' | 'top' | 'new'> {
+    console.log(`[API] Fetching filter preference for user ${userId}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/filter-preferences`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`[API] Failed to fetch filter preference: ${response.status}, defaulting to 'hot'`);
+      return 'hot'; // Default fallback
+    }
+
+    const data = await response.json() as { filter: 'hot' | 'top' | 'new' };
+    console.log(`[API] Retrieved filter preference: ${data.filter}`);
+    return data.filter;
+  },
+
+  async setUserFilterPreference(userId: string, filter: 'hot' | 'top' | 'new'): Promise<void> {
+    console.log(`[API] Setting filter preference for user ${userId} to ${filter}`);
+    const response = await fetch(`${WORKER_URL}/api/users/${userId}/filter-preferences`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ filter }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[API] Failed to set filter preference: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to set filter preference: ${response.status} - ${errorText}`);
+    }
+    
+    console.log(`[API] Successfully set filter preference to ${filter}`);
+  },
 };

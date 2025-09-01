@@ -192,3 +192,6 @@ export interface VideoInfo {
 
 // Home feed settings type
 export type HomeFeedSortOption = "new" | "score" | "comments";
+
+// Reddit filter settings type
+export type RedditFilterOption = "hot" | "top" | "new";

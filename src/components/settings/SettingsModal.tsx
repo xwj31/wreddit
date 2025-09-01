@@ -1,17 +1,20 @@
 // src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   X,
   Settings,
   Video,
   Home,
+  Flame,
 } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
 import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
+import { RedditFilterSettings, type RedditFilterOption } from "./RedditFilterSettings";
+import { api } from "../../api/reddit";
 import type { FilterOptions } from "../../types";
 
 type SettingsModalProps = {
@@ -19,6 +22,7 @@ type SettingsModalProps = {
   onClose: () => void;
   filters: FilterOptions;
   onFiltersChange: (filters: FilterOptions) => void;
+  userId?: string;
 };
 
 type FilterListProps = {
@@ -39,6 +43,10 @@ type VideoSettingsType = {
 
 type HomeFeedSettingsType = {
   sortBy: HomeFeedSortOption;
+};
+
+type RedditFilterSettingsType = {
+  redditFilter: RedditFilterOption;
 };
 
 const FilterList = ({
@@ -108,9 +116,10 @@ export const SettingsModal = ({
   onClose,
   filters,
   onFiltersChange,
+  userId,
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<
-    "filters" | "video" | "home"
+    "filters" | "video" | "home" | "reddit"
   >("filters");
 
   // Load video settings from localStorage or use defaults
@@ -152,6 +161,34 @@ export const SettingsModal = ({
       }
     });
 
+  // Reddit filter settings state (loaded from API)
+  const [redditFilterSettings, setRedditFilterSettings] =
+    useState<RedditFilterSettingsType>({
+      redditFilter: "hot" as RedditFilterOption,
+    });
+
+  const [redditFilterLoading, setRedditFilterLoading] = useState(false);
+
+  // Load Reddit filter preference from API when modal opens
+  useEffect(() => {
+    const loadRedditFilterPreference = async () => {
+      if (isOpen && userId) {
+        setRedditFilterLoading(true);
+        try {
+          const filter = await api.getUserFilterPreference(userId);
+          setRedditFilterSettings({ redditFilter: filter });
+        } catch (error) {
+          console.error('Failed to load Reddit filter preference:', error);
+          // Keep default value
+        } finally {
+          setRedditFilterLoading(false);
+        }
+      }
+    };
+
+    loadRedditFilterPreference();
+  }, [isOpen, userId]);
+
   const updateFilter = (key: keyof FilterOptions, items: string[]) => {
     onFiltersChange({ ...filters, [key]: items });
   };
@@ -180,10 +217,29 @@ export const SettingsModal = ({
     }
   };
 
+  const handleRedditFilterSettingsChange = async (newSettings: RedditFilterSettingsType) => {
+    if (!userId) {
+      console.warn('Cannot update Reddit filter preference: no user ID');
+      return;
+    }
+
+    setRedditFilterLoading(true);
+    try {
+      await api.setUserFilterPreference(userId, newSettings.redditFilter);
+      setRedditFilterSettings(newSettings);
+    } catch (error) {
+      console.error('Failed to update Reddit filter preference:', error);
+      // TODO: Show error notification to user
+    } finally {
+      setRedditFilterLoading(false);
+    }
+  };
+
   const tabs = [
     { id: "filters" as const, label: "Filters", icon: Settings },
     { id: "video" as const, label: "Video", icon: Video },
     { id: "home" as const, label: "Home Feed", icon: Home },
+    { id: "reddit" as const, label: "Reddit Filter", icon: Flame },
   ];
 
   return (
@@ -281,6 +337,14 @@ export const SettingsModal = ({
           <HomeFeedSettings
             settings={homeFeedSettings}
             onSettingsChange={handleHomeFeedSettingsChange}
+          />
+        )}
+
+        {activeTab === "reddit" && (
+          <RedditFilterSettings
+            settings={redditFilterSettings}
+            onSettingsChange={handleRedditFilterSettingsChange}
+            loading={redditFilterLoading}
           />
         )}
       </div>
