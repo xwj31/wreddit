@@ -71,6 +71,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 async function fetchRedditPosts(
   subreddit: string,
   limit = 25,
@@ -319,6 +324,23 @@ export default {
       const userMatch = path.match(/^\/api\/users\/([^/]+)\/posts$/);
       if (userMatch && request.method === "GET") {
         const userId = userMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         console.log(`[${userId}] Getting user posts from database`);
         try {
           const dbPosts = await db.getUserPosts(userId);
@@ -342,6 +364,23 @@ export default {
       const homeFeedMatch = path.match(/^\/api\/users\/([^/]+)\/home-feed$/);
       if (homeFeedMatch && request.method === "GET") {
         const userId = homeFeedMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         console.log(`[${userId}] Getting user home feed from database`);
         try {
           const dbPosts = await db.getUserHomeFeed(userId);
@@ -365,6 +404,23 @@ export default {
       const subredditsMatch = path.match(/^\/api\/users\/([^/]+)\/subreddits$/);
       if (subredditsMatch && request.method === "GET") {
         const userId = subredditsMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         const subreddits = await db.getUserSubreddits(userId);
         return new Response(JSON.stringify({ subreddits }), {
           headers: {
@@ -377,6 +433,23 @@ export default {
       // Add/remove subreddit
       if (subredditsMatch && request.method === "POST") {
         const userId = subredditsMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         const { action, subreddit } = (await request.json()) as {
           action: "add" | "remove";
           subreddit: string;
@@ -485,6 +558,23 @@ export default {
       );
       if (filterPreferenceMatch && request.method === "GET") {
         const userId = filterPreferenceMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         console.log(`[${userId}] Getting filter preference`);
         try {
           const preference = await db.getUserFilterPreference(userId);
@@ -509,6 +599,23 @@ export default {
       // Update user's filter preference
       if (filterPreferenceMatch && request.method === "PUT") {
         const userId = filterPreferenceMatch[1];
+        
+        if (!isValidUUID(userId)) {
+          return new Response(
+            JSON.stringify({
+              error: "Invalid user ID",
+              message: "User ID must be a valid UUID format",
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders,
+              },
+            }
+          );
+        }
+        
         try {
           const { filter } = (await request.json()) as {
             filter: "hot" | "top" | "new";

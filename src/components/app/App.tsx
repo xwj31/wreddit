@@ -22,21 +22,46 @@ const LoginScreen = ({
 }) => {
   const [existingUuid, setExistingUuid] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleNewUser = async () => {
     setLoading(true);
+    setError("");
     try {
       await onLogin();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
       setLoading(false);
     }
   };
 
   const handleExistingUser = async () => {
-    if (!existingUuid.trim()) return;
+    const uuid = existingUuid.trim();
+    if (!uuid) return;
+    
+    setError("");
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(uuid)) {
+      setError('Please enter a valid UUID format (e.g., 550e8400-e29b-41d4-a716-446655440000)');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await onLogin(existingUuid.trim());
+      await onLogin(uuid);
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid user ID') || err.message.includes('UUID format')) {
+          setError('Invalid UUID format. Please check your UUID and try again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("Failed to login");
+      }
     } finally {
       setLoading(false);
     }
@@ -49,6 +74,12 @@ const LoginScreen = ({
           <h1 className="text-3xl font-bold mb-2">Welcome to WReddit</h1>
           <p className="text-gray-400">A minimal Reddit client</p>
         </div>
+
+        {error && (
+          <div className="bg-red-600 rounded-lg p-4 text-center">
+            <p className="text-white">{error}</p>
+          </div>
+        )}
 
         <div className="bg-gray-900 rounded-lg p-6 space-y-4">
           <div>
@@ -75,7 +106,7 @@ const LoginScreen = ({
             <h2 className="text-xl font-semibold mb-4">Existing User</h2>
             <input
               type="text"
-              placeholder="Enter your UUID"
+              placeholder="Enter your UUID (e.g., 550e8400-e29b-41d4-a716-446655440000)"
               value={existingUuid}
               onChange={(e) => setExistingUuid(e.target.value)}
               className="w-full px-4 py-2 bg-black rounded-lg border border-gray-700 focus:border-orange-500 focus:outline-none mb-2"
@@ -105,6 +136,7 @@ export const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [searchTerm] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const {
     userId,
@@ -276,9 +308,19 @@ export const App = () => {
             </button>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">
-                ID: {userId?.substring(0, 8)}
-              </span>
+              <button
+                onClick={async () => {
+                  if (userId) {
+                    await navigator.clipboard.writeText(userId);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }
+                }}
+                className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                title="Click to copy full UUID"
+              >
+                {copied ? "Copied!" : `ID: ${userId?.substring(0, 8)}...`}
+              </button>
               <button
                 onClick={logout}
                 className="p-2 text-gray-400 hover:text-white"
