@@ -9,12 +9,14 @@ type RedditFilterSettingsProps = {
   };
   onSettingsChange: (settings: RedditFilterSettingsProps["settings"]) => void;
   loading?: boolean;
+  userId?: string;
 };
 
 export const RedditFilterSettings = ({
   settings,
   onSettingsChange,
   loading = false,
+  userId,
 }: RedditFilterSettingsProps) => {
   const setRedditFilter = (redditFilter: RedditFilterOption) => {
     onSettingsChange({
@@ -54,6 +56,17 @@ export const RedditFilterSettings = ({
         Reddit Post Filter
       </h3>
 
+      {!userId && (
+        <div className="p-3 bg-yellow-900/20 rounded-lg border border-yellow-800/30">
+          <div className="text-yellow-400 text-sm mb-1 font-medium">
+            Login Required
+          </div>
+          <div className="text-yellow-300 text-xs">
+            You need to be logged in to change your Reddit filter preference. Please create an account or log in with an existing UUID.
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-gray-300">Daily Post Fetch Filter</h4>
         <p className="text-xs text-gray-400">
@@ -67,13 +80,13 @@ export const RedditFilterSettings = ({
           return (
             <Button
               key={option.key}
-              onClick={() => !loading && setRedditFilter(option.key)}
-              disabled={loading}
+              onClick={() => !loading && !userId ? undefined : setRedditFilter(option.key)}
+              disabled={loading || !userId}
               className={`w-full p-4 rounded-lg border transition-all ${
                 isSelected
                   ? "bg-gray-700/50 border-orange-500 text-white"
                   : "bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600"
-              } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${loading || !userId ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <div className="flex items-center gap-3">
                 <div

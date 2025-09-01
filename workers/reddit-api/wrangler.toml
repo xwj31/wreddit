@@ -8,11 +8,12 @@ crons = ["0 1 * * *"]
 
 [vars]
 REDDIT_USER_AGENT = "WReddit/1.0.0"
+DATABASE_URL = "postgresql://neondb_owner:npg_UbgEQXkwSe76@ep-lively-butterfly-aecppncl-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require"
 
 # Development environment configuration
 [env.development]
 name = "reddit-api-worker-dev"
-vars = { REDDIT_USER_AGENT = "WReddit/1.0.0" }
+vars = { REDDIT_USER_AGENT = "WReddit/1.0.0", DATABASE_URL = "postgresql://neondb_owner:npg_UbgEQXkwSe76@ep-lively-butterfly-aecppncl-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require" }
 
 [env.production]
 name = "reddit-api-worker"

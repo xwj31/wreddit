@@ -1,19 +1,15 @@
 // src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  X,
-  Settings,
-  Video,
-  Home,
-  Flame,
-} from "lucide-react";
+import { Plus, X, Settings, Video, Home, Flame } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
 import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
-import { RedditFilterSettings, type RedditFilterOption } from "./RedditFilterSettings";
+import {
+  RedditFilterSettings,
+  type RedditFilterOption,
+} from "./RedditFilterSettings";
 import { api } from "../../api/reddit";
 import type { FilterOptions } from "../../types";
 
@@ -180,7 +176,7 @@ export const SettingsModal = ({
           const filter = await api.getUserFilterPreference(userId);
           setRedditFilterSettings({ redditFilter: filter });
         } catch (error) {
-          console.error('Failed to load Reddit filter preference:', error);
+          console.error("Failed to load Reddit filter preference:", error);
           // Keep default value
         } finally {
           setRedditFilterLoading(false);
@@ -219,9 +215,11 @@ export const SettingsModal = ({
     }
   };
 
-  const handleRedditFilterSettingsChange = async (newSettings: RedditFilterSettingsType) => {
+  const handleRedditFilterSettingsChange = async (
+    newSettings: RedditFilterSettingsType
+  ) => {
     if (!userId) {
-      console.warn('Cannot update Reddit filter preference: no user ID');
+      console.warn("Cannot update Reddit filter preference: no user ID");
       return;
     }
 
@@ -229,14 +227,16 @@ export const SettingsModal = ({
     try {
       await api.setUserFilterPreference(userId, newSettings.redditFilter);
       setRedditFilterSettings(newSettings);
-      
+
       // Trigger a refresh to fetch posts with the new filter
       if (onRefreshPosts) {
-        console.log(`[${userId}] Filter changed to ${newSettings.redditFilter}, triggering refresh...`);
+        console.log(
+          `[${userId}] Filter changed to ${newSettings.redditFilter}, triggering refresh...`
+        );
         onRefreshPosts();
       }
     } catch (error) {
-      console.error('Failed to update Reddit filter preference:', error);
+      console.error("Failed to update Reddit filter preference:", error);
       // TODO: Show error notification to user
     } finally {
       setRedditFilterLoading(false);
@@ -353,6 +353,7 @@ export const SettingsModal = ({
             settings={redditFilterSettings}
             onSettingsChange={handleRedditFilterSettingsChange}
             loading={redditFilterLoading}
+            userId={userId}
           />
         )}
       </div>
