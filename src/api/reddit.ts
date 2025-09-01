@@ -131,21 +131,32 @@ export const api = {
     return data.comments;
   },
 
-  async loadMoreComments(postId: string, permalink: string): Promise<RedditComment[]> {
+  async loadMoreComments(postId: string, permalink: string, limit = 100): Promise<RedditComment[]> {
+    console.log(`[CLIENT] Loading more comments for post ${postId} from Reddit (limit: ${limit})`);
+    
     const response = await fetch(`${WORKER_URL}/api/posts/${postId}/comments/more`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ permalink }),
+      body: JSON.stringify({ permalink, limit }),
     });
 
     if (!response.ok) {
-      console.warn(`Failed to load more comments for ${postId}: ${response.status}`);
+      console.warn(`[CLIENT] Failed to load more comments for ${postId}: ${response.status}`);
+      const errorText = await response.text();
+      console.warn(`[CLIENT] Error response: ${errorText}`);
       return [];
     }
 
-    const data = await response.json() as { comments: RedditComment[] };
+    const data = await response.json() as { comments: RedditComment[]; error?: string };
+    
+    if (data.error) {
+      console.warn(`[CLIENT] Server error loading more comments: ${data.error}`);
+      return [];
+    }
+    
+    console.log(`[CLIENT] Successfully loaded ${data.comments.length} more comments for post ${postId}`);
     return data.comments;
   },
 

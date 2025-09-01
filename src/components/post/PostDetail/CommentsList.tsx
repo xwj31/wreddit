@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUp, ChevronDown, ChevronUp, MessageSquarePlus } from "lucide-react";
 import { formatTimeAgo, formatScore } from "../../../utils";
 import { Button } from "../../ui/Button";
 import { LinkifiedText } from "../../../utils/linkParser";
@@ -8,6 +8,9 @@ import type { RedditComment } from "../../../types";
 type CommentsListProps = {
   comments: RedditComment[];
   loading: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
+  canLoadMore?: boolean;
 };
 
 type CommentProps = {
@@ -124,7 +127,13 @@ const Comment = ({ comment, depth }: CommentProps) => {
   );
 };
 
-export const CommentsList = ({ comments, loading }: CommentsListProps) => {
+export const CommentsList = ({ 
+  comments, 
+  loading, 
+  onLoadMore, 
+  loadingMore = false, 
+  canLoadMore = false 
+}: CommentsListProps) => {
   if (loading) {
     return (
       <div className="p-4 text-center text-gray-400">Loading comments...</div>
@@ -140,6 +149,28 @@ export const CommentsList = ({ comments, loading }: CommentsListProps) => {
       {comments.map((comment) => (
         <Comment key={comment.id} comment={comment} depth={0} />
       ))}
+      
+      {canLoadMore && onLoadMore && (
+        <div className="mt-6 pt-4 border-t border-gray-800">
+          <Button
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-500 border-t-transparent" />
+                <span>Loading more comments from Reddit...</span>
+              </>
+            ) : (
+              <>
+                <MessageSquarePlus size={18} />
+                <span>Load more comments from Reddit</span>
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

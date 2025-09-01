@@ -695,19 +695,41 @@ export default {
         /^\/api\/posts\/([^/]+)\/comments\/more$/
       );
       if (moreCommentsMatch && request.method === "POST") {
-        const { permalink } = (await request.json()) as { permalink: string };
-        const comments = await fetchRedditComments(permalink, 50);
         const postId = moreCommentsMatch[1];
-
-        const dbComments = comments.map((c) =>
-          convertRedditCommentToDb(c, postId)
-        );
-        return new Response(JSON.stringify({ comments: dbComments }), {
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        });
+        const { permalink, limit = 100 } = (await request.json()) as { 
+          permalink: string; 
+          limit?: number; 
+        };
+        
+        console.log(`[REDDIT] Fetching more comments for post ${postId} from ${permalink} with limit ${limit}`);
+        
+        try {
+          const comments = await fetchRedditComments(permalink, limit);
+          const dbComments = comments.map((c) =>
+            convertRedditCommentToDb(c, postId)
+          );
+          
+          console.log(`[REDDIT] Successfully fetched ${dbComments.length} more comments for post ${postId}`);
+          
+          return new Response(JSON.stringify({ comments: dbComments }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        } catch (error) {
+          console.error(`[REDDIT] Error fetching more comments for post ${postId}:`, error);
+          return new Response(JSON.stringify({ 
+            comments: [], 
+            error: 'Failed to fetch more comments from Reddit' 
+          }), {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          });
+        }
       }
 
       // Initialize database schema (admin endpoint)

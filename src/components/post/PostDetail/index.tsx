@@ -44,6 +44,8 @@ export const PostDetail = ({
 }: PostDetailProps) => {
   const [comments, setComments] = useState<RedditComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
+  const [loadingMoreComments, setLoadingMoreComments] = useState(false);
+  const [allCommentsLoaded, setAllCommentsLoaded] = useState(false);
   const [showFullText, setShowFullText] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
 
@@ -55,13 +57,50 @@ export const PostDetail = ({
   useEffect(() => {
     const fetchComments = async () => {
       setLoadingComments(true);
+      setAllCommentsLoaded(false);
       const fetchedComments = await api.getPostComments(post.id);
       setComments(fetchedComments);
       setLoadingComments(false);
+      
+      // If we got fewer than 10 comments from the database, we might be able to load more from Reddit
+      // This is a heuristic - in practice, we could also check if there are "more" objects in the Reddit response
+      setAllCommentsLoaded(fetchedComments.length < 5);
     };
 
     fetchComments();
   }, [post.id, post.permalink]);
+
+  const handleLoadMoreComments = async () => {
+    if (loadingMoreComments || allCommentsLoaded) return;
+    
+    setLoadingMoreComments(true);
+    try {
+      const moreComments = await api.loadMoreComments(post.id, post.permalink, 100);
+      
+      if (moreComments.length === 0) {
+        setAllCommentsLoaded(true);
+      } else {
+        // Merge new comments with existing ones, avoiding duplicates
+        const existingIds = new Set(comments.map(c => c.id));
+        const newComments = moreComments.filter(c => !existingIds.has(c.id));
+        
+        if (newComments.length === 0) {
+          setAllCommentsLoaded(true);
+        } else {
+          setComments(prevComments => [...prevComments, ...newComments]);
+          
+          // If we got fewer comments than requested, assume we've loaded all available
+          if (moreComments.length < 100) {
+            setAllCommentsLoaded(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load more comments:', error);
+    } finally {
+      setLoadingMoreComments(false);
+    }
+  };
 
   const handleShare = async () => {
     const success = await sharePost(post);
@@ -283,7 +322,13 @@ export const PostDetail = ({
               <RefreshCw size={24} className="animate-spin text-orange-500" />
             </div>
           ) : (
-            <CommentsList comments={comments} loading={loadingComments} />
+            <CommentsList 
+              comments={comments} 
+              loading={loadingComments}
+              onLoadMore={handleLoadMoreComments}
+              loadingMore={loadingMoreComments}
+              canLoadMore={!allCommentsLoaded}
+            />
           )}
         </div>
       </div>
