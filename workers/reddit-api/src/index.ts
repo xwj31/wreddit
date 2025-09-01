@@ -1,4 +1,9 @@
-import { db, type DbPost, type DbComment } from "./db";
+import {
+  createDbWithEnv,
+  type DbPost,
+  type DbComment,
+  type WorkerEnv,
+} from "./db";
 
 interface RedditPost {
   id: string;
@@ -93,7 +98,7 @@ async function fetchRedditComments(
   limit = 10
 ): Promise<RedditComment[]> {
   const url = `https://www.reddit.com${permalink}.json`;
-  
+
   console.log(`[REDDIT] Fetching comments from: ${url}`);
 
   const response = await fetch(url, {
@@ -123,22 +128,32 @@ async function fetchRedditComments(
     const commentData = data[1] as {
       data: { children: Array<{ kind: string; data: RedditComment }> };
     };
-    
-    console.log(`[REDDIT] Comment children count: ${commentData.data.children.length}`);
-    
+
+    console.log(
+      `[REDDIT] Comment children count: ${commentData.data.children.length}`
+    );
+
     for (const child of commentData.data.children.slice(0, limit)) {
       if (child.kind === "t1") {
         comments.push(child.data);
-        console.log(`[REDDIT] Added comment by ${child.data.author}: ${child.data.body.substring(0, 50)}...`);
+        console.log(
+          `[REDDIT] Added comment by ${
+            child.data.author
+          }: ${child.data.body.substring(0, 50)}...`
+        );
       } else {
-        console.log(`[REDDIT] Skipped non-comment child with kind: ${child.kind}`);
+        console.log(
+          `[REDDIT] Skipped non-comment child with kind: ${child.kind}`
+        );
       }
     }
   } else {
     console.log(`[REDDIT] No valid comment data found in response`);
   }
 
-  console.log(`[REDDIT] Returning ${comments.length} comments for ${permalink}`);
+  console.log(
+    `[REDDIT] Returning ${comments.length} comments for ${permalink}`
+  );
   return comments;
 }
 
@@ -200,9 +215,13 @@ function convertRedditCommentToDb(
     depth: comment.depth || 0,
     updated_at: new Date(),
   };
-  
-  console.log(`[CONVERT] Converting comment ${comment.id} for post ${postId}: author=${comment.author}, depth=${comment.depth || 0}, body_length=${comment.body.length}`);
-  
+
+  console.log(
+    `[CONVERT] Converting comment ${comment.id} for post ${postId}: author=${
+      comment.author
+    }, depth=${comment.depth || 0}, body_length=${comment.body.length}`
+  );
+
   return dbComment;
 }
 
@@ -218,32 +237,41 @@ function convertDbPostToReddit(dbPost: DbPost): RedditPost {
     num_comments: dbPost.num_comments,
     created_utc: dbPost.created_utc,
     thumbnail: dbPost.thumbnail_url || undefined,
-    preview: dbPost.preview_image_url ? {
-      images: [{
-        source: { 
-          url: dbPost.preview_image_url,
-          width: 0,
-          height: 0
+    preview: dbPost.preview_image_url
+      ? {
+          images: [
+            {
+              source: {
+                url: dbPost.preview_image_url,
+                width: 0,
+                height: 0,
+              },
+            },
+          ],
         }
-      }]
-    } : undefined,
+      : undefined,
     selftext: dbPost.selftext || undefined,
     is_video: dbPost.is_video,
-    media: dbPost.video_url ? {
-      reddit_video: {
-        fallback_url: dbPost.video_url
-      }
-    } : undefined,
-    secure_media: dbPost.video_url ? {
-      reddit_video: {
-        fallback_url: dbPost.video_url
-      }
-    } : undefined,
+    media: dbPost.video_url
+      ? {
+          reddit_video: {
+            fallback_url: dbPost.video_url,
+          },
+        }
+      : undefined,
+    secure_media: dbPost.video_url
+      ? {
+          reddit_video: {
+            fallback_url: dbPost.video_url,
+          },
+        }
+      : undefined,
   };
 }
 
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: WorkerEnv): Promise<Response> {
+    const db = createDbWithEnv(env);
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -273,7 +301,9 @@ export default {
         console.log(`[${userId}] Getting user posts from database`);
         try {
           const dbPosts = await db.getUserPosts(userId);
-          console.log(`[${userId}] Retrieved ${dbPosts.length} posts from database`);
+          console.log(
+            `[${userId}] Retrieved ${dbPosts.length} posts from database`
+          );
           const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
             headers: {
@@ -294,7 +324,9 @@ export default {
         console.log(`[${userId}] Getting user home feed from database`);
         try {
           const dbPosts = await db.getUserHomeFeed(userId);
-          console.log(`[${userId}] Retrieved ${dbPosts.length} posts for home feed`);
+          console.log(
+            `[${userId}] Retrieved ${dbPosts.length} posts for home feed`
+          );
           const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
             headers: {
@@ -329,51 +361,90 @@ export default {
           subreddit: string;
         };
 
-        console.log(`[${userId}] Processing ${action} for subreddit: ${subreddit}`);
+        console.log(
+          `[${userId}] Processing ${action} for subreddit: ${subreddit}`
+        );
 
         if (action === "add") {
           console.log(`[${userId}] Adding subreddit to database: ${subreddit}`);
           await db.addUserSubreddit(userId, subreddit);
           console.log(`[${userId}] Successfully added subreddit to database`);
-          
+
           // Immediately fetch posts for the new subreddit
           try {
-            console.log(`[${userId}] Fetching posts for newly added subreddit: r/${subreddit}`);
+            console.log(
+              `[${userId}] Fetching posts for newly added subreddit: r/${subreddit}`
+            );
             const redditPosts = await fetchRedditPosts(subreddit, 25);
-            console.log(`[${userId}] Reddit API returned ${redditPosts.length} posts for r/${subreddit}`);
-            
+            console.log(
+              `[${userId}] Reddit API returned ${redditPosts.length} posts for r/${subreddit}`
+            );
+
             if (redditPosts.length > 0) {
               const dbPosts = redditPosts.map(convertRedditPostToDb);
-              console.log(`[${userId}] Upserting ${dbPosts.length} posts to database for r/${subreddit}`);
+              console.log(
+                `[${userId}] Upserting ${dbPosts.length} posts to database for r/${subreddit}`
+              );
               await db.upsertPosts(dbPosts);
-              console.log(`[${userId}] Successfully stored ${dbPosts.length} posts for r/${subreddit}`);
-              
+              console.log(
+                `[${userId}] Successfully stored ${dbPosts.length} posts for r/${subreddit}`
+              );
+
               // Fetch comments for all posts
-              console.log(`[${userId}] Starting to fetch comments for ${redditPosts.length} posts`);
+              console.log(
+                `[${userId}] Starting to fetch comments for ${redditPosts.length} posts`
+              );
               for (const post of redditPosts) {
                 try {
-                  console.log(`[${userId}] Fetching comments for post ${post.id} (${post.title.substring(0, 50)}...)`);
-                  const comments = await fetchRedditComments(post.permalink, 10);
-                  console.log(`[${userId}] Reddit API returned ${comments.length} comments for post ${post.id}`);
-                  
+                  console.log(
+                    `[${userId}] Fetching comments for post ${
+                      post.id
+                    } (${post.title.substring(0, 50)}...)`
+                  );
+                  const comments = await fetchRedditComments(
+                    post.permalink,
+                    10
+                  );
+                  console.log(
+                    `[${userId}] Reddit API returned ${comments.length} comments for post ${post.id}`
+                  );
+
                   if (comments.length > 0) {
-                    const dbComments = comments.map(c => convertRedditCommentToDb(c, post.id));
-                    console.log(`[${userId}] Converted ${dbComments.length} comments to DB format for post ${post.id}`);
+                    const dbComments = comments.map((c) =>
+                      convertRedditCommentToDb(c, post.id)
+                    );
+                    console.log(
+                      `[${userId}] Converted ${dbComments.length} comments to DB format for post ${post.id}`
+                    );
                     await db.upsertComments(dbComments);
-                    console.log(`[${userId}] Successfully stored ${dbComments.length} comments for post ${post.id}`);
+                    console.log(
+                      `[${userId}] Successfully stored ${dbComments.length} comments for post ${post.id}`
+                    );
                   } else {
-                    console.log(`[${userId}] No comments to store for post ${post.id}`);
+                    console.log(
+                      `[${userId}] No comments to store for post ${post.id}`
+                    );
                   }
                 } catch (error) {
-                  console.error(`[${userId}] Error fetching comments for post ${post.id}:`, error);
+                  console.error(
+                    `[${userId}] Error fetching comments for post ${post.id}:`,
+                    error
+                  );
                 }
               }
-              console.log(`[${userId}] Finished fetching comments for all posts`);
+              console.log(
+                `[${userId}] Finished fetching comments for all posts`
+              );
             } else {
-              console.log(`[${userId}] No posts returned from Reddit for r/${subreddit}`);
+              console.log(
+                `[${userId}] No posts returned from Reddit for r/${subreddit}`
+              );
             }
           } catch (error) {
-            console.error(`[${userId}] Error fetching posts for subreddit ${subreddit}:`, error);
+            console.error(
+              `[${userId}] Error fetching posts for subreddit ${subreddit}:`,
+              error
+            );
           }
         } else if (action === "remove") {
           await db.removeUserSubreddit(userId, subreddit);
@@ -394,7 +465,9 @@ export default {
         console.log(`[API] Getting comments for post ${postId}`);
         try {
           const comments = await db.getPostComments(postId);
-          console.log(`[API] Retrieved ${comments.length} comments for post ${postId}`);
+          console.log(
+            `[API] Retrieved ${comments.length} comments for post ${postId}`
+          );
           return new Response(JSON.stringify({ comments }), {
             headers: {
               "Content-Type": "application/json",
@@ -402,7 +475,10 @@ export default {
             },
           });
         } catch (error) {
-          console.error(`[API] Error getting comments for post ${postId}:`, error);
+          console.error(
+            `[API] Error getting comments for post ${postId}:`,
+            error
+          );
           return new Response(JSON.stringify({ comments: [] }), {
             headers: {
               "Content-Type": "application/json",
@@ -468,12 +544,21 @@ export default {
     }
   },
 
-  async scheduled(): Promise<void> {
+  async scheduled(
+    _controller: ScheduledController,
+    env: WorkerEnv
+  ): Promise<void> {
     console.log("Starting scheduled update of Reddit posts");
+    console.log(
+      `Environment check - DATABASE_URL exists: ${!!env?.DATABASE_URL}`
+    );
 
     try {
+      // Use environment-aware database connection
+      const dbEnv = createDbWithEnv(env);
+
       // Get all unique subreddits from all users
-      const subreddits = await db.getAllUniqueSubreddits();
+      const subreddits = await dbEnv.getAllUniqueSubreddits();
       console.log(`Found ${subreddits.length} unique subreddits to update`);
 
       // Fetch posts for each subreddit
@@ -484,7 +569,7 @@ export default {
 
           if (redditPosts.length > 0) {
             const dbPosts = redditPosts.map(convertRedditPostToDb);
-            await db.upsertPosts(dbPosts);
+            await dbEnv.upsertPosts(dbPosts);
             console.log(`Stored ${dbPosts.length} posts for r/${subreddit}`);
 
             // Fetch comments for all posts (not just first 10)
@@ -495,7 +580,7 @@ export default {
                   const dbComments = comments.map((c) =>
                     convertRedditCommentToDb(c, post.id)
                   );
-                  await db.upsertComments(dbComments);
+                  await dbEnv.upsertComments(dbComments);
                   console.log(
                     `Stored ${dbComments.length} comments for post ${post.id}`
                   );
