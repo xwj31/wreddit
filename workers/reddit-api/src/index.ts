@@ -324,7 +324,7 @@ export default {
       const userMatch = path.match(/^\/api\/users\/([^/]+)\/posts$/);
       if (userMatch && request.method === "GET") {
         const userId = userMatch[1];
-        
+
         if (!isValidUUID(userId)) {
           return new Response(
             JSON.stringify({
@@ -340,12 +340,16 @@ export default {
             }
           );
         }
-        
+
         console.log(`[${userId}] Getting user posts from database`);
         try {
-          const dbPosts = await db.getUserPosts(userId);
+          // Get user's filter preference
+          const preference = await db.getUserFilterPreference(userId);
+          const sortFilter = preference?.reddit_sort_filter || 'hot';
+
+          const dbPosts = await db.getUserPosts(userId, sortFilter);
           console.log(
-            `[${userId}] Retrieved ${dbPosts.length} posts from database`
+            `[${userId}] Retrieved ${dbPosts.length} posts from database with ${sortFilter} filter`
           );
           const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
@@ -364,7 +368,7 @@ export default {
       const homeFeedMatch = path.match(/^\/api\/users\/([^/]+)\/home-feed$/);
       if (homeFeedMatch && request.method === "GET") {
         const userId = homeFeedMatch[1];
-        
+
         if (!isValidUUID(userId)) {
           return new Response(
             JSON.stringify({
@@ -380,12 +384,16 @@ export default {
             }
           );
         }
-        
+
         console.log(`[${userId}] Getting user home feed from database`);
         try {
-          const dbPosts = await db.getUserHomeFeed(userId);
+          // Get user's filter preference
+          const preference = await db.getUserFilterPreference(userId);
+          const sortFilter = preference?.reddit_sort_filter || 'hot';
+
+          const dbPosts = await db.getUserHomeFeed(userId, sortFilter);
           console.log(
-            `[${userId}] Retrieved ${dbPosts.length} posts for home feed`
+            `[${userId}] Retrieved ${dbPosts.length} posts for home feed with ${sortFilter} filter`
           );
           const posts = dbPosts.map(convertDbPostToReddit);
           return new Response(JSON.stringify({ posts }), {
