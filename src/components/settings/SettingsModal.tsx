@@ -1,11 +1,10 @@
 // src/components/settings/SettingsModal.tsx - Enhanced with home feed settings
 import { useState, useEffect } from "react";
-import { Plus, X, Settings, Video, Home, Flame } from "lucide-react";
+import { Plus, X, Settings, Video, Flame } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { VideoSettings } from "./VideoSettings";
-import { HomeFeedSettings, type HomeFeedSortOption } from "./HomeFeedSettings";
 import {
   RedditFilterSettings,
   type RedditFilterOption,
@@ -36,10 +35,6 @@ type VideoSettingsType = {
   muteByDefault: boolean;
   showVideoIndicators: boolean;
   preferHighQuality: boolean;
-};
-
-type HomeFeedSettingsType = {
-  sortBy: HomeFeedSortOption;
 };
 
 type RedditFilterSettingsType = {
@@ -117,7 +112,7 @@ export const SettingsModal = ({
   onRefreshPosts,
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<
-    "filters" | "video" | "home" | "reddit"
+    "filters" | "video" | "reddit"
   >("filters");
 
   // Load video settings from localStorage or use defaults
@@ -141,23 +136,6 @@ export const SettingsModal = ({
       };
     }
   });
-
-  // Load home feed settings from localStorage or use defaults
-  const [homeFeedSettings, setHomeFeedSettings] =
-    useState<HomeFeedSettingsType>(() => {
-      try {
-        const saved = localStorage.getItem("wreddit-home-feed-settings");
-        return saved
-          ? JSON.parse(saved)
-          : {
-              sortBy: "new" as HomeFeedSortOption,
-            };
-      } catch {
-        return {
-          sortBy: "new" as HomeFeedSortOption,
-        };
-      }
-    });
 
   // Reddit filter settings state (loaded from API)
   const [redditFilterSettings, setRedditFilterSettings] =
@@ -203,18 +181,6 @@ export const SettingsModal = ({
     }
   };
 
-  const handleHomeFeedSettingsChange = (newSettings: HomeFeedSettingsType) => {
-    setHomeFeedSettings(newSettings);
-    try {
-      localStorage.setItem(
-        "wreddit-home-feed-settings",
-        JSON.stringify(newSettings)
-      );
-    } catch {
-      // Fail silently
-    }
-  };
-
   const handleRedditFilterSettingsChange = async (
     newSettings: RedditFilterSettingsType
   ) => {
@@ -246,7 +212,6 @@ export const SettingsModal = ({
   const tabs = [
     { id: "filters" as const, label: "Filters", icon: Settings },
     { id: "video" as const, label: "Video", icon: Video },
-    { id: "home" as const, label: "Home Feed", icon: Home },
     { id: "reddit" as const, label: "Reddit Filter", icon: Flame },
   ];
 
@@ -338,13 +303,6 @@ export const SettingsModal = ({
           <VideoSettings
             settings={videoSettings}
             onSettingsChange={handleVideoSettingsChange}
-          />
-        )}
-
-        {activeTab === "home" && (
-          <HomeFeedSettings
-            settings={homeFeedSettings}
-            onSettingsChange={handleHomeFeedSettingsChange}
           />
         )}
 

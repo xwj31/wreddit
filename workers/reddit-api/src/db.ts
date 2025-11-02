@@ -163,33 +163,62 @@ export const createDbWithEnv = (env?: WorkerEnv) => {
       `;
     },
 
-    async getUserPosts(userId: string): Promise<DbPost[]> {
-      console.log(`[DB] Getting posts for user ${userId}`);
+    async getUserPosts(userId: string, sortFilter: 'hot' | 'top' | 'new' = 'hot'): Promise<DbPost[]> {
+      console.log(`[DB] Getting posts for user ${userId} with filter ${sortFilter}`);
 
-      const result = await envSql`
-        SELECT p.* FROM posts p
-        INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
-        WHERE us.user_id = ${userId}
-        ORDER BY p.created_utc DESC
-        LIMIT 100
-      `;
+      // Determine sort order based on filter
+      // - new: sort by created_utc (newest first)
+      // - top: sort by score (highest first)
+      // - hot: sort by score (approximation of Reddit's hot algorithm)
+      let result;
+      if (sortFilter === 'new') {
+        result = await envSql`
+          SELECT p.* FROM posts p
+          INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+          WHERE us.user_id = ${userId}
+          ORDER BY p.created_utc DESC
+          LIMIT 100
+        `;
+      } else {
+        // hot and top both use score
+        result = await envSql`
+          SELECT p.* FROM posts p
+          INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+          WHERE us.user_id = ${userId}
+          ORDER BY p.score DESC
+          LIMIT 100
+        `;
+      }
 
-      console.log(`[DB] Query returned ${result.length} posts`);
+      console.log(`[DB] Query returned ${result.length} posts with ${sortFilter} filter`);
       return result as DbPost[];
     },
 
-    async getUserHomeFeed(userId: string): Promise<DbPost[]> {
-      console.log(`[DB] Getting home feed for user ${userId}`);
+    async getUserHomeFeed(userId: string, sortFilter: 'hot' | 'top' | 'new' = 'hot'): Promise<DbPost[]> {
+      console.log(`[DB] Getting home feed for user ${userId} with filter ${sortFilter}`);
 
-      const result = await envSql`
-        SELECT p.* FROM posts p
-        INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
-        WHERE us.user_id = ${userId}
-        ORDER BY p.created_utc DESC
-        LIMIT 25
-      `;
+      // Determine sort order based on filter
+      let result;
+      if (sortFilter === 'new') {
+        result = await envSql`
+          SELECT p.* FROM posts p
+          INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+          WHERE us.user_id = ${userId}
+          ORDER BY p.created_utc DESC
+          LIMIT 25
+        `;
+      } else {
+        // hot and top both use score
+        result = await envSql`
+          SELECT p.* FROM posts p
+          INNER JOIN user_subreddits us ON p.subreddit = us.subreddit
+          WHERE us.user_id = ${userId}
+          ORDER BY p.score DESC
+          LIMIT 25
+        `;
+      }
 
-      console.log(`[DB] Home feed query returned ${result.length} posts`);
+      console.log(`[DB] Home feed query returned ${result.length} posts with ${sortFilter} filter`);
       return result as DbPost[];
     },
 
